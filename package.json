@@ -1,0 +1,9 @@
+{
+  "name": "jingce-wanxiang",
+  "version": "1.0.0",
+  "private": true,
+  "description": "景策万象——轻量化世界模型驱动的景区全程自适应游览决策系统",
+  "scripts": {
+    "start": "node server/index.js"
+  }
+}
