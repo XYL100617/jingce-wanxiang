@@ -1,0 +1,5 @@
+{
+  "event_type": "ROAD_CLOSE",
+  "target_id": "edge_missing",
+  "timestamp": "not-a-timestamp"
+}

@@ -1,0 +1,6 @@
+{
+  "event_type": "ROAD_CLOSE",
+  "target_id": "edge_001",
+  "timestamp": "2026-10-20 10:48:00",
+  "duration_min": 60
+}

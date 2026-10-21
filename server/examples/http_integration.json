@@ -1,0 +1,339 @@
+{
+  "queue_spike": {
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/scenario-event",
+      "body": {
+        "event_type": "QUEUE_SPIKE",
+        "target_id": "market",
+        "timestamp": "2026-10-20T10:23:00.000Z",
+        "duration_min": 45
+      }
+    },
+    "target_id": "market",
+    "non_target_id": "museum",
+    "points": [
+      {
+        "offset_min": 0,
+        "baseline": {
+          "status": 200,
+          "queue_min": 6,
+          "crowd_ratio": 0.62,
+          "crowd_level": "MEDIUM",
+          "open": true
+        },
+        "event": {
+          "status": 200,
+          "queue_min": 6,
+          "crowd_ratio": 0.62,
+          "crowd_level": "MEDIUM",
+          "open": true
+        }
+      },
+      {
+        "offset_min": 5,
+        "baseline": {
+          "status": 200,
+          "queue_min": 6.1,
+          "crowd_ratio": 0.62,
+          "crowd_level": "MEDIUM",
+          "open": true
+        },
+        "event": {
+          "status": 200,
+          "queue_min": 30.1,
+          "crowd_ratio": 0.82,
+          "crowd_level": "HIGH",
+          "open": true
+        }
+      },
+      {
+        "offset_min": 20,
+        "baseline": {
+          "status": 200,
+          "queue_min": 6.4,
+          "crowd_ratio": 0.63,
+          "crowd_level": "MEDIUM",
+          "open": true
+        },
+        "event": {
+          "status": 200,
+          "queue_min": 30.4,
+          "crowd_ratio": 0.83,
+          "crowd_level": "HIGH",
+          "open": true
+        }
+      },
+      {
+        "offset_min": 50,
+        "baseline": {
+          "status": 200,
+          "queue_min": 7,
+          "crowd_ratio": 0.64,
+          "crowd_level": "MEDIUM",
+          "open": true
+        },
+        "event": {
+          "status": 200,
+          "queue_min": 7,
+          "crowd_ratio": 0.64,
+          "crowd_level": "MEDIUM",
+          "open": true
+        }
+      }
+    ],
+    "non_target_at_5": {
+      "baseline": {
+        "status": 200,
+        "queue_min": 12.1,
+        "crowd_ratio": 0.35,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      "event": {
+        "status": 200,
+        "queue_min": 12.1,
+        "crowd_ratio": 0.35,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    },
+    "replan": {
+      "method": "POST",
+      "path": "/api/replan",
+      "baseline": {
+        "status": 200,
+        "queue": 41.34,
+        "utility": 42.3,
+        "minutes": 20.21
+      },
+      "event": {
+        "status": 200,
+        "queue": 66.32,
+        "utility": 25,
+        "minutes": 20.46
+      }
+    }
+  },
+  "road_close": {
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/scenario-event",
+      "body": {
+        "event_type": "ROAD_CLOSE",
+        "target_id": "edge_001"
+      }
+    },
+    "points": [
+      {
+        "offset_min": 29,
+        "result": {
+          "status": 200,
+          "travel_time_min": 6.12,
+          "available": true
+        }
+      },
+      {
+        "offset_min": 30,
+        "result": {
+          "status": 200,
+          "travel_time_min": 6.12,
+          "available": false
+        }
+      },
+      {
+        "offset_min": 89,
+        "result": {
+          "status": 200,
+          "travel_time_min": 6.36,
+          "available": false
+        }
+      },
+      {
+        "offset_min": 90,
+        "result": {
+          "status": 200,
+          "travel_time_min": 6.36,
+          "available": true
+        }
+      }
+    ],
+    "immediate_close_navigation": {
+      "request": {
+        "event_type": "ROAD_CLOSE",
+        "target_id": "edge_001",
+        "timestamp": "2026-10-20 10:18:00",
+        "duration_min": 60
+      },
+      "baseline": {
+        "status": 200,
+        "path": [
+          "gate",
+          "southgate"
+        ],
+        "totalMinutes": 6,
+        "edge_ids": [
+          "edge_001"
+        ]
+      },
+      "event": {
+        "status": 200,
+        "path": [
+          "gate",
+          "market",
+          "temple",
+          "southgate"
+        ],
+        "totalMinutes": 17.07,
+        "edge_ids": [
+          "edge_002",
+          "edge_020",
+          "edge_003"
+        ]
+      },
+      "blocked_status": 409,
+      "blocked_response": {
+        "error": "No feasible route",
+        "from": "gate",
+        "to": "southgate"
+      }
+    }
+  },
+  "road_slowdown": {
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/scenario-event",
+      "body": {
+        "event_type": "ROAD_SLOWDOWN",
+        "target_id": "edge_001"
+      }
+    },
+    "points": [
+      {
+        "offset_min": 0,
+        "baseline": {
+          "status": 200,
+          "travel_time_min": 6,
+          "available": true
+        },
+        "event": {
+          "status": 200,
+          "travel_time_min": 10.8,
+          "available": true
+        }
+      },
+      {
+        "offset_min": 20,
+        "baseline": {
+          "status": 200,
+          "travel_time_min": 6.08,
+          "available": true
+        },
+        "event": {
+          "status": 200,
+          "travel_time_min": 10.94,
+          "available": true
+        }
+      },
+      {
+        "offset_min": 60,
+        "baseline": {
+          "status": 200,
+          "travel_time_min": 6.24,
+          "available": true
+        },
+        "event": {
+          "status": 200,
+          "travel_time_min": 6.24,
+          "available": true
+        }
+      }
+    ],
+    "navigation": {
+      "baseline": {
+        "status": 200,
+        "path": [
+          "gate",
+          "southgate"
+        ],
+        "totalMinutes": 6,
+        "edge_ids": [
+          "edge_001"
+        ]
+      },
+      "event": {
+        "status": 200,
+        "path": [
+          "gate",
+          "southgate"
+        ],
+        "totalMinutes": 10.8,
+        "edge_ids": [
+          "edge_001"
+        ]
+      }
+    },
+    "future_entry": {
+      "target_id": "edge_020",
+      "start_offset_min": 5,
+      "before": {
+        "status": 200,
+        "travel_time_min": 7,
+        "available": true
+      },
+      "at_start": {
+        "status": 200,
+        "travel_time_min": 12.64,
+        "available": true
+      },
+      "navigation": {
+        "status": 200,
+        "path": [
+          "gate",
+          "market",
+          "lake",
+          "temple",
+          "southgate"
+        ],
+        "totalMinutes": 21.11,
+        "edge_ids": [
+          "edge_002",
+          "edge_006",
+          "edge_004",
+          "edge_003"
+        ]
+      }
+    }
+  },
+  "errors": [
+    {
+      "method": "GET",
+      "path": "/api/v1/environment-forecast?horizon=-1",
+      "status": 400,
+      "response": {
+        "error": "Invalid horizon"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/environment-forecast?step=abc",
+      "status": 400,
+      "response": {
+        "error": "Invalid step"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/scenario-event",
+      "body": {
+        "event_type": "ROAD_CLOSE",
+        "target_id": "edge_missing",
+        "timestamp": "not-a-timestamp"
+      },
+      "status": 404,
+      "response": {
+        "error": "Unknown edge_id: edge_missing"
+      }
+    }
+  ]
+}

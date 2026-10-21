@@ -1,0 +1,6 @@
+{
+  "NORMAL": { "queue_drift_per_hour": 1.2, "crowd_drift_per_hour": 0.025, "road_delay_per_hour": 0.04 },
+  "QUEUE_SPIKE": { "target_id": "theater", "start_offset_min": 20, "duration_min": 45, "queue_increase_min": 24, "crowd_increase": 0.2 },
+  "ROAD_CLOSE": { "target_id": "edge_001", "start_offset_min": 30, "duration_min": 60 },
+  "ROAD_SLOWDOWN": { "start_offset_min": 0, "duration_min": 60, "travel_time_multiplier": 1.8 }
+}

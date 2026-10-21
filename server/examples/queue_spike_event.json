@@ -1,0 +1,6 @@
+{
+  "event_type": "QUEUE_SPIKE",
+  "target_id": "theater",
+  "timestamp": "2026-10-20 10:38:00",
+  "severity": "high"
+}

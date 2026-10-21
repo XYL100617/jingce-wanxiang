@@ -1,0 +1,199 @@
+{
+  "schema_version": "0.1",
+  "scenario_id": "demo_001",
+  "state_version": "state_0001",
+  "timestamp": "2026-10-20 10:18:00",
+  "visitor": {
+    "visitor_id": "visitor_001",
+    "current_node_id": "gate",
+    "remaining_time_min": 272,
+    "fatigue": 0.12,
+    "walked_distance_m": 0,
+    "visited_poi_ids": [],
+    "preference": null
+  },
+  "weather": {
+    "label": "晴间多云",
+    "temp": 27,
+    "uv": 6,
+    "rain": 0.08
+  },
+  "poi_states": {
+    "lake": {
+      "open": true,
+      "queue_min": 4,
+      "crowd_ratio": 0.41,
+      "crowd_level": "MEDIUM"
+    },
+    "market": {
+      "open": true,
+      "queue_min": 6,
+      "crowd_ratio": 0.62,
+      "crowd_level": "MEDIUM"
+    },
+    "museum": {
+      "open": true,
+      "queue_min": 12,
+      "crowd_ratio": 0.35,
+      "crowd_level": "LOW"
+    },
+    "longtan": {
+      "open": true,
+      "queue_min": 4,
+      "crowd_ratio": 0.29,
+      "crowd_level": "LOW"
+    },
+    "forest": {
+      "open": true,
+      "queue_min": 3,
+      "crowd_ratio": 0.28,
+      "crowd_level": "LOW"
+    },
+    "theater": {
+      "open": true,
+      "queue_min": 22,
+      "crowd_ratio": 0.76,
+      "crowd_level": "HIGH"
+    },
+    "shizipo": {
+      "open": true,
+      "queue_min": 15,
+      "crowd_ratio": 0.64,
+      "crowd_level": "MEDIUM"
+    },
+    "summit": {
+      "open": true,
+      "queue_min": 8,
+      "crowd_ratio": 0.58,
+      "crowd_level": "MEDIUM"
+    },
+    "rest": {
+      "open": true,
+      "queue_min": 0,
+      "crowd_ratio": 0.32,
+      "crowd_level": "LOW"
+    },
+    "temple": {
+      "open": true,
+      "queue_min": 2,
+      "crowd_ratio": 0.25,
+      "crowd_level": "LOW"
+    },
+    "juxianzhuang": {
+      "open": true,
+      "queue_min": 8,
+      "crowd_ratio": 0.48,
+      "crowd_level": "MEDIUM"
+    }
+  },
+  "road_states": {
+    "edge_001": {
+      "available": true,
+      "travel_time_min": 6
+    },
+    "edge_002": {
+      "available": true,
+      "travel_time_min": 5
+    },
+    "edge_003": {
+      "available": true,
+      "travel_time_min": 5
+    },
+    "edge_004": {
+      "available": true,
+      "travel_time_min": 6
+    },
+    "edge_005": {
+      "available": true,
+      "travel_time_min": 5
+    },
+    "edge_006": {
+      "available": true,
+      "travel_time_min": 5
+    },
+    "edge_007": {
+      "available": true,
+      "travel_time_min": 4
+    },
+    "edge_008": {
+      "available": true,
+      "travel_time_min": 4
+    },
+    "edge_009": {
+      "available": true,
+      "travel_time_min": 5
+    },
+    "edge_010": {
+      "available": true,
+      "travel_time_min": 6
+    },
+    "edge_011": {
+      "available": true,
+      "travel_time_min": 8
+    },
+    "edge_012": {
+      "available": true,
+      "travel_time_min": 5
+    },
+    "edge_013": {
+      "available": true,
+      "travel_time_min": 5
+    },
+    "edge_014": {
+      "available": true,
+      "travel_time_min": 7
+    },
+    "edge_015": {
+      "available": true,
+      "travel_time_min": 10
+    },
+    "edge_016": {
+      "available": true,
+      "travel_time_min": 8
+    },
+    "edge_017": {
+      "available": true,
+      "travel_time_min": 5
+    },
+    "edge_018": {
+      "available": true,
+      "travel_time_min": 5
+    },
+    "edge_019": {
+      "available": true,
+      "travel_time_min": 6
+    },
+    "edge_020": {
+      "available": true,
+      "travel_time_min": 7
+    }
+  },
+  "event_states": {
+    "show-1": {
+      "event_id": "show-1",
+      "node_id": "theater",
+      "status": "upcoming",
+      "start_time": "2026-10-20 11:20:00",
+      "latest_entry_time": "2026-10-20 11:20:00",
+      "capacity": 180,
+      "title": "沉浸剧场 · 第二场"
+    },
+    "market-peak": {
+      "event_id": "market-peak",
+      "node_id": "market",
+      "status": "forecast",
+      "start_time": "2026-10-20 11:35:00",
+      "latest_entry_time": "2026-10-20 11:35:00",
+      "capacity": 220,
+      "title": "非遗市集客流高峰"
+    }
+  },
+  "feedback": [],
+  "legacy_crowd": {
+    "gate": 0.24,
+    "southgate": 0.18
+  },
+  "legacy_queues": {
+    "southgate": 0
+  }
+}

@@ -1,0 +1,413 @@
+{
+  "schema_version": "0.1",
+  "nodes": [
+    {
+      "node_id": "gate",
+      "id": "gate",
+      "name": "北门入口",
+      "type": "gate",
+      "access_roles": [
+        "PARK_ENTRANCE",
+        "PARK_EXIT"
+      ],
+      "algorithm_x": 8,
+      "algorithm_y": 78,
+      "capacity": 999,
+      "shade": 0.75,
+      "tags": [
+        "入口",
+        "检票",
+        "服务"
+      ]
+    },
+    {
+      "node_id": "southgate",
+      "id": "southgate",
+      "name": "南门入口",
+      "type": "gate",
+      "access_roles": [
+        "PARK_ENTRANCE",
+        "PARK_EXIT"
+      ],
+      "algorithm_x": 10,
+      "algorithm_y": 46,
+      "capacity": 999,
+      "shade": 0.62,
+      "tags": [
+        "入口",
+        "停车",
+        "服务"
+      ]
+    },
+    {
+      "node_id": "lake",
+      "id": "lake",
+      "poi_id": "lake",
+      "name": "九龙瀑",
+      "type": "scenery",
+      "algorithm_x": 28,
+      "algorithm_y": 39,
+      "capacity": 160,
+      "shade": 0.72,
+      "tags": [
+        "自然",
+        "瀑布",
+        "拍照"
+      ]
+    },
+    {
+      "node_id": "market",
+      "id": "market",
+      "poi_id": "market",
+      "name": "非遗市集",
+      "type": "culture",
+      "area_id": "water_margin",
+      "access_roles": [
+        "AREA_ENTRANCE"
+      ],
+      "algorithm_x": 43,
+      "algorithm_y": 78,
+      "capacity": 220,
+      "shade": 0.42,
+      "tags": [
+        "美食",
+        "市集",
+        "自由探索"
+      ]
+    },
+    {
+      "node_id": "museum",
+      "id": "museum",
+      "poi_id": "museum",
+      "name": "大宋武馆",
+      "type": "culture",
+      "algorithm_x": 52,
+      "algorithm_y": 24,
+      "capacity": 120,
+      "shade": 0.96,
+      "tags": [
+        "展陈",
+        "武术",
+        "讲解"
+      ]
+    },
+    {
+      "node_id": "longtan",
+      "id": "longtan",
+      "poi_id": "longtan",
+      "name": "龙坛",
+      "type": "culture",
+      "algorithm_x": 41,
+      "algorithm_y": 27,
+      "capacity": 110,
+      "shade": 0.78,
+      "tags": [
+        "宋文化",
+        "祈福",
+        "拍照"
+      ]
+    },
+    {
+      "node_id": "forest",
+      "id": "forest",
+      "poi_id": "forest",
+      "name": "森林绿地",
+      "type": "scenery",
+      "algorithm_x": 68,
+      "algorithm_y": 49,
+      "capacity": 90,
+      "shade": 0.88,
+      "tags": [
+        "自然",
+        "安静",
+        "探索"
+      ]
+    },
+    {
+      "node_id": "theater",
+      "id": "theater",
+      "poi_id": "theater",
+      "name": "武林会场",
+      "type": "show",
+      "algorithm_x": 82,
+      "algorithm_y": 28,
+      "capacity": 180,
+      "shade": 0.94,
+      "tags": [
+        "演艺",
+        "预约",
+        "高价值"
+      ]
+    },
+    {
+      "node_id": "shizipo",
+      "id": "shizipo",
+      "poi_id": "shizipo",
+      "name": "十字坡",
+      "type": "show",
+      "algorithm_x": 76,
+      "algorithm_y": 63,
+      "capacity": 145,
+      "shade": 0.47,
+      "tags": [
+        "演艺",
+        "互动",
+        "人流事件"
+      ]
+    },
+    {
+      "node_id": "summit",
+      "id": "summit",
+      "poi_id": "summit",
+      "name": "明清城墙观景点",
+      "type": "view",
+      "area_id": "jianghu_art",
+      "access_roles": [
+        "AREA_ENTRANCE"
+      ],
+      "algorithm_x": 85,
+      "algorithm_y": 78,
+      "capacity": 80,
+      "shade": 0.18,
+      "tags": [
+        "城墙",
+        "视野",
+        "拍照"
+      ]
+    },
+    {
+      "node_id": "rest",
+      "id": "rest",
+      "poi_id": "rest",
+      "name": "松风驿站",
+      "type": "service",
+      "algorithm_x": 55,
+      "algorithm_y": 61,
+      "capacity": 40,
+      "shade": 0.9,
+      "tags": [
+        "休息",
+        "补给",
+        "厕所"
+      ]
+    },
+    {
+      "node_id": "temple",
+      "id": "temple",
+      "poi_id": "temple",
+      "name": "万岁寺",
+      "type": "culture",
+      "algorithm_x": 26,
+      "algorithm_y": 65,
+      "capacity": 100,
+      "shade": 0.82,
+      "tags": [
+        "古寺",
+        "文化",
+        "安静"
+      ]
+    },
+    {
+      "node_id": "juxianzhuang",
+      "id": "juxianzhuang",
+      "poi_id": "juxianzhuang",
+      "name": "聚贤庄",
+      "type": "culture",
+      "area_id": "xianxia",
+      "access_roles": [
+        "AREA_ENTRANCE"
+      ],
+      "algorithm_x": 61,
+      "algorithm_y": 77,
+      "capacity": 130,
+      "shade": 0.52,
+      "tags": [
+        "街巷",
+        "互动",
+        "美食"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "edge_001",
+      "from_node_id": "gate",
+      "to_node_id": "southgate",
+      "distance_m": 520,
+      "base_travel_time_min": 6,
+      "shade": 0.62,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_002",
+      "from_node_id": "gate",
+      "to_node_id": "market",
+      "distance_m": 410,
+      "base_travel_time_min": 5,
+      "shade": 0.4,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_003",
+      "from_node_id": "southgate",
+      "to_node_id": "temple",
+      "distance_m": 360,
+      "base_travel_time_min": 5,
+      "shade": 0.72,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_004",
+      "from_node_id": "temple",
+      "to_node_id": "lake",
+      "distance_m": 420,
+      "base_travel_time_min": 6,
+      "shade": 0.78,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_005",
+      "from_node_id": "lake",
+      "to_node_id": "longtan",
+      "distance_m": 350,
+      "base_travel_time_min": 5,
+      "shade": 0.8,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_006",
+      "from_node_id": "lake",
+      "to_node_id": "market",
+      "distance_m": 330,
+      "base_travel_time_min": 5,
+      "shade": 0.48,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_007",
+      "from_node_id": "longtan",
+      "to_node_id": "museum",
+      "distance_m": 290,
+      "base_travel_time_min": 4,
+      "shade": 0.82,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_008",
+      "from_node_id": "market",
+      "to_node_id": "rest",
+      "distance_m": 300,
+      "base_travel_time_min": 4,
+      "shade": 0.56,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_009",
+      "from_node_id": "museum",
+      "to_node_id": "rest",
+      "distance_m": 380,
+      "base_travel_time_min": 5,
+      "shade": 0.84,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_010",
+      "from_node_id": "museum",
+      "to_node_id": "theater",
+      "distance_m": 440,
+      "base_travel_time_min": 6,
+      "shade": 0.9,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_011",
+      "from_node_id": "rest",
+      "to_node_id": "forest",
+      "distance_m": 520,
+      "base_travel_time_min": 8,
+      "shade": 0.76,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_012",
+      "from_node_id": "rest",
+      "to_node_id": "juxianzhuang",
+      "distance_m": 310,
+      "base_travel_time_min": 5,
+      "shade": 0.58,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_013",
+      "from_node_id": "juxianzhuang",
+      "to_node_id": "shizipo",
+      "distance_m": 360,
+      "base_travel_time_min": 5,
+      "shade": 0.45,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_014",
+      "from_node_id": "shizipo",
+      "to_node_id": "summit",
+      "distance_m": 420,
+      "base_travel_time_min": 7,
+      "shade": 0.28,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_015",
+      "from_node_id": "market",
+      "to_node_id": "summit",
+      "distance_m": 640,
+      "base_travel_time_min": 10,
+      "shade": 0.22,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_016",
+      "from_node_id": "rest",
+      "to_node_id": "summit",
+      "distance_m": 480,
+      "base_travel_time_min": 8,
+      "shade": 0.32,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_017",
+      "from_node_id": "forest",
+      "to_node_id": "theater",
+      "distance_m": 300,
+      "base_travel_time_min": 5,
+      "shade": 0.92,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_018",
+      "from_node_id": "forest",
+      "to_node_id": "shizipo",
+      "distance_m": 300,
+      "base_travel_time_min": 5,
+      "shade": 0.64,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_019",
+      "from_node_id": "forest",
+      "to_node_id": "summit",
+      "distance_m": 360,
+      "base_travel_time_min": 6,
+      "shade": 0.38,
+      "direction": "BIDIRECTIONAL"
+    },
+    {
+      "edge_id": "edge_020",
+      "from_node_id": "temple",
+      "to_node_id": "market",
+      "distance_m": 430,
+      "base_travel_time_min": 7,
+      "shade": 0.5,
+      "direction": "BIDIRECTIONAL"
+    }
+  ]
+}

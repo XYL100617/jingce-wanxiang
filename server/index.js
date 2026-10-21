@@ -7,45 +7,18 @@ const PORT = Number(process.env.PORT || 4173);
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
 
-const graph = {
-  nodes: [
-    { id: 'gate', name: '北门入口', type: 'gate', x: 8, y: 78, capacity: 999, shade: 0.75, tags: ['入口', '检票', '服务'] },
-    { id: 'southgate', name: '南门入口', type: 'gate', x: 10, y: 46, capacity: 999, shade: 0.62, tags: ['入口', '停车', '服务'] },
-    { id: 'lake', name: '九龙瀑', type: 'scenery', x: 28, y: 39, capacity: 160, shade: 0.72, tags: ['自然', '瀑布', '拍照'] },
-    { id: 'market', name: '非遗市集', type: 'culture', x: 43, y: 78, capacity: 220, shade: 0.42, tags: ['美食', '市集', '自由探索'] },
-    { id: 'museum', name: '大宋武馆', type: 'culture', x: 52, y: 24, capacity: 120, shade: 0.96, tags: ['展陈', '武术', '讲解'] },
-    { id: 'longtan', name: '龙坛', type: 'culture', x: 41, y: 27, capacity: 110, shade: 0.78, tags: ['宋文化', '祈福', '拍照'] },
-    { id: 'forest', name: '森林绿地', type: 'scenery', x: 68, y: 49, capacity: 90, shade: 0.88, tags: ['自然', '安静', '探索'] },
-    { id: 'theater', name: '武林会场', type: 'show', x: 82, y: 28, capacity: 180, shade: 0.94, tags: ['演艺', '预约', '高价值'] },
-    { id: 'shizipo', name: '十字坡', type: 'show', x: 76, y: 63, capacity: 145, shade: 0.47, tags: ['演艺', '互动', '人流事件'] },
-    { id: 'summit', name: '明清城墙观景点', type: 'view', x: 85, y: 78, capacity: 80, shade: 0.18, tags: ['城墙', '视野', '拍照'] },
-    { id: 'rest', name: '松风驿站', type: 'service', x: 55, y: 61, capacity: 40, shade: 0.9, tags: ['休息', '补给', '厕所'] },
-    { id: 'temple', name: '万岁寺', type: 'culture', x: 26, y: 65, capacity: 100, shade: 0.82, tags: ['古寺', '文化', '安静'] },
-    { id: 'juxianzhuang', name: '聚贤庄', type: 'culture', x: 61, y: 77, capacity: 130, shade: 0.52, tags: ['街巷', '互动', '美食'] }
-  ],
-  edges: [
-    ['gate', 'southgate', 520, 6, 0.62], ['gate', 'market', 410, 5, 0.4], ['southgate', 'temple', 360, 5, 0.72],
-    ['temple', 'lake', 420, 6, 0.78], ['lake', 'longtan', 350, 5, 0.8], ['lake', 'market', 330, 5, 0.48],
-    ['longtan', 'museum', 290, 4, 0.82], ['market', 'rest', 300, 4, 0.56], ['museum', 'rest', 380, 5, 0.84],
-    ['museum', 'theater', 440, 6, 0.9], ['rest', 'forest', 520, 8, 0.76], ['rest', 'juxianzhuang', 310, 5, 0.58],
-    ['juxianzhuang', 'shizipo', 360, 5, 0.45], ['shizipo', 'summit', 420, 7, 0.28], ['market', 'summit', 640, 10, 0.22],
-    ['rest', 'summit', 480, 8, 0.32], ['forest', 'theater', 300, 5, 0.92], ['forest', 'shizipo', 300, 5, 0.64],
-    ['forest', 'summit', 360, 6, 0.38], ['temple', 'market', 430, 7, 0.5]
-  ]
-};
-
-let state = {
-  minute: 10 * 60 + 18,
-  weather: { label: '晴间多云', temp: 27, uv: 6, rain: 0.08 },
-  crowd: { gate: 0.24, southgate: 0.18, lake: 0.41, market: 0.62, museum: 0.35, longtan: 0.29, forest: 0.28, theater: 0.76, shizipo: 0.64, summit: 0.58, rest: 0.32, temple: 0.25, juxianzhuang: 0.48 },
-  queues: { lake: 4, market: 6, museum: 12, forest: 3, theater: 22, summit: 8, rest: 0, longtan: 4, shizipo: 15, temple: 2, juxianzhuang: 8, southgate: 0 },
-  events: [
-    { id: 'show-1', title: '沉浸剧场 · 第二场', at: '11:20', node: 'theater', status: 'upcoming', capacity: 180 },
-    { id: 'market-peak', title: '非遗市集客流高峰', at: '11:35', node: 'market', status: 'forecast', capacity: 220 }
-  ],
-  user: { location: 'gate', remainingMinutes: 272, visited: [], walked: 0, load: 0.12, preference: null },
-  feedback: []
-};
+const provider = require('./state/stateProvider');
+const { predictEnvironment } = require('./state/forecastSimulator');
+const { applyScenarioEvent, parseTime } = require('./state/scenarioEngine');
+const { queryQueue, queryTravelTime } = require('./state/forecastQuery');
+const graph = provider.getLegacyGraph();
+const scenicGraph = provider.getScenicGraph();
+const routeEdges = scenicGraph.edges;
+const routePoiIds = new Map(scenicGraph.nodes.filter(n => n.poi_id).map(n => [n.node_id, n.poi_id]));
+const ROUTE_FORECAST_HORIZON_MIN = 240;
+let state = provider.getLegacyState();
+const refresh = () => { state = provider.getLegacyState(); };
+const commit = () => { provider.setLegacyState(state); refresh(); };
 
 const routeSeeds = [
   { id: '8A3F', title: '亲子避晒 · 文化慢游', author: '小河的周末', tags: ['室内优先', '休息点多', '亲子'], minutes: 178, likes: 286, stops: ['museum', 'theater', 'rest', 'market'], cover: 'museum' },
@@ -62,37 +35,22 @@ const companionFacts = {
 
 const defaultPreference = { time: 0.27, interest: 0.24, comfort: 0.2, freedom: 0.15, culture: 0.14 };
 
-// 轻量化图世界模型：不直接替代规划器，而是把景区图、环境状态和游客状态
-// 压缩成低维 latent state，再滚动预测未来的通行、排队与舒适负荷。
-// 真实部署时可将这里的确定性更新替换为 GNN + GRU / RSSM 推理服务。
+// 第一版规则模拟世界模型兼容层。未来可替换 forecastSimulator 内部为 GNN+GRU / RSSM，
+// 对外 EnvironmentForecast 接口保持不变。
 function lightWorldModel(horizon = 60) {
-  const ids = Object.keys(state.crowd);
-  const meanCrowd = ids.reduce((sum, id) => sum + state.crowd[id], 0) / Math.max(1, ids.length);
-  const meanQueue = ids.reduce((sum, id) => sum + (state.queues[id] || 0), 0) / Math.max(1, ids.length);
-  const eventNodes = state.events.filter(e => e.status === 'live' || e.status === 'upcoming').map(e => e.node);
-  const eventPressure = eventNodes.reduce((sum, id) => sum + (state.crowd[id] || 0), 0) / Math.max(1, eventNodes.length);
-  const envLatent = [meanCrowd, Math.min(1, meanQueue / 25), state.weather.rain, eventPressure, state.weather.uv / 10].map(v => Math.round(v * 100) / 100);
-  const userLatent = [state.user.load, Math.min(1, state.user.walked / 5000), Math.min(1, state.user.remainingMinutes / 360), state.user.visited.length / Math.max(1, graph.nodes.length - 2)].map(v => Math.round(v * 100) / 100);
+  const current = provider.getState();
+  const forecastData = predictEnvironment(current, Math.max(60, horizon), 5);
+  const ids = Object.keys(current.poi_states);
+  const mean = values => values.reduce((a, b) => a + b, 0) / Math.max(1, values.length);
+  const meanCrowd = mean(ids.map(id => current.poi_states[id].crowd_ratio));
+  const meanQueue = mean(ids.map(id => current.poi_states[id].queue_min));
   const points = [15, 30, 60].map(offset => {
-    const wave = Math.sin((state.minute + offset) / 28) * 0.025;
-    const event = offset > 30 ? eventPressure * 0.08 : eventPressure * 0.03;
-    const crowd = Math.min(0.98, Math.max(0.05, meanCrowd + wave + event));
-    const queue = Math.max(0, Math.round((meanQueue + crowd * offset / 90) * 10) / 10);
-    const load = Math.min(0.98, Math.max(0.04, state.user.load + offset / 360 * 0.12 + meanCrowd * 0.04));
-    const confidence = Math.max(0.62, 0.95 - offset / 420 - Math.abs(eventPressure - meanCrowd) * 0.2);
-    return { offset, label: `+${offset} min`, crowd: Math.round(crowd * 100), queue, load: Math.round(load * 100), confidence: Math.round(confidence * 100) };
+    const predictions = ids.map(id => forecastData.poi_predictions[id].find(x => x.offset_min === offset));
+    const crowd = mean(predictions.map(x => x.crowd_ratio));
+    const queue = mean(predictions.map(x => x.queue_min));
+    return { offset, label: `+${offset} min`, crowd: Math.round(crowd * 100), queue: Math.round(queue * 10) / 10, load: Math.round(Math.min(.98, current.visitor.fatigue + offset / 300) * 100), confidence: Math.round((.95 - offset / 420) * 100) };
   });
-  const crowdLabel = meanCrowd > .68 ? '多点拥挤' : meanCrowd > .42 ? '局部繁忙' : '人流稳定';
-  const loadLabel = state.user.load > .7 ? '负荷偏高' : state.user.load > .42 ? '建议安排休息' : '舒适';
-  return {
-    model: 'Light Scenic Graph World Model',
-    version: 'LSGWM-0.3',
-    latent: { env: envLatent, user: userLatent },
-    state: { environment: crowdLabel, user: loadLabel },
-    horizon: points,
-    uncertainty: Math.round((1 - points[2].confidence / 100) * 100),
-    updatedAt: new Date().toISOString()
-  };
+  return { model: 'Light Scenic Graph World Model', version: 'LSGWM-0.4', latent: { env: [meanCrowd, meanQueue / 25, current.weather.rain], user: [current.visitor.fatigue] }, state: { environment: meanCrowd > .68 ? '多点拥挤' : meanCrowd > .42 ? '局部繁忙' : '人流稳定', user: current.visitor.fatigue > .7 ? '负荷偏高' : current.visitor.fatigue > .42 ? '建议安排休息' : '舒适' }, horizon: points, uncertainty: 19, updatedAt: current.timestamp };
 }
 
 function json(res, code, payload) {
@@ -113,35 +71,42 @@ function readBody(req) {
 function node(id) { return graph.nodes.find(n => n.id === id); }
 
 function neighbours(id) {
-  return graph.edges.flatMap(([a, b, distance, minutes, shade]) => {
-    if (a === id) return [{ id: b, distance, minutes, shade }];
-    if (b === id) return [{ id: a, distance, minutes, shade }];
+  return routeEdges.flatMap(road => {
+    const next = { edge_id: road.edge_id, distance: road.distance_m, shade: road.shade };
+    if (road.from_node_id === id) return [{ ...next, id: road.to_node_id }];
+    if (road.to_node_id === id && road.direction === 'BIDIRECTIONAL') return [{ ...next, id: road.from_node_id }];
     return [];
   });
 }
 
-function edge(a, b) {
-  const hit = graph.edges.find(e => (e[0] === a && e[1] === b) || (e[0] === b && e[1] === a));
-  return hit ? { distance: hit[2], minutes: hit[3], shade: hit[4] } : { distance: 0, minutes: 0, shade: 0.5 };
+function planningForecast() { return predictEnvironment(provider.getState(), ROUTE_FORECAST_HORIZON_MIN, 10); }
+function predictedTime(forecastData, offsetMin) {
+  if (offsetMin < 0 || offsetMin > forecastData.horizon_min) return null;
+  return new Date(parseTime(forecastData.base_timestamp, 'base timestamp') + Math.round(offsetMin * 60000)).toISOString();
 }
 
-function pathBetween(start, goal) {
-  const best = { [start]: { cost: 0, path: [start], distance: 0, minutes: 0 } };
+function pathBetween(start, goal, forecastData, departOffsetMin = 0) {
+  if (!node(start) || !node(goal)) return null;
+  const best = { [start]: { cost: 0, path: [start], steps: [], distance: 0, minutes: 0 } };
   const open = [start];
   while (open.length) {
     open.sort((a, b) => best[a].cost - best[b].cost);
     const current = open.shift();
     if (current === goal) return best[current];
+    const enterTime = predictedTime(forecastData, departOffsetMin + best[current].minutes);
+    if (!enterTime) continue;
     for (const next of neighbours(current)) {
-      const crowdPenalty = state.crowd[next.id] * 2.2;
-      const cost = best[current].cost + next.minutes + crowdPenalty;
+      const road = queryTravelTime(forecastData, next.edge_id, enterTime);
+      if (!road.available) continue;
+      const crowdPenalty = (state.crowd[next.id] || 0) * 2.2;
+      const cost = best[current].cost + road.travel_time_min + crowdPenalty;
       if (!best[next.id] || cost < best[next.id].cost) {
-        best[next.id] = { cost, path: [...best[current].path, next.id], distance: best[current].distance + next.distance, minutes: best[current].minutes + next.minutes };
+        best[next.id] = { cost, path: [...best[current].path, next.id], steps: [...best[current].steps, { from: current, to: next.id, edge_id: next.edge_id, distance: next.distance, minutes: road.travel_time_min, shade: next.shade }], distance: best[current].distance + next.distance, minutes: best[current].minutes + road.travel_time_min };
         open.push(next.id);
       }
     }
   }
-  return { cost: 99, path: [start], distance: 0, minutes: 0 };
+  return null;
 }
 
 function inferPreference(answers = {}) {
@@ -162,20 +127,21 @@ function inferPreference(answers = {}) {
   return Object.fromEntries(Object.entries(p).map(([k, v]) => [k, Math.round(Math.max(0.02, v) / sum * 100) / 100]));
 }
 
-function scoreRoute(route, preference) {
+function scoreRoute(route, preference, poiSamples) {
   const poiNodes = route.stops.map(id => node(id));
   const interest = poiNodes.reduce((sum, n) => sum + (n.type === 'show' ? 0.95 : n.type === 'culture' ? 0.78 : n.type === 'view' ? 0.82 : 0.67), 0) / Math.max(1, poiNodes.length);
   const comfort = poiNodes.reduce((sum, n) => sum + n.shade, 0) / Math.max(1, poiNodes.length);
   const freedom = route.stops.filter(id => ['lake', 'forest', 'summit'].includes(id)).length / Math.max(1, poiNodes.length);
   const culture = poiNodes.filter(n => n.type === 'culture' || n.type === 'show').length / Math.max(1, poiNodes.length);
   const timeScore = Math.max(0, 1 - route.minutes / Math.max(1, state.user.remainingMinutes));
-  const queue = route.stops.reduce((s, id) => s + (state.queues[id] || 0), 0);
-  const crowd = route.stops.reduce((s, id) => s + (state.crowd[id] || 0), 0) / Math.max(1, route.stops.length);
+  const queue = poiSamples.reduce((sum, sample) => sum + sample.queue_min, 0);
+  const crowd = poiSamples.reduce((sum, sample) => sum + sample.crowd_ratio, 0) / Math.max(1, poiSamples.length);
   const utility = preference.time * timeScore + preference.interest * interest + preference.comfort * comfort + preference.freedom * freedom + preference.culture * culture - queue / 150 - crowd * 0.08;
-  return { ...route, utility: Math.round(utility * 1000) / 10, queue, crowd: Math.round(crowd * 100), interest: Math.round(interest * 100), comfort: Math.round(comfort * 100) };
+  return { ...route, utility: Math.round(utility * 1000) / 10, queue: Math.round(queue * 100) / 100, crowd: Math.round(crowd * 100), interest: Math.round(interest * 100), comfort: Math.round(comfort * 100) };
 }
 
 function makeRoutes(preference = state.user.preference || defaultPreference) {
+  const forecastData = planningForecast();
   const templates = [
     { id: 'efficiency', label: '效率偏', tone: 'cyan', stops: ['market', 'museum', 'theater'], reason: '优先锁定高价值项目，减少绕行和无效等待' },
     { id: 'balance', label: '均衡偏', tone: 'violet', stops: ['lake', 'museum', 'forest', 'theater'], reason: '在兴趣、舒适和项目完成之间取得平衡' },
@@ -183,20 +149,32 @@ function makeRoutes(preference = state.user.preference || defaultPreference) {
   ];
   return templates.map((t) => {
     let prev = state.user.location;
-    let minutes = 0, distance = 0;
-    const legs = t.stops.map(stop => { const p = pathBetween(prev, stop); prev = stop; minutes += p.minutes; distance += p.distance; return { from: p.path[0], to: stop, path: p.path, minutes: p.minutes, distance: p.distance }; });
-    return scoreRoute({ ...t, minutes, distance, legs, eta: new Date(Date.now() + minutes * 60000).toISOString() }, preference);
-  });
+    let minutes = 0, distance = 0, elapsed = 0;
+    const legs = [], poiSamples = [];
+    for (const stop of t.stops) {
+      const p = pathBetween(prev, stop, forecastData, elapsed);
+      if (!p) return null;
+      minutes += p.minutes;
+      distance += p.distance;
+      elapsed += p.minutes;
+      const arrivalTime = predictedTime(forecastData, elapsed);
+      if (!arrivalTime) return null;
+      const poiId = routePoiIds.get(stop);
+      if (!poiId) return null;
+      const sample = queryQueue(forecastData, poiId, arrivalTime);
+      if (!sample.open) return null;
+      poiSamples.push(sample);
+      legs.push({ from: p.path[0], to: stop, path: p.path, minutes: p.minutes, distance: p.distance });
+      elapsed += sample.queue_min;
+      prev = stop;
+    }
+    return scoreRoute({ ...t, minutes, distance, legs, eta: predictedTime(forecastData, elapsed) }, preference, poiSamples);
+  }).filter(Boolean);
 }
 
 function forecast(horizon = 90) {
-  const points = [];
-  for (let i = 0; i <= horizon; i += 15) {
-    const wave = Math.sin((state.minute + i) / 36) * 0.04;
-    const eventBoost = i > 55 ? 0.1 : 0;
-    points.push({ offset: i, label: i === 0 ? '现在' : `+${i}m`, crowd: Math.round(Math.min(0.98, Math.max(0.08, state.crowd.market + wave + eventBoost)) * 100), queue: Math.max(2, Math.round(state.queues.market + i / 22 + eventBoost * 15)), confidence: Math.round((0.94 - i / 800) * 100) });
-  }
-  return points;
+  const result = predictEnvironment(provider.getState(), horizon, 15);
+  return result.poi_predictions.market.map(p => ({ offset: p.offset_min, label: p.offset_min === 0 ? '现在' : `+${p.offset_min}m`, crowd: Math.round(p.crowd_ratio * 100), queue: p.queue_min, confidence: Math.round((.94 - p.offset_min / 800) * 100) }));
 }
 
 function snapshot() {
@@ -211,18 +189,54 @@ function snapshot() {
   };
 }
 
+let simulationAnchor = null;
+let simulatedMinutes = 0;
+let lastUpdateVersion = null;
 function updateEnvironment() {
-  state.minute += 1;
-  for (const id of Object.keys(state.crowd)) {
-    const drift = (Math.random() - 0.48) * 0.035;
-    state.crowd[id] = Math.round(Math.min(0.98, Math.max(0.06, state.crowd[id] + drift)) * 100) / 100;
-    if (state.queues[id] !== undefined) state.queues[id] = Math.max(0, Math.round((state.queues[id] + state.crowd[id] * 0.5 - 0.25) * 10) / 10);
+  const current = provider.getState();
+  // Keep a stable baseline between external state changes so small drifts are not lost to repeated rounding.
+  if (!simulationAnchor || current.state_version !== lastUpdateVersion || simulatedMinutes >= 1440) {
+    simulationAnchor = current;
+    simulatedMinutes = 0;
   }
+  const nextMinute = simulatedMinutes + 1;
+  const prediction = predictEnvironment(simulationAnchor, nextMinute, nextMinute);
+  const next = provider.cloneState(current);
+  next.timestamp = new Date(Date.parse(current.timestamp.replace(' ', 'T') + 'Z') + 60000).toISOString().slice(0, 19).replace('T', ' ');
+  for (const [id, points] of Object.entries(prediction.poi_predictions)) {
+    const p = points.at(-1);
+    Object.assign(next.poi_states[id], { queue_min: p.queue_min, crowd_ratio: p.crowd_ratio, crowd_level: p.crowd_level, open: p.open });
+  }
+  for (const [id, points] of Object.entries(prediction.road_predictions)) {
+    const p = points.at(-1);
+    Object.assign(next.road_states[id], { travel_time_min: p.travel_time_min, available: p.available });
+  }
+  const updated = provider.setState(next);
+  simulatedMinutes = nextMinute;
+  lastUpdateVersion = updated.state_version;
+  refresh();
 }
 
-setInterval(updateEnvironment, 12000);
+if (require.main === module) setInterval(updateEnvironment, 12000);
 
 async function api(req, res, url) {
+  if (req.method === 'GET' && url.pathname === '/api/v1/scenic-graph') return json(res, 200, provider.getScenicGraph());
+  if (req.method === 'GET' && url.pathname === '/api/v1/state') return json(res, 200, provider.getState(url.searchParams.get('timestamp') || undefined, url.searchParams.get('visitor_id') || undefined));
+  if (req.method === 'GET' && url.pathname === '/api/v1/environment-forecast') return json(res, 200, predictEnvironment(provider.getState(), Number(url.searchParams.get('horizon') || 60), Number(url.searchParams.get('step') || 10)));
+  if (req.method === 'GET' && url.pathname === '/api/v1/query-queue') {
+    const forecastData = predictEnvironment(provider.getState(), Number(url.searchParams.get('horizon') || 60), Number(url.searchParams.get('step') || 10));
+    return json(res, 200, queryQueue(forecastData, url.searchParams.get('poi_id'), url.searchParams.get('arrival_time')));
+  }
+  if (req.method === 'GET' && url.pathname === '/api/v1/query-travel-time') {
+    const forecastData = predictEnvironment(provider.getState(), Number(url.searchParams.get('horizon') || 60), Number(url.searchParams.get('step') || 10));
+    return json(res, 200, queryTravelTime(forecastData, url.searchParams.get('edge_id'), url.searchParams.get('enter_time')));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/v1/scenario-event') {
+    const event = await readBody(req);
+    const updated = provider.setState(applyScenarioEvent(provider.getState(), event));
+    refresh();
+    return json(res, 200, { state: updated, forecast: predictEnvironment(updated) });
+  }
   if (req.method === 'GET' && url.pathname === '/api/snapshot') return json(res, 200, snapshot());
   if (req.method === 'GET' && url.pathname === '/api/pois') return json(res, 200, { nodes: graph.nodes, edges: graph.edges });
   if (req.method === 'GET' && url.pathname === '/api/forecast') return json(res, 200, { forecast: forecast(Number(url.searchParams.get('horizon') || 90)) });
@@ -230,13 +244,15 @@ async function api(req, res, url) {
   if (req.method === 'GET' && url.pathname === '/api/navigation') {
     const from = url.searchParams.get('from') || state.user.location;
     const to = url.searchParams.get('to') || 'museum';
-    const p = pathBetween(from, to);
-    const segments = p.path.slice(0, -1).map((id, i) => {
-      const next = p.path[i + 1]; const e = edge(id, next); const n = node(next);
+    if (!node(from) || !node(to)) return json(res, 404, { error: 'Unknown node_id', from, to });
+    const p = pathBetween(from, to, planningForecast());
+    if (!p) return json(res, 409, { error: 'No feasible route', from, to });
+    const segments = p.steps.map(step => {
+      const id = step.from, next = step.to, e = step, n = node(next);
       const crowd = state.crowd[next] || .2;
       const slope = Math.round(Math.abs(node(id).y - n.y) / 9);
       const chairs = e.shade > .7 ? Math.round(4 + e.shade * 5) : e.shade > .45 ? 2 : 1;
-      return { from: node(id).name, to: n.name, distance: e.distance, minutes: e.minutes, shade: Math.round(e.shade * 100), chairs, slope, crowd: Math.round(crowd * 100), event: state.events.some(x => x.node === next && (x.status === 'live' || x.status === 'upcoming')), warning: crowd > .67 ? '人流较高' : e.shade < .35 ? '部分暴晒' : slope >= 5 ? '坡度变化' : '通行顺畅' };
+      return { from: node(id).name, to: n.name, edge_id: e.edge_id, distance: e.distance, minutes: e.minutes, shade: Math.round(e.shade * 100), chairs, slope, crowd: Math.round(crowd * 100), event: state.events.some(x => x.node === next && (x.status === 'live' || x.status === 'upcoming')), warning: crowd > .67 ? '人流较高' : e.shade < .35 ? '部分暴晒' : slope >= 5 ? '坡度变化' : '通行顺畅' };
     });
     return json(res, 200, { from, to, path: p.path, totalMinutes: p.minutes, totalDistance: p.distance, segments, model: lightWorldModel() });
   }
@@ -245,12 +261,14 @@ async function api(req, res, url) {
   if (req.method === 'POST' && url.pathname === '/api/preferences') {
     const body = await readBody(req); const preference = inferPreference(body.answers || {}); state.user.preference = preference;
     if (body.leaveAt && /^\d{2}:\d{2}$/.test(body.leaveAt)) { const [h, m] = body.leaveAt.split(':').map(Number); const leave = h * 60 + m; const now = state.minute % (24 * 60); state.user.remainingMinutes = Math.max(30, leave >= now ? leave - now : leave + 24 * 60 - now); }
+    commit();
     return json(res, 200, { preference, routes: makeRoutes(preference), model: lightWorldModel(), user: state.user });
   }
   if (req.method === 'POST' && url.pathname === '/api/replan') {
     const body = await readBody(req);
     if (body.location && node(body.location)) state.user.location = body.location;
     if (body.load !== undefined) state.user.load = Math.min(1, Math.max(0, Number(body.load)));
+    commit();
     updateEnvironment();
     return json(res, 200, { routes: makeRoutes(state.user.preference || defaultPreference), forecast: forecast(), model: lightWorldModel(), user: state.user, crowd: state.crowd, queues: state.queues, updatedAt: new Date().toISOString() });
   }
@@ -261,7 +279,9 @@ async function api(req, res, url) {
   }
   if (req.method === 'POST' && url.pathname === '/api/dna/clone') {
     const body = await readBody(req); const source = routeSeeds.find(x => x.id === body.id) || routeSeeds[0]; const preference = state.user.preference || defaultPreference;
-    const cloned = makeRoutes(preference)[preference.freedom > preference.time ? 2 : 1];
+    const routes = makeRoutes(preference);
+    const cloned = routes[preference.freedom > preference.time ? 2 : 1] || routes[0];
+    if (!cloned) return json(res, 409, { error: 'No feasible route' });
     return json(res, 200, { source, route: { ...cloned, title: `${source.title} · 个性化变异`, dna: `#${source.id}-M${Math.floor(Math.random() * 900 + 100)}` } });
   }
   if (req.method === 'POST' && url.pathname === '/api/emergency') {
@@ -271,11 +291,15 @@ async function api(req, res, url) {
   if (req.method === 'POST' && url.pathname === '/api/feedback') {
     const body = await readBody(req); state.feedback.push({ ...body, at: new Date().toISOString() });
     if (body.load !== undefined) state.user.load = Math.min(1, Math.max(0, Number(body.load)));
+    commit();
     return json(res, 200, { ok: true, feedbackCount: state.feedback.length, user: state.user });
   }
   if (req.method === 'POST' && url.pathname === '/api/simulate-event') {
-    const body = await readBody(req); const id = body.node || 'market'; state.crowd[id] = Math.min(0.98, state.crowd[id] + Number(body.delta || 0.16)); state.queues[id] = Math.round((state.queues[id] + Number(body.queueDelta || 6)) * 10) / 10;
-    state.events.unshift({ id: `event-${Date.now()}`, title: body.title || '现场事件：人流快速聚集', at: '刚刚', node: id, status: 'live', capacity: node(id)?.capacity || 100 });
+    const body = await readBody(req); const id = body.node || 'market';
+    const next = applyScenarioEvent(provider.getState(), { event_type: 'QUEUE_SPIKE', target_id: id, timestamp: provider.getState().timestamp });
+    const eventId = `event-${next.scenario_events.length}`;
+    next.event_states[eventId] = { event_id: eventId, node_id: id, status: 'live', start_time: next.timestamp, latest_entry_time: next.timestamp, capacity: node(id)?.capacity || 100, title: body.title || '现场事件：人流快速聚集' };
+    provider.setState(next); refresh();
     return json(res, 200, { ok: true, ...snapshot() });
   }
   return json(res, 404, { error: 'Not found' });
@@ -295,7 +319,10 @@ function serve(req, res) {
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  if (url.pathname.startsWith('/api/')) api(req, res, url).catch(err => json(res, 500, { error: err.message }));
+  if (url.pathname.startsWith('/api/')) api(req, res, url).catch(err => {
+    const code = /^Unknown /.test(err.message) ? 404 : err instanceof TypeError || err instanceof RangeError || err instanceof SyntaxError ? 400 : 500;
+    json(res, code, { error: err.message });
+  });
   else if (req.method === 'GET') serve(req, res);
   else json(res, 405, { error: 'Method not allowed' });
 });
@@ -327,4 +354,5 @@ function startServer(port) {
   });
 }
 
-startServer(PORT);
+if (require.main === module) startServer(PORT);
+module.exports = { server, startServer, updateEnvironment };
