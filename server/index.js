@@ -2,6 +2,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const { createMockScenario, buildLivePlannerScenario, findPath: plannerPath, planItinerary, replan, promoteAlternative } = require('./planner');
+const { inferPreference: inferPreferenceV2 } = require('./preference-engine');
 
 const PORT = Number(process.env.PORT || 4173);
 const ROOT = path.resolve(__dirname, '..');
@@ -43,7 +45,8 @@ let state = {
     { id: 'show-1', title: '沉浸剧场 · 第二场', at: '11:20', node: 'theater', status: 'upcoming', capacity: 180 },
     { id: 'market-peak', title: '非遗市集客流高峰', at: '11:35', node: 'market', status: 'forecast', capacity: 220 }
   ],
-  user: { location: 'gate', remainingMinutes: 272, visited: [], walked: 0, load: 0.12, preference: null },
+  closedRoads: [], closedPois: [], cancelledEvents: [],
+  user: { location: 'gate', remainingMinutes: 272, visited: [], walked: 0, load: 0.12, preference: null, preferenceProfile: null, currentPlanNextTarget: null },
   feedback: []
 };
 
@@ -104,10 +107,32 @@ function json(res, code, payload) {
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let raw = '';
-    req.on('data', chunk => { raw += chunk; if (raw.length > 1e6) req.destroy(); });
-    req.on('end', () => { try { resolve(raw ? JSON.parse(raw) : {}); } catch (e) { reject(e); } });
+    let oversized = false;
+    req.on('data', chunk => {
+      if (oversized) return;
+      raw += chunk;
+      if (raw.length > 1e6) {
+        oversized = true;
+        const error = new Error('请求体超过 1 MB'); error.statusCode = 413; reject(error);
+      }
+    });
+    req.on('end', () => {
+      if (oversized) return;
+      try { resolve(raw ? JSON.parse(raw) : {}); }
+      catch (_) { const error = new Error('请求体不是有效 JSON'); error.statusCode = 400; reject(error); }
+    });
     req.on('error', reject);
   });
+}
+
+function resolveBScenario(body) {
+  const supplied = ['graph', 'state', 'forecast'].filter(key => body[key] !== undefined);
+  if (supplied.length && supplied.length !== 3) throw new Error('graph、state、forecast 必须同时提供');
+  if (supplied.length === 3) return body;
+  if (body.source === 'live') return buildLivePlannerScenario(graph, state);
+  const variant = body.variant || 'normal';
+  if (!['normal', 'queue_surge', 'road_closure'].includes(variant)) throw new Error(`不支持的场景 ${variant}`);
+  return createMockScenario(variant);
 }
 
 function node(id) { return graph.nodes.find(n => n.id === id); }
@@ -144,24 +169,6 @@ function pathBetween(start, goal) {
   return { cost: 99, path: [start], distance: 0, minutes: 0 };
 }
 
-function inferPreference(answers = {}) {
-  const p = { ...defaultPreference };
-  const bump = (key, amount) => { p[key] += amount; };
-  if (answers.time === 'urgent') { bump('time', 0.2); bump('comfort', -0.04); }
-  if (answers.time === 'normal') { bump('interest', 0.06); bump('comfort', 0.04); }
-  if (answers.time === 'free') { bump('freedom', 0.2); bump('interest', 0.09); }
-  if (answers.crowd === 'avoid') { bump('comfort', 0.17); bump('time', 0.04); }
-  if (answers.crowd === 'accept') { bump('interest', 0.08); bump('freedom', 0.05); }
-  if (answers.sun === 'shade') bump('comfort', 0.15);
-  if (answers.sun === 'sun-ok') bump('interest', 0.08);
-  if (answers.content === 'culture') bump('culture', 0.2);
-  if (answers.content === 'nature') { bump('interest', 0.12); bump('freedom', 0.08); }
-  if (answers.rest === 'often') bump('comfort', 0.12);
-  if (answers.rest === 'rarely') bump('time', 0.06);
-  const sum = Object.values(p).reduce((a, b) => a + Math.max(0.02, b), 0);
-  return Object.fromEntries(Object.entries(p).map(([k, v]) => [k, Math.round(Math.max(0.02, v) / sum * 100) / 100]));
-}
-
 function scoreRoute(route, preference) {
   const poiNodes = route.stops.map(id => node(id));
   const interest = poiNodes.reduce((sum, n) => sum + (n.type === 'show' ? 0.95 : n.type === 'culture' ? 0.78 : n.type === 'view' ? 0.82 : 0.67), 0) / Math.max(1, poiNodes.length);
@@ -189,6 +196,11 @@ function makeRoutes(preference = state.user.preference || defaultPreference) {
   });
 }
 
+function makeLivePlan(rules = state.user.preferenceProfile?.planner_rules || {}) {
+  const scenario = buildLivePlannerScenario(graph, state);
+  return planItinerary({ ...scenario, rules });
+}
+
 function forecast(horizon = 90) {
   const points = [];
   for (let i = 0; i <= horizon; i += 15) {
@@ -206,7 +218,7 @@ function snapshot() {
     time: { minute: state.minute, display: `${String(Math.floor(state.minute / 60)).padStart(2, '0')}:${String(state.minute % 60).padStart(2, '0')}` },
     weather: state.weather, graph, crowd: state.crowd, queues: state.queues, events: state.events, user: state.user, routes, forecast: forecast(), worldModel: lightWorldModel(), routeSeeds,
     companion: companionFacts[state.user.location] || companionFacts.museum,
-    emergency: { rain: state.weather.rain, safe: true, closed: [], sos: false },
+    emergency: { rain: state.weather.rain, safe: state.closedRoads.length === 0, closed: state.closedRoads, sos: false },
     metrics: { nodes: graph.nodes.length, edges: graph.edges.length, confidence: 91, responseMs: 84, coverage: 87 }
   };
 }
@@ -223,6 +235,90 @@ function updateEnvironment() {
 setInterval(updateEnvironment, 12000);
 
 async function api(req, res, url) {
+  if (req.method === 'GET' && url.pathname === '/api/b/mock-scenario') {
+    const variant = url.searchParams.get('variant') || 'normal';
+    if (!['normal', 'queue_surge', 'road_closure'].includes(variant)) return json(res, 400, { error: 'variant 仅支持 normal、queue_surge、road_closure' });
+    return json(res, 200, createMockScenario(variant));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/plan') {
+    const body = await readBody(req);
+    const scenario = resolveBScenario(body);
+    return json(res, 200, planItinerary({ graph: scenario.graph, state: scenario.state, forecast: scenario.forecast, rules: body.rules || scenario.rules || {} }));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/replan') {
+    const body = await readBody(req);
+    const scenario = resolveBScenario(body);
+    return json(res, 200, replan({ graph: scenario.graph, state: scenario.state, forecast: scenario.forecast, event: body.event, rules: body.rules || scenario.rules || {} }));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/replan-live') {
+    const body = await readBody(req);
+    const scenario = buildLivePlannerScenario(graph, state);
+    const planResult = replan({ ...scenario, event: body.event, rules: body.rules || state.user.preferenceProfile?.planner_rules || {} });
+    state.user.currentPlanNextTarget = planResult.next_action?.target_id || null;
+    return json(res, 200, planResult);
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/select-plan') {
+    const body = await readBody(req);
+    if (typeof body.plan_id !== 'string' || !body.plan_id) return json(res, 400, { error: 'plan_id 为必填字符串' });
+    const scenario = buildLivePlannerScenario(graph, state);
+    const current = planItinerary({ ...scenario, rules: state.user.preferenceProfile?.planner_rules || {} });
+    let planResult;
+    try {
+      let selectedPlanId = body.plan_id;
+      if (![current.plan_id, ...(current.alternative_plans || []).map(item => item.plan_id)].includes(selectedPlanId) && (Array.isArray(body.action_sequence) || Array.isArray(body.target_sequence))) {
+        const matching = Array.isArray(body.action_sequence)
+          ? [current, ...(current.alternative_plans || [])].find(item => JSON.stringify((item.itinerary || []).map(step => ({ action_type: step.action_type, target_id: step.target_id }))) === JSON.stringify(body.action_sequence))
+          : null;
+        const requested = Array.isArray(body.target_sequence) ? body.target_sequence.join('|') : null;
+        const byTargets = matching || (requested && [current, ...(current.alternative_plans || [])].find(item => (item.itinerary || []).map(step => step.target_node_id || step.target_id).join('|') === requested));
+        if (byTargets) selectedPlanId = byTargets.plan_id;
+      }
+      planResult = promoteAlternative(current, selectedPlanId);
+    }
+    catch (error) { return json(res, 409, { error: error.message }); }
+    state.user.currentPlanNextTarget = planResult.next_action?.target_id || null;
+    state.user.currentPlanId = planResult.plan_id;
+    return json(res, 200, planResult);
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/demo-event') {
+    const body = await readBody(req);
+    const event = body.event;
+    if (!event || typeof event.event_type !== 'string') return json(res, 400, { error: 'event.event_type 为必填项' });
+    const initial = buildLivePlannerScenario(graph, state);
+    const type = event.event_type;
+    const target = event.target_id;
+    if (type === 'POI_CLOSED') {
+      if (!initial.graph.pois.some(poi => poi.poi_id === target)) return json(res, 400, { error: `未知景点 ${target}` });
+      state.closedPois = [...new Set([...state.closedPois, target])];
+    } else if (type === 'QUEUE_UPDATE') {
+      if (!initial.graph.pois.some(poi => poi.poi_id === target)) return json(res, 400, { error: `未知景点 ${target}` });
+      if (!Number.isFinite(Number(event.queue_min)) || Number(event.queue_min) < 0) return json(res, 400, { error: 'queue_min 必须是非负数字' });
+      state.queues[target] = Number(event.queue_min);
+    } else if (type === 'POSITION_UPDATE' || type === 'PROGRESS_UPDATE') {
+      if (!node(event.current_node_id)) return json(res, 400, { error: `未知位置 ${event.current_node_id}` });
+      if (event.remaining_time_min !== undefined && (!Number.isFinite(Number(event.remaining_time_min)) || Number(event.remaining_time_min) < 0)) return json(res, 400, { error: 'remaining_time_min 必须是非负数字' });
+      if (event.fatigue !== undefined && (!Number.isFinite(Number(event.fatigue)) || Number(event.fatigue) < 0 || Number(event.fatigue) > 1)) return json(res, 400, { error: 'fatigue 必须是 0 至 1 之间的数字' });
+      state.user.location = event.current_node_id;
+      if (event.remaining_time_min !== undefined) state.user.remainingMinutes = Math.max(0, Number(event.remaining_time_min));
+      if (event.fatigue !== undefined) state.user.load = Math.min(1, Math.max(0, Number(event.fatigue)));
+    } else if (type === 'ROAD_CLOSED' || type === 'ROAD_OPENED') {
+      if (!initial.graph.edges.some(item => item.edge_id === event.edge_id)) return json(res, 400, { error: `未知道路 ${event.edge_id}` });
+      state.closedRoads = type === 'ROAD_CLOSED'
+        ? [...new Set([...state.closedRoads, event.edge_id])]
+        : state.closedRoads.filter(id => id !== event.edge_id);
+    } else if (type === 'EVENT_CANCELLED' || type === 'EVENT_MISSED') {
+      if (!initial.graph.events.some(item => item.event_id === target)) return json(res, 400, { error: `未知活动 ${target}` });
+      state.cancelledEvents = [...new Set([...state.cancelledEvents, target])];
+    } else if (type !== 'SKIP_TARGET' && type !== 'REQUEST_REPLAN') {
+      return json(res, 400, { error: `不支持的事件类型 ${type}` });
+    }
+    const updated = buildLivePlannerScenario(graph, state);
+    const normalizedEvent = { ...event, schema_version: updated.state.schema_version, scenario_id: updated.state.scenario_id, timestamp: event.timestamp || updated.state.timestamp };
+    const planResult = replan({ ...updated, event: normalizedEvent, rules: state.user.preferenceProfile?.planner_rules || {} });
+    state.user.currentPlanNextTarget = planResult.next_action?.target_id || null;
+    state.user.currentPlanId = planResult.plan_id;
+    return json(res, 200, { ok: true, ...snapshot(), planResult });
+  }
   if (req.method === 'GET' && url.pathname === '/api/snapshot') return json(res, 200, snapshot());
   if (req.method === 'GET' && url.pathname === '/api/pois') return json(res, 200, { nodes: graph.nodes, edges: graph.edges });
   if (req.method === 'GET' && url.pathname === '/api/forecast') return json(res, 200, { forecast: forecast(Number(url.searchParams.get('horizon') || 90)) });
@@ -230,7 +326,10 @@ async function api(req, res, url) {
   if (req.method === 'GET' && url.pathname === '/api/navigation') {
     const from = url.searchParams.get('from') || state.user.location;
     const to = url.searchParams.get('to') || 'museum';
-    const p = pathBetween(from, to);
+    const scenario = buildLivePlannerScenario(graph, state);
+    const planned = plannerPath({ ...scenario, startNodeId: from, goalNodeId: to, departureTime: scenario.state.timestamp });
+    if (!planned.reachable) return json(res, 409, { error: planned.reason, from, to });
+    const p = { path: planned.node_sequence, minutes: planned.travel_time_min, distance: planned.total_distance_m };
     const segments = p.path.slice(0, -1).map((id, i) => {
       const next = p.path[i + 1]; const e = edge(id, next); const n = node(next);
       const crowd = state.crowd[next] || .2;
@@ -238,21 +337,22 @@ async function api(req, res, url) {
       const chairs = e.shade > .7 ? Math.round(4 + e.shade * 5) : e.shade > .45 ? 2 : 1;
       return { from: node(id).name, to: n.name, distance: e.distance, minutes: e.minutes, shade: Math.round(e.shade * 100), chairs, slope, crowd: Math.round(crowd * 100), event: state.events.some(x => x.node === next && (x.status === 'live' || x.status === 'upcoming')), warning: crowd > .67 ? '人流较高' : e.shade < .35 ? '部分暴晒' : slope >= 5 ? '坡度变化' : '通行顺畅' };
     });
-    return json(res, 200, { from, to, path: p.path, totalMinutes: p.minutes, totalDistance: p.distance, segments, model: lightWorldModel() });
+    return json(res, 200, { from, to, path: p.path, edgeSequence: planned.edge_sequence, totalMinutes: p.minutes, totalDistance: p.distance, segments, model: lightWorldModel() });
   }
   if (req.method === 'GET' && url.pathname === '/api/route-dna') return json(res, 200, { seeds: routeSeeds });
   if (req.method === 'GET' && url.pathname === '/api/companion') return json(res, 200, { companion: companionFacts[state.user.location] || companionFacts.museum });
   if (req.method === 'POST' && url.pathname === '/api/preferences') {
-    const body = await readBody(req); const preference = inferPreference(body.answers || {}); state.user.preference = preference;
+    const body = await readBody(req); const preferenceProfile = inferPreferenceV2(body.answers || {}); const preference = preferenceProfile.weights; state.user.preference = preference; state.user.preferenceProfile = preferenceProfile;
     if (body.leaveAt && /^\d{2}:\d{2}$/.test(body.leaveAt)) { const [h, m] = body.leaveAt.split(':').map(Number); const leave = h * 60 + m; const now = state.minute % (24 * 60); state.user.remainingMinutes = Math.max(30, leave >= now ? leave - now : leave + 24 * 60 - now); }
-    return json(res, 200, { preference, routes: makeRoutes(preference), model: lightWorldModel(), user: state.user });
+    const planResult = makeLivePlan(preferenceProfile.planner_rules); state.user.currentPlanNextTarget = planResult.next_action?.target_id || null;
+    return json(res, 200, { preference, preferenceProfile, routes: makeRoutes(preference), planResult, model: lightWorldModel(), user: state.user });
   }
   if (req.method === 'POST' && url.pathname === '/api/replan') {
     const body = await readBody(req);
     if (body.location && node(body.location)) state.user.location = body.location;
     if (body.load !== undefined) state.user.load = Math.min(1, Math.max(0, Number(body.load)));
     updateEnvironment();
-    return json(res, 200, { routes: makeRoutes(state.user.preference || defaultPreference), forecast: forecast(), model: lightWorldModel(), user: state.user, crowd: state.crowd, queues: state.queues, updatedAt: new Date().toISOString() });
+    return json(res, 200, { routes: makeRoutes(state.user.preference || defaultPreference), planResult: makeLivePlan(), forecast: forecast(), model: lightWorldModel(), user: state.user, crowd: state.crowd, queues: state.queues, updatedAt: new Date().toISOString() });
   }
   if (req.method === 'POST' && url.pathname === '/api/companion') {
     const body = await readBody(req); const fact = companionFacts[body.location || state.user.location] || companionFacts.museum;
@@ -276,7 +376,20 @@ async function api(req, res, url) {
   if (req.method === 'POST' && url.pathname === '/api/simulate-event') {
     const body = await readBody(req); const id = body.node || 'market'; state.crowd[id] = Math.min(0.98, state.crowd[id] + Number(body.delta || 0.16)); state.queues[id] = Math.round((state.queues[id] + Number(body.queueDelta || 6)) * 10) / 10;
     state.events.unshift({ id: `event-${Date.now()}`, title: body.title || '现场事件：人流快速聚集', at: '刚刚', node: id, status: 'live', capacity: node(id)?.capacity || 100 });
-    return json(res, 200, { ok: true, ...snapshot() });
+    const planResult = makeLivePlan(); state.user.currentPlanNextTarget = planResult.next_action?.target_id || null;
+    return json(res, 200, { ok: true, ...snapshot(), planResult });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/simulate-road-closure') {
+    const body = await readBody(req);
+    const requested = body.edge_id || 'edge_1_gate_market';
+    const scenario = buildLivePlannerScenario(graph, state);
+    if (!scenario.graph.edges.some(item => item.edge_id === requested)) return json(res, 400, { error: `未知道路 ${requested}` });
+    state.closedRoads = [...new Set([...state.closedRoads, requested])];
+    const updatedScenario = buildLivePlannerScenario(graph, state);
+    const event = { schema_version: updatedScenario.state.schema_version, scenario_id: updatedScenario.state.scenario_id, event_type: 'ROAD_CLOSED', edge_id: requested, timestamp: updatedScenario.state.timestamp };
+    const planResult = replan({ ...updatedScenario, event, rules: state.user.preferenceProfile?.planner_rules || {} });
+    state.user.currentPlanNextTarget = planResult.next_action?.target_id || null;
+    return json(res, 200, { ok: true, ...snapshot(), planResult, closed_edge_id: requested });
   }
   return json(res, 404, { error: 'Not found' });
 }
@@ -295,7 +408,7 @@ function serve(req, res) {
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  if (url.pathname.startsWith('/api/')) api(req, res, url).catch(err => json(res, 500, { error: err.message }));
+  if (url.pathname.startsWith('/api/')) api(req, res, url).catch(err => json(res, err.statusCode || (url.pathname.startsWith('/api/b/') ? 400 : 500), { error: err.message }));
   else if (req.method === 'GET') serve(req, res);
   else json(res, 405, { error: 'Method not allowed' });
 });
