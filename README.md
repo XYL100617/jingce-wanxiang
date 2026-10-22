@@ -5,7 +5,7 @@
 ## 运行
 
 ```powershell
-cd D:\jingcewanxiang
+cd D:\jingxing\jingce-wanxiang-render
 npm.cmd start
 ```
 
@@ -40,7 +40,7 @@ npm.cmd start
 
 ## A 模块：景区状态与模拟环境
 
-当前仓库实际运行目录是 `D:\jingcewanxiang`。在该目录执行 `npm start` 启动演示，执行 `npm test` 运行 Node.js 内置断言编写的契约测试。
+当前仓库实际运行目录是 `D:\jingxing\jingce-wanxiang-render`。在该目录执行 `npm.cmd start` 启动演示，执行 `npm.cmd test` 运行 A、B 两套测试。
 
 - `server/data/scenic_graph.json` 是唯一的景区图源。节点有统一 `node_id`，POI 另有 `poi_id`，道路有 `edge_id`、距离、基础时间和方向。`stateProvider` 从中生成旧网页所需的数组式 `graph.edges`。
 
@@ -136,3 +136,30 @@ POST /api/v1/scenario-event  {"event_type":"ROAD_SLOWDOWN","target_id":"edge_001
 HTTP 测试直接在 `127.0.0.1` 的随机端口启动隔离服务，不向已运行的演示服务提交事件，也不启动正式服务的自动推进定时器。`/api/snapshot` 等旧接口继续从同一状态和图生成演示数据；`lightWorldModel()` 是第一版规则模拟的旧网页展示兼容层。
 
 第一版暂缓游客位置、剩余时间、疲劳、已访问 POI 的完整自动维护和演出生命周期调度；未接入实时客流，预测仍为可重复的规则模拟。景区算法坐标、实际道路方向及运营入口规则需要现场数据校准，当前不代表真实测绘结果。
+真实项目中可将 `server/index.js` 中的初始状态替换为景区管理系统、闸机、摄像统计、天气、活动排期和用户授权反馈数据；当前接口已经预留了 `/api/replan`、`/api/preferences`、`/api/feedback` 和 `/api/simulate-event`，便于逐步接入真实服务。
+
+## B模块独立联调
+
+B 的规则仿真与游程规划已拆到 `server/planner/`，不读取 A 的内部变量，也不依赖 C 的地图对象。它接收统一的 `ScenicGraph`、`ScenicState` 和 `EnvironmentForecast`，输出可直接交给 C 的 `PlanResult`。
+
+```powershell
+# 运行全部验收测试
+npm test
+
+# 启动服务后获取固定样例
+Invoke-RestMethod http://localhost:4173/api/b/mock-scenario?variant=normal
+
+# 使用内置正常场景规划
+Invoke-RestMethod -Method Post -ContentType 'application/json' -Body '{"variant":"normal"}' http://localhost:4173/api/b/plan
+
+# 模拟跳过目标并从当前位置重规划
+Invoke-RestMethod -Method Post -ContentType 'application/json' -Body '{"variant":"normal","event":{"schema_version":"0.1","scenario_id":"b_normal_001","event_type":"SKIP_TARGET","target_id":"poi_history","timestamp":"2026-10-20 10:00:00"}}' http://localhost:4173/api/b/replan
+```
+
+内置样例支持 `normal`、`queue_surge` 和 `road_closure` 三种场景。接口字段、责任边界和 A/C 对接清单见 `docs/b-module-cooperation.md`。
+
+## 个性化偏好 0.2
+
+个性化路线问卷现包含游览节奏、同行人群、步行能力、六类兴趣和八项情境量表。`server/preference-engine.js` 使用“画像先验 + 量表贡献矩阵 + Softmax 归一化”生成八维连续权重，同时输出单段步行、最大排队和休息约束。权重随游客状态进入 B 规划器，直接影响每个候选动作的效用分，而不是只作为界面标签。
+
+接口返回 `preferenceProfile`，其中包含权重、可信度、前三项偏好、约束及主要答案贡献。正式契约见 `docs/contracts/b-planner.schema.json`，可运行样例见 `docs/contracts/examples/`。

@@ -1,0 +1,13 @@
+.survey-progress{display:flex;align-items:center;gap:12px;margin-bottom:16px;color:#6d8589;font-size:9px}
+.survey-progress>span{width:72px}.survey-progress>i{height:6px;flex:1;background:#e9f1f1;border-radius:5px;overflow:hidden}
+.survey-progress>i>b{display:block;width:0;height:100%;background:linear-gradient(90deg,#17a9aa,#6ac7a0);transition:width .25s}
+.survey-context{display:grid;grid-template-columns:1fr 1fr;gap:12px}.survey-context>div{padding:12px;border:1px solid #e2ebed;border-radius:6px}
+.survey-context>div>b{display:block;font-size:10px;margin-bottom:8px}.choice-chip{border:1px solid #dce7e9;background:#fff;color:#647d82;border-radius:16px;padding:7px 10px;margin:3px;font-size:9px;cursor:pointer}
+.choice-chip.selected{border-color:#0fa8aa;background:#eaf9f8;color:#087f82;box-shadow:0 0 0 1px #0fa8aa}.interest-options{display:flex;flex-wrap:wrap;gap:4px}
+.scale-questions{display:grid;gap:9px}.scale-questions>label{display:block;padding:11px 12px;border:1px solid #e2ebed;border-radius:6px;background:#fbfdfd}
+.scale-questions label>span{display:flex;justify-content:space-between;align-items:center}.scale-questions label b{font-size:10px}.scale-questions label em{font:700 10px 'Manrope';font-style:normal;color:#0b9da0}
+.scale-questions label>div{display:grid;grid-template-columns:82px 1fr 82px;gap:9px;align-items:center;margin-top:9px}.scale-questions small{font-size:8px;color:#91a0a5}.scale-questions small:last-child{text-align:right}
+.scale-questions input{width:100%;accent-color:#0fa8aa}.preference-summary{margin-top:16px;padding:12px;background:#f5faf9;border-radius:6px;color:#6e8589;line-height:1.6}
+.preference-summary b,.preference-summary span,.preference-summary small{display:block}.preference-summary b{color:#287f81;font-size:10px}.preference-summary span{font-size:9px;margin-top:4px}.preference-summary small{font-size:8px;margin-top:4px}
+.vector-card{align-self:start;position:sticky;top:68px}
+@media(max-width:700px){.survey-context{grid-template-columns:1fr}.scale-questions label>div{grid-template-columns:70px 1fr 70px}}

@@ -2,6 +2,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const { createMockScenario, buildLivePlannerScenario, planItinerary, replan, promoteAlternative } = require('./planner');
+const { inferPreference: inferPreferenceV2 } = require('./preference-engine');
 
 const PORT = Number(process.env.PORT || 4173);
 const ROOT = path.resolve(__dirname, '..');
@@ -17,8 +19,27 @@ const routeEdges = scenicGraph.edges;
 const routePoiIds = new Map(scenicGraph.nodes.filter(n => n.poi_id).map(n => [n.node_id, n.poi_id]));
 const ROUTE_FORECAST_HORIZON_MIN = 240;
 let state = provider.getLegacyState();
-const refresh = () => { state = provider.getLegacyState(); };
+let preferenceProfile = null;
+let currentPlanNextTarget = null;
+let currentPlanId = null;
+const refresh = () => {
+  state = provider.getLegacyState();
+  state.user.preferenceProfile = preferenceProfile;
+  state.user.currentPlanNextTarget = currentPlanNextTarget;
+  state.user.currentPlanId = currentPlanId;
+};
 const commit = () => { provider.setLegacyState(state); refresh(); };
+
+function livePlannerScenario() {
+  const current = provider.getState();
+  return buildLivePlannerScenario(provider.getScenicGraph(), current, state.user, predictEnvironment(current, ROUTE_FORECAST_HORIZON_MIN, 10));
+}
+
+function setActivePlan(planResult) {
+  currentPlanNextTarget = planResult?.next_action?.target_id || null;
+  currentPlanId = planResult?.plan_id || null;
+  refresh();
+}
 
 const routeSeeds = [
   { id: '8A3F', title: '亲子避晒 · 文化慢游', author: '小河的周末', tags: ['室内优先', '休息点多', '亲子'], minutes: 178, likes: 286, stops: ['museum', 'theater', 'rest', 'market'], cover: 'museum' },
@@ -62,10 +83,32 @@ function json(res, code, payload) {
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let raw = '';
-    req.on('data', chunk => { raw += chunk; if (raw.length > 1e6) req.destroy(); });
-    req.on('end', () => { try { resolve(raw ? JSON.parse(raw) : {}); } catch (e) { reject(e); } });
+    let oversized = false;
+    req.on('data', chunk => {
+      if (oversized) return;
+      raw += chunk;
+      if (raw.length > 1e6) {
+        oversized = true;
+        const error = new Error('请求体超过 1 MB'); error.statusCode = 413; reject(error);
+      }
+    });
+    req.on('end', () => {
+      if (oversized) return;
+      try { resolve(raw ? JSON.parse(raw) : {}); }
+      catch (_) { const error = new Error('请求体不是有效 JSON'); error.statusCode = 400; reject(error); }
+    });
     req.on('error', reject);
   });
+}
+
+function resolveBScenario(body) {
+  const supplied = ['graph', 'state', 'forecast'].filter(key => body[key] !== undefined);
+  if (supplied.length && supplied.length !== 3) throw new Error('graph、state、forecast 必须同时提供');
+  if (supplied.length === 3) return body;
+  if (body.source === 'live') return livePlannerScenario();
+  const variant = body.variant || 'normal';
+  if (!['normal', 'queue_surge', 'road_closure'].includes(variant)) throw new Error(`不支持的场景 ${variant}`);
+  return createMockScenario(variant);
 }
 
 function node(id) { return graph.nodes.find(n => n.id === id); }
@@ -107,24 +150,6 @@ function pathBetween(start, goal, forecastData, departOffsetMin = 0) {
     }
   }
   return null;
-}
-
-function inferPreference(answers = {}) {
-  const p = { ...defaultPreference };
-  const bump = (key, amount) => { p[key] += amount; };
-  if (answers.time === 'urgent') { bump('time', 0.2); bump('comfort', -0.04); }
-  if (answers.time === 'normal') { bump('interest', 0.06); bump('comfort', 0.04); }
-  if (answers.time === 'free') { bump('freedom', 0.2); bump('interest', 0.09); }
-  if (answers.crowd === 'avoid') { bump('comfort', 0.17); bump('time', 0.04); }
-  if (answers.crowd === 'accept') { bump('interest', 0.08); bump('freedom', 0.05); }
-  if (answers.sun === 'shade') bump('comfort', 0.15);
-  if (answers.sun === 'sun-ok') bump('interest', 0.08);
-  if (answers.content === 'culture') bump('culture', 0.2);
-  if (answers.content === 'nature') { bump('interest', 0.12); bump('freedom', 0.08); }
-  if (answers.rest === 'often') bump('comfort', 0.12);
-  if (answers.rest === 'rarely') bump('time', 0.06);
-  const sum = Object.values(p).reduce((a, b) => a + Math.max(0.02, b), 0);
-  return Object.fromEntries(Object.entries(p).map(([k, v]) => [k, Math.round(Math.max(0.02, v) / sum * 100) / 100]));
 }
 
 function scoreRoute(route, preference, poiSamples) {
@@ -172,6 +197,11 @@ function makeRoutes(preference = state.user.preference || defaultPreference) {
   }).filter(Boolean);
 }
 
+function makeLivePlan(rules = state.user.preferenceProfile?.planner_rules || {}) {
+  const scenario = livePlannerScenario();
+  return planItinerary({ ...scenario, rules });
+}
+
 function forecast(horizon = 90) {
   const result = predictEnvironment(provider.getState(), horizon, 15);
   return result.poi_predictions.market.map(p => ({ offset: p.offset_min, label: p.offset_min === 0 ? '现在' : `+${p.offset_min}m`, crowd: Math.round(p.crowd_ratio * 100), queue: p.queue_min, confidence: Math.round((.94 - p.offset_min / 800) * 100) }));
@@ -179,12 +209,13 @@ function forecast(horizon = 90) {
 
 function snapshot() {
   const routes = makeRoutes();
+  const closedRoads = Object.entries(provider.getState().road_states).filter(([, road]) => !road.available).map(([id]) => id);
   return {
     project: { name: '景策万象', tagline: '轻量化世界模型驱动的景区全程自适应游览决策系统', version: 'demo v3.0' },
     time: { minute: state.minute, display: `${String(Math.floor(state.minute / 60)).padStart(2, '0')}:${String(state.minute % 60).padStart(2, '0')}` },
     weather: state.weather, graph, crowd: state.crowd, queues: state.queues, events: state.events, user: state.user, routes, forecast: forecast(), worldModel: lightWorldModel(), routeSeeds,
     companion: companionFacts[state.user.location] || companionFacts.museum,
-    emergency: { rain: state.weather.rain, safe: true, closed: [], sos: false },
+    emergency: { rain: state.weather.rain, safe: closedRoads.length === 0, closed: closedRoads, sos: false },
     metrics: { nodes: graph.nodes.length, edges: graph.edges.length, confidence: 91, responseMs: 84, coverage: 87 }
   };
 }
@@ -237,6 +268,100 @@ async function api(req, res, url) {
     refresh();
     return json(res, 200, { state: updated, forecast: predictEnvironment(updated) });
   }
+  if (req.method === 'GET' && url.pathname === '/api/b/mock-scenario') {
+    const variant = url.searchParams.get('variant') || 'normal';
+    if (!['normal', 'queue_surge', 'road_closure'].includes(variant)) return json(res, 400, { error: 'variant 仅支持 normal、queue_surge、road_closure' });
+    return json(res, 200, createMockScenario(variant));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/plan') {
+    const body = await readBody(req);
+    const scenario = resolveBScenario(body);
+    return json(res, 200, planItinerary({ graph: scenario.graph, state: scenario.state, forecast: scenario.forecast, rules: body.rules || scenario.rules || {} }));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/replan') {
+    const body = await readBody(req);
+    const scenario = resolveBScenario(body);
+    return json(res, 200, replan({ graph: scenario.graph, state: scenario.state, forecast: scenario.forecast, event: body.event, rules: body.rules || scenario.rules || {} }));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/replan-live') {
+    const body = await readBody(req);
+    const scenario = livePlannerScenario();
+    const planResult = replan({ ...scenario, event: body.event, rules: body.rules || state.user.preferenceProfile?.planner_rules || {} });
+    setActivePlan(planResult);
+    return json(res, 200, planResult);
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/select-plan') {
+    const body = await readBody(req);
+    if (typeof body.plan_id !== 'string' || !body.plan_id) return json(res, 400, { error: 'plan_id 为必填字符串' });
+    const scenario = livePlannerScenario();
+    const current = planItinerary({ ...scenario, rules: state.user.preferenceProfile?.planner_rules || {} });
+    let planResult;
+    try {
+      let selectedPlanId = body.plan_id;
+      if (![current.plan_id, ...(current.alternative_plans || []).map(item => item.plan_id)].includes(selectedPlanId) && (Array.isArray(body.action_sequence) || Array.isArray(body.target_sequence))) {
+        const matching = Array.isArray(body.action_sequence)
+          ? [current, ...(current.alternative_plans || [])].find(item => JSON.stringify((item.itinerary || []).map(step => ({ action_type: step.action_type, target_id: step.target_id }))) === JSON.stringify(body.action_sequence))
+          : null;
+        const requested = Array.isArray(body.target_sequence) ? body.target_sequence.join('|') : null;
+        const byTargets = matching || (requested && [current, ...(current.alternative_plans || [])].find(item => (item.itinerary || []).map(step => step.target_node_id || step.target_id).join('|') === requested));
+        if (byTargets) selectedPlanId = byTargets.plan_id;
+      }
+      planResult = promoteAlternative(current, selectedPlanId);
+    }
+    catch (error) { return json(res, 409, { error: error.message }); }
+    setActivePlan(planResult);
+    return json(res, 200, planResult);
+  }
+  if (req.method === 'POST' && url.pathname === '/api/b/demo-event') {
+    const body = await readBody(req);
+    const event = body.event;
+    if (!event || typeof event.event_type !== 'string') return json(res, 400, { error: 'event.event_type 为必填项' });
+    const initial = livePlannerScenario();
+    const type = event.event_type;
+    const target = event.target_id;
+    let legacyChanged = false;
+    let canonicalChanged = false;
+    let canonical = provider.getState();
+    if (type === 'POI_CLOSED') {
+      if (!initial.graph.pois.some(poi => poi.poi_id === target)) return json(res, 400, { error: `未知景点 ${target}` });
+      canonical.poi_states[target].open = false;
+      canonicalChanged = true;
+    } else if (type === 'QUEUE_UPDATE') {
+      if (!initial.graph.pois.some(poi => poi.poi_id === target)) return json(res, 400, { error: `未知景点 ${target}` });
+      if (!Number.isFinite(Number(event.queue_min)) || Number(event.queue_min) < 0) return json(res, 400, { error: 'queue_min 必须是非负数字' });
+      state.queues[target] = Number(event.queue_min);
+      legacyChanged = true;
+    } else if (type === 'POSITION_UPDATE' || type === 'PROGRESS_UPDATE') {
+      if (!node(event.current_node_id)) return json(res, 400, { error: `未知位置 ${event.current_node_id}` });
+      if (event.remaining_time_min !== undefined && (!Number.isFinite(Number(event.remaining_time_min)) || Number(event.remaining_time_min) < 0)) return json(res, 400, { error: 'remaining_time_min 必须是非负数字' });
+      if (event.fatigue !== undefined && (!Number.isFinite(Number(event.fatigue)) || Number(event.fatigue) < 0 || Number(event.fatigue) > 1)) return json(res, 400, { error: 'fatigue 必须是 0 至 1 之间的数字' });
+      state.user.location = event.current_node_id;
+      if (event.remaining_time_min !== undefined) state.user.remainingMinutes = Math.max(0, Number(event.remaining_time_min));
+      if (event.fatigue !== undefined) state.user.load = Math.min(1, Math.max(0, Number(event.fatigue)));
+      legacyChanged = true;
+    } else if (type === 'ROAD_CLOSED' || type === 'ROAD_OPENED') {
+      if (!initial.graph.edges.some(item => item.edge_id === event.edge_id)) return json(res, 400, { error: `未知道路 ${event.edge_id}` });
+      canonical.road_states[event.edge_id].available = type === 'ROAD_OPENED';
+      canonicalChanged = true;
+    } else if (type === 'EVENT_CANCELLED' || type === 'EVENT_MISSED') {
+      if (!initial.graph.events.some(item => item.event_id === target)) return json(res, 400, { error: `未知活动 ${target}` });
+      canonical.event_states[target].cancelled = true;
+      canonicalChanged = true;
+    } else if (type !== 'SKIP_TARGET' && type !== 'REQUEST_REPLAN') {
+      return json(res, 400, { error: `不支持的事件类型 ${type}` });
+    }
+    if (legacyChanged) {
+      commit();
+      canonical = provider.getState();
+    }
+    if (canonicalChanged) provider.setState(canonical);
+    refresh();
+    const updated = livePlannerScenario();
+    const normalizedEvent = { ...event, schema_version: updated.state.schema_version, scenario_id: updated.state.scenario_id, timestamp: event.timestamp || updated.state.timestamp };
+    const planResult = replan({ ...updated, event: normalizedEvent, rules: state.user.preferenceProfile?.planner_rules || {} });
+    setActivePlan(planResult);
+    return json(res, 200, { ok: true, ...snapshot(), planResult });
+  }
   if (req.method === 'GET' && url.pathname === '/api/snapshot') return json(res, 200, snapshot());
   if (req.method === 'GET' && url.pathname === '/api/pois') return json(res, 200, { nodes: graph.nodes, edges: graph.edges });
   if (req.method === 'GET' && url.pathname === '/api/forecast') return json(res, 200, { forecast: forecast(Number(url.searchParams.get('horizon') || 90)) });
@@ -254,15 +379,28 @@ async function api(req, res, url) {
       const chairs = e.shade > .7 ? Math.round(4 + e.shade * 5) : e.shade > .45 ? 2 : 1;
       return { from: node(id).name, to: n.name, edge_id: e.edge_id, distance: e.distance, minutes: e.minutes, shade: Math.round(e.shade * 100), chairs, slope, crowd: Math.round(crowd * 100), event: state.events.some(x => x.node === next && (x.status === 'live' || x.status === 'upcoming')), warning: crowd > .67 ? '人流较高' : e.shade < .35 ? '部分暴晒' : slope >= 5 ? '坡度变化' : '通行顺畅' };
     });
-    return json(res, 200, { from, to, path: p.path, totalMinutes: p.minutes, totalDistance: p.distance, segments, model: lightWorldModel() });
+    return json(res, 200, { from, to, path: p.path, edgeSequence: p.steps.map(step => step.edge_id), totalMinutes: p.minutes, totalDistance: p.distance, segments, model: lightWorldModel() });
   }
   if (req.method === 'GET' && url.pathname === '/api/route-dna') return json(res, 200, { seeds: routeSeeds });
   if (req.method === 'GET' && url.pathname === '/api/companion') return json(res, 200, { companion: companionFacts[state.user.location] || companionFacts.museum });
   if (req.method === 'POST' && url.pathname === '/api/preferences') {
-    const body = await readBody(req); const preference = inferPreference(body.answers || {}); state.user.preference = preference;
+    const body = await readBody(req);
+    preferenceProfile = inferPreferenceV2(body.answers || {});
+    const weights = preferenceProfile.weights;
+    const preference = {
+      time: weights.time,
+      interest: weights.interest + weights.performance + weights.food,
+      comfort: weights.comfort,
+      freedom: weights.freedom + weights.nature,
+      culture: weights.culture
+    };
+    state.user.preference = preference;
+    state.user.preferenceProfile = preferenceProfile;
     if (body.leaveAt && /^\d{2}:\d{2}$/.test(body.leaveAt)) { const [h, m] = body.leaveAt.split(':').map(Number); const leave = h * 60 + m; const now = state.minute % (24 * 60); state.user.remainingMinutes = Math.max(30, leave >= now ? leave - now : leave + 24 * 60 - now); }
     commit();
-    return json(res, 200, { preference, routes: makeRoutes(preference), model: lightWorldModel(), user: state.user });
+    const planResult = makeLivePlan(preferenceProfile.planner_rules);
+    setActivePlan(planResult);
+    return json(res, 200, { preference, preferenceProfile, routes: makeRoutes(preference), planResult, model: lightWorldModel(), user: state.user });
   }
   if (req.method === 'POST' && url.pathname === '/api/replan') {
     const body = await readBody(req);
@@ -270,7 +408,7 @@ async function api(req, res, url) {
     if (body.load !== undefined) state.user.load = Math.min(1, Math.max(0, Number(body.load)));
     commit();
     updateEnvironment();
-    return json(res, 200, { routes: makeRoutes(state.user.preference || defaultPreference), forecast: forecast(), model: lightWorldModel(), user: state.user, crowd: state.crowd, queues: state.queues, updatedAt: new Date().toISOString() });
+    return json(res, 200, { routes: makeRoutes(state.user.preference || defaultPreference), planResult: makeLivePlan(), forecast: forecast(), model: lightWorldModel(), user: state.user, crowd: state.crowd, queues: state.queues, updatedAt: new Date().toISOString() });
   }
   if (req.method === 'POST' && url.pathname === '/api/companion') {
     const body = await readBody(req); const fact = companionFacts[body.location || state.user.location] || companionFacts.museum;
@@ -299,8 +437,26 @@ async function api(req, res, url) {
     const next = applyScenarioEvent(provider.getState(), { event_type: 'QUEUE_SPIKE', target_id: id, timestamp: provider.getState().timestamp });
     const eventId = `event-${next.scenario_events.length}`;
     next.event_states[eventId] = { event_id: eventId, node_id: id, status: 'live', start_time: next.timestamp, latest_entry_time: next.timestamp, capacity: node(id)?.capacity || 100, title: body.title || '现场事件：人流快速聚集' };
-    provider.setState(next); refresh();
-    return json(res, 200, { ok: true, ...snapshot() });
+    provider.setState(next);
+    refresh();
+    const planResult = makeLivePlan();
+    setActivePlan(planResult);
+    return json(res, 200, { ok: true, ...snapshot(), planResult });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/simulate-road-closure') {
+    const body = await readBody(req);
+    const requested = body.edge_id || 'edge_002';
+    const scenario = livePlannerScenario();
+    if (!scenario.graph.edges.some(item => item.edge_id === requested)) return json(res, 400, { error: `未知道路 ${requested}` });
+    const next = provider.getState();
+    next.road_states[requested].available = false;
+    provider.setState(next);
+    refresh();
+    const updatedScenario = livePlannerScenario();
+    const event = { schema_version: updatedScenario.state.schema_version, scenario_id: updatedScenario.state.scenario_id, event_type: 'ROAD_CLOSED', edge_id: requested, timestamp: updatedScenario.state.timestamp };
+    const planResult = replan({ ...updatedScenario, event, rules: state.user.preferenceProfile?.planner_rules || {} });
+    setActivePlan(planResult);
+    return json(res, 200, { ok: true, ...snapshot(), planResult, closed_edge_id: requested });
   }
   return json(res, 404, { error: 'Not found' });
 }
@@ -320,7 +476,7 @@ function serve(req, res) {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (url.pathname.startsWith('/api/')) api(req, res, url).catch(err => {
-    const code = /^Unknown /.test(err.message) ? 404 : err instanceof TypeError || err instanceof RangeError || err instanceof SyntaxError ? 400 : 500;
+    const code = err.statusCode || (/^Unknown /.test(err.message) ? 404 : err instanceof TypeError || err instanceof RangeError || err instanceof SyntaxError || url.pathname.startsWith('/api/b/') ? 400 : 500);
     json(res, code, { error: err.message });
   });
   else if (req.method === 'GET') serve(req, res);

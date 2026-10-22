@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jingce.example/schema/b-planner-0.2.json",
+  "title": "景策万象 B 模块规划接口",
+  "description": "按端点使用 PlanRequest、ReplanRequest 或读取 PlanResult；UserEvent 是 ReplanRequest.event 的结构。",
+  "oneOf": [
+    { "$ref": "#/$defs/PlanRequest" },
+    { "$ref": "#/$defs/ReplanRequest" },
+    { "$ref": "#/$defs/PlanResult" }
+  ],
+  "$defs": {
+    "Versioned": {
+      "type": "object",
+      "required": ["schema_version", "scenario_id"],
+      "properties": {
+        "schema_version": { "const": "0.1" },
+        "scenario_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$" },
+    "IdArray": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "Node": {
+      "type": "object", "required": ["node_id"],
+      "properties": { "node_id": { "type": "string", "minLength": 1 }, "node_type": { "type": "string" }, "algorithm_x": { "type": "number" }, "algorithm_y": { "type": "number" } }
+    },
+    "Edge": {
+      "type": "object", "required": ["edge_id", "from_node_id", "to_node_id", "distance_m", "base_travel_time_min"],
+      "properties": { "edge_id": { "type": "string", "minLength": 1 }, "from_node_id": { "type": "string" }, "to_node_id": { "type": "string" }, "distance_m": { "type": "number", "minimum": 0 }, "base_travel_time_min": { "type": "number", "exclusiveMinimum": 0 }, "bidirectional": { "type": "boolean" } }
+    },
+    "BusinessNode": {
+      "type": "object", "required": ["node_id"],
+      "properties": { "node_id": { "type": "string" }, "category": { "type": "string" }, "tags": { "type": "array", "items": { "type": "string" } }, "open_time": { "$ref": "#/$defs/Timestamp" }, "close_time": { "$ref": "#/$defs/Timestamp" }, "start_time": { "$ref": "#/$defs/Timestamp" }, "latest_entry_time": { "$ref": "#/$defs/Timestamp" }, "end_time": { "$ref": "#/$defs/Timestamp" }, "visit_duration_min": { "type": "number", "minimum": 0 }, "duration_min": { "type": "number", "minimum": 0 }, "base_utility": { "type": "number" }, "comfort_score": { "type": "number", "minimum": 0, "maximum": 1 } }
+    },
+    "ScenicGraph": {
+      "allOf": [{ "$ref": "#/$defs/Versioned" }, {
+        "type": "object", "required": ["nodes", "edges", "pois", "events", "facilities", "exits"],
+        "properties": {
+          "nodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/Node" } },
+          "edges": { "type": "array", "items": { "$ref": "#/$defs/Edge" } },
+          "pois": { "type": "array", "items": { "allOf": [{ "$ref": "#/$defs/BusinessNode" }, { "type": "object", "required": ["poi_id"], "properties": { "poi_id": { "type": "string" } } }] } },
+          "events": { "type": "array", "items": { "allOf": [{ "$ref": "#/$defs/BusinessNode" }, { "type": "object", "required": ["event_id"], "properties": { "event_id": { "type": "string" } } }] } },
+          "facilities": { "type": "array", "items": { "allOf": [{ "$ref": "#/$defs/BusinessNode" }, { "type": "object", "required": ["facility_id", "facility_type"], "properties": { "facility_id": { "type": "string" }, "facility_type": { "type": "string" }, "rest_duration_min": { "type": "number", "minimum": 0 }, "min_fatigue": { "type": "number", "minimum": 0, "maximum": 1 } } }] } },
+          "exits": { "type": "array", "items": { "allOf": [{ "$ref": "#/$defs/BusinessNode" }, { "type": "object", "required": ["exit_id"], "properties": { "exit_id": { "type": "string" } } }] } }
+        }
+      }]
+    },
+    "ScenicState": {
+      "allOf": [{ "$ref": "#/$defs/Versioned" }, {
+        "type": "object", "required": ["state_version", "timestamp", "visitor"],
+        "properties": {
+          "state_version": { "type": "string" }, "timestamp": { "$ref": "#/$defs/Timestamp" },
+          "visitor": { "type": "object", "required": ["current_node_id", "remaining_time_min", "fatigue"], "properties": {
+            "visitor_id": { "type": "string" }, "current_node_id": { "type": "string" }, "remaining_time_min": { "type": "number", "minimum": 0 }, "fatigue": { "type": "number", "minimum": 0, "maximum": 1 },
+            "visited_poi_ids": { "$ref": "#/$defs/IdArray" }, "attended_event_ids": { "$ref": "#/$defs/IdArray" }, "visited_facility_ids": { "$ref": "#/$defs/IdArray" }, "preferred_categories": { "type": "array", "items": { "type": "string" } }, "preference_weights": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 } }, "require_rest": { "type": "boolean" }
+          } },
+          "poi_states": { "type": "object", "additionalProperties": { "type": "object", "properties": { "is_open": { "type": "boolean" }, "current_queue_min": { "type": "number", "minimum": 0 }, "crowd_level": { "type": "number", "minimum": 0 } } } },
+          "road_states": { "type": "object", "additionalProperties": { "type": "object", "required": ["available"], "properties": { "available": { "type": "boolean" }, "travel_time_min": { "type": "number", "minimum": 0 } } } },
+          "event_states": { "type": "object", "additionalProperties": { "type": "object", "properties": { "is_open": { "type": "boolean" }, "cancelled": { "type": "boolean" } } } }
+        }
+      }]
+    },
+    "PredictionPoint": {
+      "type": "object", "required": ["timestamp"], "properties": { "timestamp": { "$ref": "#/$defs/Timestamp" }, "queue_min": { "type": "number", "minimum": 0 }, "crowd_level": { "type": "number", "minimum": 0 }, "travel_time_min": { "type": "number", "minimum": 0 }, "available": { "type": "boolean" } }
+    },
+    "EnvironmentForecast": {
+      "allOf": [{ "$ref": "#/$defs/Versioned" }, {
+        "type": "object", "required": ["forecast_version", "base_timestamp", "horizon_min", "step_min", "poi_predictions", "road_predictions"],
+        "properties": { "forecast_version": { "type": "string" }, "base_timestamp": { "$ref": "#/$defs/Timestamp" }, "horizon_min": { "type": "number", "minimum": 0 }, "step_min": { "type": "number", "exclusiveMinimum": 0 }, "poi_predictions": { "type": "object", "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/PredictionPoint" } } }, "road_predictions": { "type": "object", "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/PredictionPoint" } } } }
+      }]
+    },
+    "PlanRequest": {
+      "type": "object",
+      "required": ["graph", "state", "forecast"],
+      "properties": {
+        "graph": { "$ref": "#/$defs/ScenicGraph" },
+        "state": { "$ref": "#/$defs/ScenicState" },
+        "forecast": { "$ref": "#/$defs/EnvironmentForecast" },
+        "rules": { "type": "object" }
+      }
+    },
+    "ReplanRequest": {
+      "type": "object", "required": ["event"],
+      "properties": { "graph": { "$ref": "#/$defs/ScenicGraph" }, "state": { "$ref": "#/$defs/ScenicState" }, "forecast": { "$ref": "#/$defs/EnvironmentForecast" }, "variant": { "enum": ["normal", "queue_surge", "road_closure"] }, "source": { "enum": ["live", "mock"] }, "event": { "$ref": "#/$defs/UserEvent" }, "rules": { "type": "object" } },
+      "anyOf": [{ "required": ["graph", "state", "forecast"] }, { "required": ["event"] }]
+    },
+    "UserEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/Versioned" },
+        {
+          "type": "object",
+          "required": ["event_type"],
+          "properties": {
+            "event_type": { "enum": ["SKIP_TARGET", "REQUEST_REPLAN", "POSITION_UPDATE", "PROGRESS_UPDATE", "POI_CLOSED", "QUEUE_UPDATE", "ROAD_CLOSED", "ROAD_OPENED", "EVENT_CANCELLED", "EVENT_MISSED"] },
+            "timestamp": { "$ref": "#/$defs/Timestamp" },
+            "target_id": { "type": "string" },
+            "edge_id": { "type": "string" },
+            "current_node_id": { "type": "string" },
+            "queue_min": { "type": "number", "minimum": 0 },
+            "remaining_time_min": { "type": "number", "minimum": 0 },
+            "fatigue": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        { "if": { "properties": { "event_type": { "enum": ["SKIP_TARGET", "POI_CLOSED", "QUEUE_UPDATE", "EVENT_CANCELLED", "EVENT_MISSED"] } } }, "then": { "required": ["target_id"] } },
+        { "if": { "properties": { "event_type": { "const": "QUEUE_UPDATE" } } }, "then": { "required": ["queue_min"] } },
+        { "if": { "properties": { "event_type": { "enum": ["ROAD_CLOSED", "ROAD_OPENED"] } } }, "then": { "required": ["edge_id"] } },
+        { "if": { "properties": { "event_type": { "enum": ["POSITION_UPDATE", "PROGRESS_UPDATE"] } } }, "then": { "required": ["current_node_id"] } }
+      ]
+    },
+    "Action": {
+      "type": "object",
+      "required": ["action_type", "target_id"],
+      "properties": {
+        "action_type": { "enum": ["VISIT_POI", "ATTEND_EVENT", "REST", "WAIT", "EXIT"] },
+        "target_id": { "type": "string" }
+      }
+    },
+    "ItineraryItem": {
+      "allOf": [
+        { "$ref": "#/$defs/Action" },
+        {
+          "type": "object",
+          "required": ["target_node_id", "arrival_time", "completion_time", "travel_time_min", "route"],
+          "properties": {
+            "target_node_id": { "type": "string" },
+            "arrival_time": { "type": "string" },
+            "completion_time": { "type": "string" },
+            "travel_time_min": { "type": "number", "minimum": 0 },
+            "predicted_queue_min": { "type": "number", "minimum": 0 },
+            "preference_fit": { "type": "number", "minimum": 0, "maximum": 1 },
+            "preference_dominant_factor": { "type": ["string", "null"] },
+            "action_score": { "type": "number" },
+            "route": { "$ref": "#/$defs/Route" }
+          }
+        }
+      ]
+    },
+    "Route": {
+      "type": "object",
+      "required": ["node_sequence", "edge_sequence", "total_distance_m", "travel_time_min"],
+      "properties": {
+        "node_sequence": { "type": "array", "items": { "type": "string" } },
+        "edge_sequence": { "type": "array", "items": { "type": "string" } },
+        "total_distance_m": { "type": "number", "minimum": 0 },
+        "travel_time_min": { "type": "number", "minimum": 0 }
+      }
+    },
+    "PlanResult": {
+      "allOf": [
+        { "$ref": "#/$defs/Versioned" },
+        {
+          "type": "object",
+          "required": ["plan_id", "based_on_state_version", "based_on_forecast_version", "next_action", "itinerary", "current_route", "score", "alternative_plans", "reason", "feasible"],
+          "properties": {
+            "plan_id": { "type": "string" },
+            "based_on_state_version": { "type": "string" },
+            "based_on_forecast_version": { "type": "string" },
+            "next_action": { "anyOf": [{ "$ref": "#/$defs/Action" }, { "type": "null" }] },
+            "itinerary": { "type": "array", "items": { "$ref": "#/$defs/ItineraryItem" } },
+            "current_route": { "$ref": "#/$defs/Route" },
+            "score": { "type": "number" },
+            "alternative_plans": { "type": "array" },
+            "reason": { "type": "string" },
+            "feasible": { "type": "boolean" },
+            "diagnostics": { "type": "object" }
+          }
+        }
+      ]
+    }
+  }
+}

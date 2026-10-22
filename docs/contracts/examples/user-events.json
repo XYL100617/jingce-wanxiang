@@ -1,0 +1,6 @@
+[
+  { "schema_version": "0.1", "scenario_id": "b_normal_001", "event_type": "SKIP_TARGET", "target_id": "poi_history", "timestamp": "2026-10-20 10:10:00" },
+  { "schema_version": "0.1", "scenario_id": "b_normal_001", "event_type": "QUEUE_UPDATE", "target_id": "poi_history", "queue_min": 55, "timestamp": "2026-10-20 10:10:00" },
+  { "schema_version": "0.1", "scenario_id": "b_normal_001", "event_type": "ROAD_CLOSED", "edge_id": "edge_gate_garden", "timestamp": "2026-10-20 10:10:00" },
+  { "schema_version": "0.1", "scenario_id": "b_normal_001", "event_type": "PROGRESS_UPDATE", "current_node_id": "node_garden", "remaining_time_min": 90, "fatigue": 0.65, "timestamp": "2026-10-20 10:25:00" }
+]

@@ -1,0 +1,17 @@
+{
+  "answers": {
+    "type": "normal",
+    "group": "family",
+    "mobility": "light",
+    "interests": ["culture", "performance", "food"],
+    "queue_tolerance": 2,
+    "walking_tolerance": 2,
+    "schedule_preference": 4,
+    "depth_preference": 4,
+    "crowd_sensitivity": 5,
+    "novelty_preference": 3,
+    "rest_need": 4,
+    "photo_preference": 3
+  },
+  "leaveAt": "15:30"
+}
