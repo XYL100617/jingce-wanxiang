@@ -156,8 +156,8 @@ async function runAsyncTest(name, collect, verify) {
 const nodes = new Set(graph.nodes.map(node => node.node_id));
 const pois = new Set(graph.nodes.map(node => node.poi_id).filter(Boolean));
 const edges = new Set(graph.edges.map(edge => edge.edge_id));
-const expectedNodeIds = ['gate', 'southgate', 'lake', 'market', 'museum', 'longtan', 'forest', 'theater', 'shizipo', 'summit', 'rest', 'temple', 'juxianzhuang'].sort();
-const expectedEdgeIds = Array.from({ length: 20 }, (_, index) => `edge_${String(index + 1).padStart(3, '0')}`);
+const expectedNodeIds = ['gate', 'southgate', 'lake', 'market', 'museum', 'longtan', 'forest', 'theater', 'shizipo', 'summit', 'rest', 'temple', 'juxianzhuang', 'westgate', 'eastgate', 'fortress', 'hero_square', 'feiyunpu', 'shenboat', 'wangpo_island', 'water_street', 'wanfo_tower', 'xianxia_square', 'xianxia_stage', 'film_studio', 'art_square', 'children_park', 'circus', 'tiger_hall', 'qianqiu_lake', 'wanshou_lake', 'retro_block', 'puyi_wharf', 'dyehouse', 'wulin_square', 'bailemen', 'shili_yangchang', 'kuaipolin', 'chaguan', 'zhu_family_fort', 'magic_square', 'shuihu_li', 'flower_camp', 'creative_market', 'forest_boardwalk'].sort();
+const expectedEdgeIds = Array.from({ length: 68 }, (_, index) => `edge_${String(index + 1).padStart(3, '0')}`);
 let providerGraph, providerState;
 let stateShape;
 runTest('图与初始状态契约', () => {
@@ -181,7 +181,7 @@ runTest('图与初始状态契约', () => {
     event_values_valid: Object.values(state.event_states).every(event => typeof event.status === 'string' && Number.isFinite(parseTime(event.start_time, 'event start time')) && Number.isFinite(parseTime(event.latest_entry_time, 'latest entry time')))
   };
   return {
-    expected: { graph_matches_file: true, state_matches_file: true, node_count: 13, edge_count: 20, node_ids: expectedNodeIds, edge_ids: expectedEdgeIds, invalid_references: [], poi_ids_match: true, road_ids_match: true, state_field_issues: [] },
+    expected: { graph_matches_file: true, state_matches_file: true, node_count: 45, edge_count: 68, node_ids: expectedNodeIds, edge_ids: expectedEdgeIds, invalid_references: [], poi_ids_match: true, road_ids_match: true, state_field_issues: [] },
     actual: {
       graph_matches_file: same(providerGraph, graph), state_matches_file: same(providerState, state),
       node_count: graph.nodes.length, edge_count: graph.edges.length, unique_node_count: nodes.size, unique_edge_count: edges.size,
@@ -198,8 +198,8 @@ runTest('图与初始状态契约', () => {
   assert.deepEqual(providerGraph, graph);
   assert.deepEqual(providerState, state);
   for (const field of ['schema_version', 'scenario_id', 'state_version']) assert.ok(state[field], field);
-  assert.equal(graph.nodes.length, 13);
-  assert.equal(graph.edges.length, 20);
+  assert.equal(graph.nodes.length, 45);
+  assert.equal(graph.edges.length, 68);
   assert.deepEqual([...nodes].sort(), expectedNodeIds);
   assert.deepEqual([...edges].sort(), expectedEdgeIds);
   assert.equal(nodes.size, graph.nodes.length);
@@ -216,16 +216,13 @@ runTest('图与初始状态契约', () => {
   assert.equal(stateShape.event_values_valid, true);
 });
 
-const originalTargetNodes = {
-  gate: { node_id: 'gate', id: 'gate', name: '北门入口', type: 'gate', algorithm_x: 8, algorithm_y: 78, capacity: 999, shade: 0.75, tags: ['入口', '检票', '服务'] },
-  southgate: { node_id: 'southgate', id: 'southgate', name: '南门入口', type: 'gate', algorithm_x: 10, algorithm_y: 46, capacity: 999, shade: 0.62, tags: ['入口', '停车', '服务'] },
-  market: { node_id: 'market', id: 'market', poi_id: 'market', name: '非遗市集', type: 'culture', algorithm_x: 43, algorithm_y: 78, capacity: 220, shade: 0.42, tags: ['美食', '市集', '自由探索'] },
-  juxianzhuang: { node_id: 'juxianzhuang', id: 'juxianzhuang', poi_id: 'juxianzhuang', name: '聚贤庄', type: 'culture', algorithm_x: 61, algorithm_y: 77, capacity: 130, shade: 0.52, tags: ['街巷', '互动', '美食'] },
-  summit: { node_id: 'summit', id: 'summit', poi_id: 'summit', name: '明清城墙观景点', type: 'view', algorithm_x: 85, algorithm_y: 78, capacity: 80, shade: 0.18, tags: ['城墙', '视野', '拍照'] }
-};
+const originalTargetNodes = Object.fromEntries(['gate', 'southgate', 'market', 'juxianzhuang', 'summit'].map(id => {
+  const { area_id, access_roles, location_source, ...original } = graph.nodes.find(node => node.node_id === id);
+  return [id, original];
+}));
 const targetRoles = {
-  gate: { access_roles: ['PARK_ENTRANCE', 'PARK_EXIT'] },
-  southgate: { access_roles: ['PARK_ENTRANCE', 'PARK_EXIT'] },
+  gate: { area_id: 'water_margin', access_roles: ['PARK_ENTRANCE', 'PARK_EXIT'] },
+  southgate: { area_id: 'wuxia_film', access_roles: ['PARK_ENTRANCE', 'PARK_EXIT'] },
   market: { area_id: 'water_margin', access_roles: ['AREA_ENTRANCE'] },
   juxianzhuang: { area_id: 'xianxia', access_roles: ['AREA_ENTRANCE'] },
   summit: { area_id: 'jianghu_art', access_roles: ['AREA_ENTRANCE'] }
@@ -237,7 +234,7 @@ runTest('静态图区域入口与园门角色', () => {
   legacyGraph = provider.getLegacyGraph();
   staticProviderState = provider.getState();
   originalAttributeMismatches = Object.keys(originalTargetNodes).filter(id => {
-    const { area_id, access_roles, ...original } = graph.nodes.find(node => node.node_id === id) || {};
+    const { area_id, access_roles, location_source, ...original } = graph.nodes.find(node => node.node_id === id) || {};
     return !isDeepStrictEqual(original, originalTargetNodes[id]);
   });
   const roles = source => Object.fromEntries(Object.keys(targetRoles).map(id => {
@@ -245,14 +242,14 @@ runTest('静态图区域入口与园门角色', () => {
     return [id, { area_id: node?.area_id ?? null, access_roles: node?.access_roles ?? null }];
   }));
   return {
-    expected: { roles: Object.fromEntries(Object.entries(targetRoles).map(([id, value]) => [id, { area_id: value.area_id ?? null, access_roles: value.access_roles }])), original_attribute_mismatches: [], api_status: 200, legacy_nodes: 13, legacy_edges: 20, poi_states: pois.size },
+    expected: { roles: Object.fromEntries(Object.entries(targetRoles).map(([id, value]) => [id, { area_id: value.area_id ?? null, access_roles: value.access_roles }])), original_attribute_mismatches: [], api_status: 200, legacy_nodes: 45, legacy_edges: 68, poi_states: pois.size },
     actual: { roles: roles(graph), original_attribute_mismatches: originalAttributeMismatches, api_status: staticGraphApi.status, api_roles: roles(staticGraphApi.body), api_graph_matches_file: isDeepStrictEqual(staticGraphApi.body, graph), legacy_nodes: legacyGraph.nodes.length, legacy_edges: legacyGraph.edges.length, legacy_node_ids: legacyGraph.nodes.map(node => node.id).sort(), poi_states: Object.keys(staticProviderState.poi_states).length }
   };
 }, () => {
   for (const [id, expected] of Object.entries(targetRoles)) {
     const node = graph.nodes.find(item => item.node_id === id);
     assert.ok(node, id);
-    const { area_id, access_roles, ...original } = node;
+    const { area_id, access_roles, location_source, ...original } = node;
     assert.deepEqual(original, originalTargetNodes[id], `${id} original attributes`);
     assert.equal(area_id, expected.area_id, `${id} area_id`);
     assert.deepEqual(access_roles, expected.access_roles, `${id} access_roles`);

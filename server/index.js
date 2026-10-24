@@ -4,10 +4,32 @@ const path = require('path');
 const { URL } = require('url');
 const { createMockScenario, buildLivePlannerScenario, planItinerary, replan, promoteAlternative } = require('./planner');
 const { inferPreference: inferPreferenceV2 } = require('./preference-engine');
+const accounts = require('./accounts');
 
 const PORT = Number(process.env.PORT || 4173);
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
+const AUDIT_FILE = process.env.AUDIT_FILE || path.join(__dirname, 'data', 'audit.local.jsonl');
+function audit(req, action, target, outcome = 'success', details = {}) {
+  const entry = { timestamp: new Date().toISOString(), requestId: req.requestId,
+    actorId: req.account?.id || null, actorRole: req.account?.role || 'guest', action, target,
+    outcome, details };
+  fs.mkdirSync(path.dirname(AUDIT_FILE), { recursive: true });
+  fs.appendFileSync(AUDIT_FILE, `${JSON.stringify(entry)}\n`);
+  return entry;
+}
+function requireAccount(req, res) {
+  if (req.account) return true;
+  json(res, 401, { error: '请先登录账号' });
+  return false;
+}
+function requireManager(req, res) {
+  if (!requireAccount(req, res)) return false;
+  if (req.account.role === 'manager') return true;
+  audit(req, 'permission.denied', req.url, 'denied');
+  json(res, 403, { error: '此操作仅限景区管理员' });
+  return false;
+}
 
 const provider = require('./state/stateProvider');
 const { predictEnvironment } = require('./state/forecastSimulator');
@@ -17,14 +39,17 @@ const graph = provider.getLegacyGraph();
 const scenicGraph = provider.getScenicGraph();
 const routeEdges = scenicGraph.edges;
 const routePoiIds = new Map(scenicGraph.nodes.filter(n => n.poi_id).map(n => [n.node_id, n.poi_id]));
-const ROUTE_FORECAST_HORIZON_MIN = 240;
+const ROUTE_FORECAST_HORIZON_MIN = 600;
 let state = provider.getLegacyState();
 let preferenceProfile = null;
 let currentPlanNextTarget = null;
 let currentPlanId = null;
+let currentPlanResult = null;
+const cInteractionEvents = [];
 const refresh = () => {
   state = provider.getLegacyState();
   state.user.preferenceProfile = preferenceProfile;
+  if (preferenceProfile?.planner_rules?.preferred_exit_node_id) state.user.preferredExitNodeId = preferenceProfile.planner_rules.preferred_exit_node_id;
   state.user.currentPlanNextTarget = currentPlanNextTarget;
   state.user.currentPlanId = currentPlanId;
 };
@@ -36,6 +61,7 @@ function livePlannerScenario() {
 }
 
 function setActivePlan(planResult) {
+  currentPlanResult = planResult || null;
   currentPlanNextTarget = planResult?.next_action?.target_id || null;
   currentPlanId = planResult?.plan_id || null;
   refresh();
@@ -54,7 +80,16 @@ const companionFacts = {
   rest: { name: '松风驿站', title: '给行程留一处恢复空间', fact: '松风驿站提供休息、补给与卫生间服务，模型会结合累计步行和舒适负荷判断是否建议在此停留。', prompt: '为什么需要安排休息？' }
 };
 
-const defaultPreference = { time: 0.27, interest: 0.24, comfort: 0.2, freedom: 0.15, culture: 0.14 };
+const defaultPreference = { time: .18, interest: .16, comfort: .16, freedom: .12, culture: .11, nature: .1, performance: .09, food: .08 };
+function legacyRoutePreference(weights = defaultPreference) {
+  return {
+    time: Number(weights.time || 0),
+    interest: Number(weights.interest || 0) + Number(weights.performance || 0) + Number(weights.food || 0),
+    comfort: Number(weights.comfort || 0),
+    freedom: Number(weights.freedom || 0) + Number(weights.nature || 0),
+    culture: Number(weights.culture || 0)
+  };
+}
 
 // 第一版规则模拟世界模型兼容层。未来可替换 forecastSimulator 内部为 GNN+GRU / RSSM，
 // 对外 EnvironmentForecast 接口保持不变。
@@ -76,7 +111,7 @@ function lightWorldModel(horizon = 60) {
 
 function json(res, code, payload) {
   const body = JSON.stringify(payload);
-  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' });
+  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
   res.end(body);
 }
 
@@ -166,6 +201,7 @@ function scoreRoute(route, preference, poiSamples) {
 }
 
 function makeRoutes(preference = state.user.preference || defaultPreference) {
+  const routePreference = legacyRoutePreference(preference);
   const forecastData = planningForecast();
   const templates = [
     { id: 'efficiency', label: '效率偏', tone: 'cyan', stops: ['market', 'museum', 'theater'], reason: '优先锁定高价值项目，减少绕行和无效等待' },
@@ -193,7 +229,7 @@ function makeRoutes(preference = state.user.preference || defaultPreference) {
       elapsed += sample.queue_min;
       prev = stop;
     }
-    return scoreRoute({ ...t, minutes, distance, legs, eta: predictedTime(forecastData, elapsed) }, preference, poiSamples);
+    return scoreRoute({ ...t, minutes, distance, legs, eta: predictedTime(forecastData, elapsed) }, routePreference, poiSamples);
   }).filter(Boolean);
 }
 
@@ -213,7 +249,7 @@ function snapshot() {
   return {
     project: { name: '景策万象', tagline: '轻量化世界模型驱动的景区全程自适应游览决策系统', version: 'demo v3.0' },
     time: { minute: state.minute, display: `${String(Math.floor(state.minute / 60)).padStart(2, '0')}:${String(state.minute % 60).padStart(2, '0')}` },
-    weather: state.weather, graph, crowd: state.crowd, queues: state.queues, events: state.events, user: state.user, routes, forecast: forecast(), worldModel: lightWorldModel(), routeSeeds,
+    weather: state.weather, graph, crowd: state.crowd, queues: state.queues, events: state.events, user: state.user, routes, forecast: forecast(), worldModel: lightWorldModel(), routeSeeds, planResult: currentPlanResult,
     companion: companionFacts[state.user.location] || companionFacts.museum,
     emergency: { rain: state.weather.rain, safe: closedRoads.length === 0, closed: closedRoads, sos: false },
     metrics: { nodes: graph.nodes.length, edges: graph.edges.length, confidence: 91, responseMs: 84, coverage: 87 }
@@ -251,6 +287,65 @@ function updateEnvironment() {
 if (require.main === module) setInterval(updateEnvironment, 12000);
 
 async function api(req, res, url) {
+  if (req.method === 'POST' && url.pathname === '/api/account/register') {
+    const body = await readBody(req);
+    const user = accounts.createUser(body.username, body.password, body.displayName);
+    audit(req, 'account.register', user.id);
+    const session = accounts.login(body.username, body.password);
+    res.setHeader('Set-Cookie', accounts.cookie(session.token, req));
+    return json(res, 201, { user: accounts.publicUser(user), profile: accounts.profile(user) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/account/login') {
+    const body = await readBody(req);
+    const session = accounts.login(body.username, body.password);
+    req.account = session.user;
+    audit(req, 'account.login', session.user.id);
+    res.setHeader('Set-Cookie', accounts.cookie(session.token, req));
+    return json(res, 200, { user: accounts.publicUser(session.user), profile: accounts.profile(session.user) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/account/logout') {
+    if (req.account) audit(req, 'account.logout', req.account.id);
+    accounts.logout(req);
+    res.setHeader('Set-Cookie', accounts.clearCookie());
+    return json(res, 200, { ok: true });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/account/me')
+    return json(res, 200, { user: accounts.publicUser(req.account), profile: req.account ? accounts.profile(req.account) : null });
+  if (req.method === 'PATCH' && url.pathname === '/api/account/profile') {
+    if (!requireAccount(req, res)) return;
+    const profile = accounts.updateProfile(req.account, await readBody(req));
+    audit(req, 'profile.update', req.account.id, 'success', { fields: ['displayName', 'consent'] });
+    return json(res, 200, { profile });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/admin/users') {
+    if (!requireManager(req, res)) return;
+    return json(res, 200, { users: accounts.listUsers() });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/admin/audit') {
+    if (!requireManager(req, res)) return;
+    const lines = fs.existsSync(AUDIT_FILE) ? fs.readFileSync(AUDIT_FILE, 'utf8').trim().split('\n').filter(Boolean) : [];
+    return json(res, 200, { entries: lines.slice(-100).reverse().map(line => JSON.parse(line)) });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/v1/scenario-event' && !requireManager(req, res)) return;
+  if (req.method === 'POST' && ['/api/simulate-event', '/api/simulate-road-closure'].includes(url.pathname) && !requireManager(req, res)) return;
+  if (req.method === 'POST' && url.pathname === '/api/b/demo-event') {
+    const body = await readBody(req);
+    req.demoEventBody = body;
+    if (['POI_CLOSED', 'QUEUE_UPDATE', 'ROAD_CLOSED', 'ROAD_OPENED', 'EVENT_CANCELLED'].includes(body.event?.event_type) && !requireManager(req, res)) return;
+  }
+  if (req.method === 'POST' && url.pathname === '/api/c/user-event') {
+    const body = await readBody(req); const event = body.event;
+    if (!event || !['POI_CLICK', 'ROAD_CLICK', 'MAP_REPLAN_REQUEST'].includes(event.event_type)) return json(res, 400, { error: '不支持的 C 模块交互事件' });
+    const current = provider.getState();
+    if (event.schema_version !== current.schema_version || event.scenario_id !== current.scenario_id) return json(res, 409, { error: 'C 模块事件与当前数据版本或场景不匹配' });
+    if (event.event_type === 'POI_CLICK' && !scenicGraph.nodes.some(node => node.poi_id === event.target_id)) return json(res, 404, { error: '未知 POI ID' });
+    if (event.event_type === 'ROAD_CLICK' && !scenicGraph.edges.some(edge => edge.edge_id === event.edge_id)) return json(res, 404, { error: '未知 edge_id' });
+    if (event.event_type === 'MAP_REPLAN_REQUEST' && !scenicGraph.nodes.some(node => node.node_id === event.node_id)) return json(res, 404, { error: '未知 node_id' });
+    const accepted = { ...event, received_at: current.timestamp };
+    cInteractionEvents.push(accepted);
+    if (cInteractionEvents.length > 100) cInteractionEvents.shift();
+    return json(res, 202, { ok: true, event: accepted, event_count: cInteractionEvents.length });
+  }
   if (req.method === 'GET' && url.pathname === '/api/v1/scenic-graph') return json(res, 200, provider.getScenicGraph());
   if (req.method === 'GET' && url.pathname === '/api/v1/state') return json(res, 200, provider.getState(url.searchParams.get('timestamp') || undefined, url.searchParams.get('visitor_id') || undefined));
   if (req.method === 'GET' && url.pathname === '/api/v1/environment-forecast') return json(res, 200, predictEnvironment(provider.getState(), Number(url.searchParams.get('horizon') || 60), Number(url.searchParams.get('step') || 10)));
@@ -266,6 +361,7 @@ async function api(req, res, url) {
     const event = await readBody(req);
     const updated = provider.setState(applyScenarioEvent(provider.getState(), event));
     refresh();
+    audit(req, 'scenic.scenario_event', event.target_id || event.edge_id || null, 'success', { eventType: event.event_type });
     return json(res, 200, { state: updated, forecast: predictEnvironment(updated) });
   }
   if (req.method === 'GET' && url.pathname === '/api/b/mock-scenario') {
@@ -313,7 +409,7 @@ async function api(req, res, url) {
     return json(res, 200, planResult);
   }
   if (req.method === 'POST' && url.pathname === '/api/b/demo-event') {
-    const body = await readBody(req);
+    const body = req.demoEventBody;
     const event = body.event;
     if (!event || typeof event.event_type !== 'string') return json(res, 400, { error: 'event.event_type 为必填项' });
     const initial = livePlannerScenario();
@@ -335,6 +431,12 @@ async function api(req, res, url) {
       if (!node(event.current_node_id)) return json(res, 400, { error: `未知位置 ${event.current_node_id}` });
       if (event.remaining_time_min !== undefined && (!Number.isFinite(Number(event.remaining_time_min)) || Number(event.remaining_time_min) < 0)) return json(res, 400, { error: 'remaining_time_min 必须是非负数字' });
       if (event.fatigue !== undefined && (!Number.isFinite(Number(event.fatigue)) || Number(event.fatigue) < 0 || Number(event.fatigue) > 1)) return json(res, 400, { error: 'fatigue 必须是 0 至 1 之间的数字' });
+      if (type === 'PROGRESS_UPDATE' && event.target_id) {
+        const target = initial.graph.pois.find(item => item.poi_id === event.target_id)
+          || initial.graph.events.find(item => item.event_id === event.target_id)
+          || initial.graph.facilities.find(item => item.facility_id === event.target_id);
+        if (!target || target.node_id !== event.current_node_id) return json(res, 400, { error: '进度目标必须是当前位置对应的已知景点、活动或服务点' });
+      }
       state.user.location = event.current_node_id;
       if (event.remaining_time_min !== undefined) state.user.remainingMinutes = Math.max(0, Number(event.remaining_time_min));
       if (event.fatigue !== undefined) state.user.load = Math.min(1, Math.max(0, Number(event.fatigue)));
@@ -354,12 +456,19 @@ async function api(req, res, url) {
       commit();
       canonical = provider.getState();
     }
+    if (type === 'PROGRESS_UPDATE' && event.target_id) {
+      if (initial.graph.pois.some(item => item.poi_id === event.target_id)) canonical.visitor.visited_poi_ids = [...new Set([...(canonical.visitor.visited_poi_ids || []), event.target_id])];
+      else if (initial.graph.events.some(item => item.event_id === event.target_id)) canonical.visitor.attended_event_ids = [...new Set([...(canonical.visitor.attended_event_ids || []), event.target_id])];
+      else canonical.visitor.visited_facility_ids = [...new Set([...(canonical.visitor.visited_facility_ids || []), event.target_id])];
+      canonicalChanged = true;
+    }
     if (canonicalChanged) provider.setState(canonical);
     refresh();
     const updated = livePlannerScenario();
     const normalizedEvent = { ...event, schema_version: updated.state.schema_version, scenario_id: updated.state.scenario_id, timestamp: event.timestamp || updated.state.timestamp };
     const planResult = replan({ ...updated, event: normalizedEvent, rules: state.user.preferenceProfile?.planner_rules || {} });
     setActivePlan(planResult);
+    audit(req, type === 'PROGRESS_UPDATE' ? 'route.progress' : 'scenic.demo_event', event.edge_id || target || event.current_node_id || null, 'success', { eventType: type });
     return json(res, 200, { ok: true, ...snapshot(), planResult });
   }
   if (req.method === 'GET' && url.pathname === '/api/snapshot') return json(res, 200, snapshot());
@@ -385,22 +494,24 @@ async function api(req, res, url) {
   if (req.method === 'GET' && url.pathname === '/api/companion') return json(res, 200, { companion: companionFacts[state.user.location] || companionFacts.museum });
   if (req.method === 'POST' && url.pathname === '/api/preferences') {
     const body = await readBody(req);
+    const exitNodeId = body.exit_node_id == null || body.exit_node_id === '' ? null : body.exit_node_id;
+    if (exitNodeId !== null && (typeof exitNodeId !== 'string' || !scenicGraph.nodes.some(node => (node.node_id || node.id) === exitNodeId && (node.access_roles || []).includes('PARK_EXIT')))) return json(res, 400, { error: 'exit_node_id 必须是已知的离园出口' });
     preferenceProfile = inferPreferenceV2(body.answers || {});
+    if (exitNodeId) preferenceProfile.planner_rules.preferred_exit_node_id = exitNodeId;
     const weights = preferenceProfile.weights;
-    const preference = {
-      time: weights.time,
-      interest: weights.interest + weights.performance + weights.food,
-      comfort: weights.comfort,
-      freedom: weights.freedom + weights.nature,
-      culture: weights.culture
-    };
-    state.user.preference = preference;
+    const preference = legacyRoutePreference(weights);
+    state.user.preference = weights;
     state.user.preferenceProfile = preferenceProfile;
+    if (body.current_node_id !== undefined) {
+      if (typeof body.current_node_id !== 'string' || !node(body.current_node_id)) return json(res, 400, { error: 'current_node_id 必须是已知景区位置' });
+      state.user.location = body.current_node_id;
+    }
     if (body.leaveAt && /^\d{2}:\d{2}$/.test(body.leaveAt)) { const [h, m] = body.leaveAt.split(':').map(Number); const leave = h * 60 + m; const now = state.minute % (24 * 60); state.user.remainingMinutes = Math.max(30, leave >= now ? leave - now : leave + 24 * 60 - now); }
     commit();
     const planResult = makeLivePlan(preferenceProfile.planner_rules);
     setActivePlan(planResult);
-    return json(res, 200, { preference, preferenceProfile, routes: makeRoutes(preference), planResult, model: lightWorldModel(), user: state.user });
+    accounts.saveRoute(req.account, planResult, preferenceProfile);
+    return json(res, 200, { preference: weights, legacyPreference: preference, preferenceProfile, routes: makeRoutes(weights), planResult, model: lightWorldModel(), user: state.user });
   }
   if (req.method === 'POST' && url.pathname === '/api/replan') {
     const body = await readBody(req);
@@ -408,7 +519,9 @@ async function api(req, res, url) {
     if (body.load !== undefined) state.user.load = Math.min(1, Math.max(0, Number(body.load)));
     commit();
     updateEnvironment();
-    return json(res, 200, { routes: makeRoutes(state.user.preference || defaultPreference), planResult: makeLivePlan(), forecast: forecast(), model: lightWorldModel(), user: state.user, crowd: state.crowd, queues: state.queues, updatedAt: new Date().toISOString() });
+    const planResult = makeLivePlan();
+    setActivePlan(planResult);
+    return json(res, 200, { routes: makeRoutes(state.user.preference || defaultPreference), planResult, forecast: forecast(), model: lightWorldModel(), user: state.user, crowd: state.crowd, queues: state.queues, updatedAt: new Date().toISOString() });
   }
   if (req.method === 'POST' && url.pathname === '/api/companion') {
     const body = await readBody(req); const fact = companionFacts[body.location || state.user.location] || companionFacts.museum;
@@ -439,6 +552,7 @@ async function api(req, res, url) {
     next.event_states[eventId] = { event_id: eventId, node_id: id, status: 'live', start_time: next.timestamp, latest_entry_time: next.timestamp, capacity: node(id)?.capacity || 100, title: body.title || '现场事件：人流快速聚集' };
     provider.setState(next);
     refresh();
+    audit(req, 'scenic.queue_spike', id);
     const planResult = makeLivePlan();
     setActivePlan(planResult);
     return json(res, 200, { ok: true, ...snapshot(), planResult });
@@ -452,6 +566,7 @@ async function api(req, res, url) {
     next.road_states[requested].available = false;
     provider.setState(next);
     refresh();
+    audit(req, 'scenic.road_close', requested);
     const updatedScenario = livePlannerScenario();
     const event = { schema_version: updatedScenario.state.schema_version, scenario_id: updatedScenario.state.scenario_id, event_type: 'ROAD_CLOSED', edge_id: requested, timestamp: updatedScenario.state.timestamp };
     const planResult = replan({ ...updatedScenario, event, rules: state.user.preferenceProfile?.planner_rules || {} });
@@ -475,6 +590,10 @@ function serve(req, res) {
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+  req.requestId = require('node:crypto').randomUUID();
+  req.account = accounts.sessionUser(req);
+  if (url.pathname.startsWith('/api/') && !['GET', 'HEAD'].includes(req.method) && req.headers.origin &&
+    new URL(req.headers.origin).host !== req.headers.host) return json(res, 403, { error: '跨站请求被拒绝' });
   if (url.pathname.startsWith('/api/')) api(req, res, url).catch(err => {
     const code = err.statusCode || (/^Unknown /.test(err.message) ? 404 : err instanceof TypeError || err instanceof RangeError || err instanceof SyntaxError || url.pathname.startsWith('/api/b/') ? 400 : 500);
     json(res, code, { error: err.message });
@@ -489,16 +608,10 @@ function startServer(port) {
     if (settled) return;
     settled = true;
     server.removeListener('error', onError);
-    if (err.code === 'EADDRINUSE' && !process.env.PORT && port < PORT + 20) {
-      console.warn(`端口 ${port} 已被占用，自动尝试 ${port + 1}`);
-      try {
-        server.close(() => startServer(port + 1));
-      } catch (_) {
-        startServer(port + 1);
-      }
-      return;
-    }
-    console.error(`无法启动景策万象服务（端口 ${port}）：${err.message}`);
+    const hint = err.code === 'EADDRINUSE'
+      ? `端口 ${port} 已被其他程序占用。请先关闭旧的 Node 进程，或明确设置 PORT 后再启动。`
+      : err.message;
+    console.error(`无法启动景策万象服务（端口 ${port}）：${hint}`);
     process.exitCode = 1;
   };
   server.once('error', onError);

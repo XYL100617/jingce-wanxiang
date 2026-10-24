@@ -103,15 +103,15 @@
       "path": "/api/replan",
       "baseline": {
         "status": 200,
-        "queue": 41.34,
-        "utility": 42.3,
-        "minutes": 20.21
+        "queue": 41.19,
+        "utility": 35.6,
+        "minutes": 19.090000000000003
       },
       "event": {
         "status": 200,
-        "queue": 66.32,
-        "utility": 25,
-        "minutes": 20.46
+        "queue": 59.48,
+        "utility": 23,
+        "minutes": 19.28
       }
     }
   },
@@ -129,7 +129,7 @@
         "offset_min": 29,
         "result": {
           "status": 200,
-          "travel_time_min": 6.12,
+          "travel_time_min": 6.53,
           "available": true
         }
       },
@@ -137,7 +137,7 @@
         "offset_min": 30,
         "result": {
           "status": 200,
-          "travel_time_min": 6.12,
+          "travel_time_min": 6.53,
           "available": false
         }
       },
@@ -145,7 +145,7 @@
         "offset_min": 89,
         "result": {
           "status": 200,
-          "travel_time_min": 6.36,
+          "travel_time_min": 6.78,
           "available": false
         }
       },
@@ -153,7 +153,7 @@
         "offset_min": 90,
         "result": {
           "status": 200,
-          "travel_time_min": 6.36,
+          "travel_time_min": 6.78,
           "available": true
         }
       }
@@ -171,7 +171,7 @@
           "gate",
           "southgate"
         ],
-        "totalMinutes": 6,
+        "totalMinutes": 6.4,
         "edge_ids": [
           "edge_001"
         ]
@@ -184,7 +184,7 @@
           "temple",
           "southgate"
         ],
-        "totalMinutes": 17.07,
+        "totalMinutes": 19.6,
         "edge_ids": [
           "edge_002",
           "edge_020",
@@ -213,12 +213,12 @@
         "offset_min": 0,
         "baseline": {
           "status": 200,
-          "travel_time_min": 6,
+          "travel_time_min": 6.4,
           "available": true
         },
         "event": {
           "status": 200,
-          "travel_time_min": 10.8,
+          "travel_time_min": 11.52,
           "available": true
         }
       },
@@ -226,12 +226,12 @@
         "offset_min": 20,
         "baseline": {
           "status": 200,
-          "travel_time_min": 6.08,
+          "travel_time_min": 6.49,
           "available": true
         },
         "event": {
           "status": 200,
-          "travel_time_min": 10.94,
+          "travel_time_min": 11.67,
           "available": true
         }
       },
@@ -239,12 +239,12 @@
         "offset_min": 60,
         "baseline": {
           "status": 200,
-          "travel_time_min": 6.24,
+          "travel_time_min": 6.66,
           "available": true
         },
         "event": {
           "status": 200,
-          "travel_time_min": 6.24,
+          "travel_time_min": 6.66,
           "available": true
         }
       }
@@ -256,7 +256,7 @@
           "gate",
           "southgate"
         ],
-        "totalMinutes": 6,
+        "totalMinutes": 6.4,
         "edge_ids": [
           "edge_001"
         ]
@@ -267,7 +267,7 @@
           "gate",
           "southgate"
         ],
-        "totalMinutes": 10.8,
+        "totalMinutes": 11.52,
         "edge_ids": [
           "edge_001"
         ]
@@ -278,12 +278,12 @@
       "start_offset_min": 5,
       "before": {
         "status": 200,
-        "travel_time_min": 7,
+        "travel_time_min": 4.47,
         "available": true
       },
       "at_start": {
         "status": 200,
-        "travel_time_min": 12.64,
+        "travel_time_min": 8.07,
         "available": true
       },
       "navigation": {
@@ -291,15 +291,13 @@
         "path": [
           "gate",
           "market",
-          "lake",
           "temple",
           "southgate"
         ],
-        "totalMinutes": 21.11,
+        "totalMinutes": 21.72,
         "edge_ids": [
           "edge_002",
-          "edge_006",
-          "edge_004",
+          "edge_020",
           "edge_003"
         ]
       }

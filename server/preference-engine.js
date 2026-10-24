@@ -102,7 +102,9 @@ function inferPreference(answers = {}) {
       max_walk_per_leg_min: maxWalkPerLeg,
       max_queue_min: maxQueueMin,
       score: {
-        walk_cost_per_min: mobility === 'minimal' ? .85 : mobility === 'light' ? .58 : .35,
+        // Preserve geographic continuity on the shared hand-map coordinate
+        // frame; lower-mobility visitors receive an even stronger penalty.
+        walk_cost_per_min: mobility === 'minimal' ? 1.7 : mobility === 'light' ? 1.4 : 1.2,
         queue_cost_per_min: Number(answers.crowd_sensitivity || 3) >= 4 ? .72 : .45,
         preference_reward: 34
       }

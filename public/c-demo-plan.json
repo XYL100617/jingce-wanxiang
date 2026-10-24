@@ -1,0 +1,183 @@
+{
+  "schema_version": "0.1",
+  "scenario_id": "demo_001",
+  "plan_id": "c_demo_main_001",
+  "based_on_state_version": "state_0001",
+  "based_on_forecast_version": "forecast_state_0001",
+  "generated_at": "2026-10-20 10:18:00",
+  "feasible": true,
+  "score": 82.4,
+  "next_action": {
+    "action_type": "VISIT_POI",
+    "target_id": "market"
+  },
+  "current_route": {
+    "reachable": true,
+    "node_sequence": [
+      "gate",
+      "market"
+    ],
+    "edge_sequence": [
+      "edge_002"
+    ],
+    "total_distance_m": 410,
+    "travel_time_min": 5
+  },
+  "reason": "先游览非遗市集，再前往文化与演艺节点；避开高峰时段并保留离园余量。",
+  "label": "手绘总览 · 文化演艺线",
+  "itinerary": [
+    {
+      "action_type": "VISIT_POI",
+      "target_id": "market",
+      "target_node_id": "market",
+      "arrival_time": "2026-10-20 10:23:00",
+      "completion_time": "2026-10-20 10:51:00",
+      "travel_time_min": 5,
+      "wait_time_min": 0,
+      "predicted_queue_min": 6,
+      "action_score": 28.6,
+      "route": {
+        "reachable": true,
+        "node_sequence": [
+          "gate",
+          "market"
+        ],
+        "edge_sequence": [
+          "edge_002"
+        ],
+        "total_distance_m": 410,
+        "travel_time_min": 5
+      }
+    },
+    {
+      "action_type": "VISIT_POI",
+      "target_id": "museum",
+      "target_node_id": "museum",
+      "arrival_time": "2026-10-20 11:07:00",
+      "completion_time": "2026-10-20 11:43:00",
+      "travel_time_min": 16,
+      "wait_time_min": 0,
+      "predicted_queue_min": 12,
+      "action_score": 30.2,
+      "route": {
+        "reachable": true,
+        "node_sequence": [
+          "market",
+          "lake",
+          "longtan",
+          "museum"
+        ],
+        "edge_sequence": [
+          "edge_006",
+          "edge_005",
+          "edge_007"
+        ],
+        "total_distance_m": 970,
+        "travel_time_min": 16
+      }
+    },
+    {
+      "action_type": "ATTEND_EVENT",
+      "target_id": "show-1",
+      "target_node_id": "theater",
+      "arrival_time": "2026-10-20 11:49:00",
+      "completion_time": "2026-10-20 12:41:00",
+      "travel_time_min": 6,
+      "wait_time_min": 0,
+      "predicted_queue_min": 22,
+      "action_score": 31.1,
+      "route": {
+        "reachable": true,
+        "node_sequence": [
+          "museum",
+          "theater"
+        ],
+        "edge_sequence": [
+          "edge_010"
+        ],
+        "total_distance_m": 440,
+        "travel_time_min": 6
+      }
+    }
+  ],
+  "alternative_message": "可选更偏自然景观的路线。",
+  "alternative_plans": [
+    {
+      "plan_id": "c_demo_alt_001",
+      "score": 76.8,
+      "next_action": {
+        "action_type": "VISIT_POI",
+        "target_id": "lake"
+      },
+      "current_route": {
+        "reachable": true,
+        "node_sequence": [
+          "gate",
+          "southgate",
+          "temple",
+          "lake"
+        ],
+        "edge_sequence": [
+          "edge_001",
+          "edge_003",
+          "edge_004"
+        ],
+        "total_distance_m": 1300,
+        "travel_time_min": 17
+      },
+      "reason": "先看九龙瀑与自然步道，节奏更舒缓。",
+      "itinerary": [
+        {
+          "action_type": "VISIT_POI",
+          "target_id": "lake",
+          "target_node_id": "lake",
+          "arrival_time": "2026-10-20 10:35:00",
+          "completion_time": "2026-10-20 11:01:00",
+          "travel_time_min": 17,
+          "wait_time_min": 0,
+          "predicted_queue_min": 4,
+          "action_score": 26.4,
+          "route": {
+            "reachable": true,
+            "node_sequence": [
+              "gate",
+              "southgate",
+              "temple",
+              "lake"
+            ],
+            "edge_sequence": [
+              "edge_001",
+              "edge_003",
+              "edge_004"
+            ],
+            "total_distance_m": 1300,
+            "travel_time_min": 17
+          }
+        },
+        {
+          "action_type": "VISIT_POI",
+          "target_id": "temple",
+          "target_node_id": "temple",
+          "arrival_time": "2026-10-20 11:00:00",
+          "completion_time": "2026-10-20 11:24:00",
+          "travel_time_min": 6,
+          "wait_time_min": 0,
+          "predicted_queue_min": 2,
+          "action_score": 24.1,
+          "route": {
+            "reachable": true,
+            "node_sequence": [
+              "lake",
+              "temple"
+            ],
+            "edge_sequence": [
+              "edge_004"
+            ],
+            "total_distance_m": 420,
+            "travel_time_min": 6
+          }
+        }
+      ]
+    }
+  ]
+}

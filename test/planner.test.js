@@ -27,6 +27,24 @@ test('正常场景生成多步、可解释且可供 C 直接展示的 PlanResult
   assert.equal(plan.diagnostics.used_arrival_time_forecast, true);
 });
 
+test('选填离园出口约束返程校验和最终离园目标，未指定时保持原有规划', () => {
+  const scenario = createMockScenario('normal');
+  scenario.graph.nodes.push({ node_id: 'node_west_exit', node_type: 'exit', algorithm_x: 12, algorithm_y: 3 });
+  scenario.graph.edges.push({ edge_id: 'edge_theater_west_exit', from_node_id: 'node_theater', to_node_id: 'node_west_exit', distance_m: 160, base_travel_time_min: 3, bidirectional: true });
+  scenario.graph.exits.push({ exit_id: 'exit_west', node_id: 'node_west_exit' });
+  const preferred = planItinerary({ ...scenario, rules: { preferred_exit_node_id: 'node_west_exit' } });
+  assert.equal(preferred.feasible, true);
+  assert.equal(preferred.itinerary.at(-1).action_type, 'EXIT');
+  assert.equal(preferred.itinerary.at(-1).target_node_id, 'node_west_exit');
+  assert.ok(preferred.alternative_plans.every(plan => plan.itinerary.at(-1)?.target_node_id === 'node_west_exit'));
+  const wrongExit = isActionLegal({ ...scenario, action: { action_type: 'EXIT', target_id: 'exit_main', target_node_id: 'node_exit' }, rules: { preferred_exit_node_id: 'node_west_exit' } });
+  assert.equal(wrongExit.legal, false);
+  assert.match(wrongExit.reason, /指定离园出口/);
+  const automatic = planItinerary(scenario);
+  assert.equal(automatic.feasible, true);
+  assert.ok(scenario.graph.exits.some(exitNode => exitNode.node_id === automatic.itinerary.at(-1).target_node_id));
+});
+
 test('规则推进使用预计到达时刻的排队，而不是当前排队', () => {
   const scenario = createMockScenario('normal');
   const action = { action_type: 'VISIT_POI', target_id: 'poi_history', target_node_id: 'node_history' };

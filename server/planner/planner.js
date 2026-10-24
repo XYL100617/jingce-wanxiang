@@ -60,13 +60,13 @@ function scoreAction({ graph, visitor, evaluation, action, rules }) {
     if (margin < 10) score -= (10 - margin) / 10 * scoreRules.late_risk_cost;
   }
   if (!Number(visitor.action_count || 0) && visitor.current_plan_next_target && visitor.current_plan_next_target !== action.target_id) score -= scoreRules.route_switch_cost;
-  if (action.action_type === 'EXIT' && Number(visitor.remaining_time_min || 0) > 30) score -= scoreRules.early_exit_cost;
+  if (action.action_type === 'EXIT' && Number(visitor.remaining_time_min || 0) > Number(rules.return_buffer_min || 0) + 10) score -= scoreRules.early_exit_cost;
   if (action.action_type === 'WAIT') score -= 2;
   return Math.round(score * 100) / 100;
 }
 
 function usefulActionCount(itinerary) {
-  return itinerary.filter(x => x.action_type !== 'EXIT' && x.action_type !== 'WAIT').length;
+  return itinerary.filter(x => ['VISIT_POI', 'ATTEND_EVENT'].includes(x.action_type)).length;
 }
 
 function actionSignature(action) { return `${action.action_type}:${action.target_id}`; }
@@ -160,6 +160,14 @@ function validateUserEvent(graph, state, event) {
   if (event.event_type === 'QUEUE_UPDATE') finite('queue_min', event.queue_min, 0);
   if (['ROAD_CLOSED', 'ROAD_OPENED'].includes(event.event_type)) { need('edge_id', event.edge_id); if (!state.road_states?.[event.edge_id]) throw new Error(`UserEvent.edge_id 不是已知道路: ${event.edge_id}`); }
   if (['POSITION_UPDATE', 'PROGRESS_UPDATE'].includes(event.event_type)) { need('current_node_id', event.current_node_id); if (!nodeIds.has(event.current_node_id)) throw new Error(`UserEvent.current_node_id 不存在: ${event.current_node_id}`); }
+  if (event.event_type === 'PROGRESS_UPDATE' && event.target_id !== undefined) {
+    need('target_id', event.target_id);
+    const target = (graph.pois || []).find(item => item.poi_id === event.target_id)
+      || (graph.events || []).find(item => item.event_id === event.target_id)
+      || (graph.facilities || []).find(item => item.facility_id === event.target_id);
+    if (!target) throw new Error(`UserEvent.target_id 不是已知景点、活动或服务点: ${event.target_id}`);
+    if (target.node_id !== event.current_node_id) throw new Error('PROGRESS_UPDATE 的 target_id 必须与 current_node_id 属于同一目的地');
+  }
   if (event.event_type === 'PROGRESS_UPDATE') {
     if (event.remaining_time_min !== undefined) finite('remaining_time_min', event.remaining_time_min, 0);
     if (event.fatigue !== undefined) finite('fatigue', event.fatigue, 0, 1);
@@ -184,6 +192,11 @@ function applyReplanEvent({ graph, state, forecast, event }) {
   if (event.event_type === 'PROGRESS_UPDATE') {
     if (event.remaining_time_min !== undefined) nextState.visitor.remaining_time_min = Math.max(0, Number(event.remaining_time_min));
     if (event.fatigue !== undefined) nextState.visitor.fatigue = Math.min(1, Math.max(0, Number(event.fatigue)));
+    if (event.target_id) {
+      if ((graph.pois || []).some(item => item.poi_id === event.target_id)) nextState.visitor.visited_poi_ids = [...new Set([...(nextState.visitor.visited_poi_ids || []), event.target_id])];
+      else if ((graph.events || []).some(item => item.event_id === event.target_id)) nextState.visitor.attended_event_ids = [...new Set([...(nextState.visitor.attended_event_ids || []), event.target_id])];
+      else nextState.visitor.visited_facility_ids = [...new Set([...(nextState.visitor.visited_facility_ids || []), event.target_id])];
+    }
   }
   if (event.event_type === 'POI_CLOSED') {
     if (!nextState.poi_states?.[event.target_id]) throw new Error(`UserEvent.target_id 不是已知景点: ${event.target_id}`);
@@ -224,12 +237,12 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
     const expanded = [];
     for (const candidate of beam) {
       if (candidate.ended) { completed.push(candidate); continue; }
-      const options = getLegalActions({ graph, state: candidate.state, forecast, visitor: candidate.state.visitor, rules, excluded_target_ids });
+      const options = getLegalActions({ graph, state: candidate.state, forecast, visitor: candidate.state.visitor, rules, excluded_target_ids, candidate_limit: rules.planner_candidate_limit });
       for (const evaluation of options.legal) {
         const action = evaluation.action;
         if (action.action_type === 'EXIT' && candidate.state.visitor.require_rest === true && options.legal.some(x => x.action.action_type === 'REST')) continue;
         if (action.action_type === 'EXIT' && usefulActionCount(candidate.itinerary) < rules.min_actions && options.legal.some(x => !['EXIT', 'WAIT'].includes(x.action.action_type))) continue;
-        const stepped = stepByRules({ graph, state: candidate.state, forecast, action, visitor: candidate.state.visitor, evaluation, rules });
+        const stepped = stepByRules({ graph, state: candidate.state, forecast, action, visitor: candidate.state.visitor, evaluation, rules, compute_next_actions: false });
         const actionScore = scoreAction({ graph, visitor: candidate.state.visitor, evaluation, action, rules });
         const definition = definitionFor(graph, action);
         const fit = preferenceFit(candidate.state.visitor, definition, evaluation, action);
@@ -260,9 +273,26 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
     const bReady = usefulActionCount(b.itinerary) >= minimumUseful ? 1 : 0;
     return bReady - aReady || b.score - a.score || usefulActionCount(b.itinerary) - usefulActionCount(a.itinerary);
   };
-  candidatePool.sort(readyOrder);
-  const main = candidatePool.find(candidate => candidate.itinerary.length) || { itinerary: [], score: 0, score_breakdown: { preference: 0, cost: 0 }, state };
-  const alternatePool = candidatePool.filter(candidate => candidate !== main && candidate.itinerary.length && usefulActionCount(candidate.itinerary) >= minimumUseful);
+  // Select an actual day plan, not the highest-scoring early prefix. Prefer
+  // candidates that reach an exit, then maximize useful stops and finally use
+  // the remaining visit window before comparing utility scores.
+  const terminalPool = candidatePool.filter(candidate => candidate.ended && (rules.preferred_exit_node_id || usefulActionCount(candidate.itinerary) >= minimumUseful));
+  const selectablePool = terminalPool.length ? terminalPool : rules.preferred_exit_node_id ? [] : candidatePool;
+  const fullDayOrder = (a, b) => {
+    const usefulDifference = usefulActionCount(b.itinerary) - usefulActionCount(a.itinerary);
+    if (usefulDifference) return usefulDifference;
+    // Compare the complete day, not only its first attractive stop. The old
+    // first-action tie-break could select a route that repeatedly crossed the
+    // park even when a geographically continuous route had higher total value.
+    const wholePlanDifference = Number(b.score || 0) - Number(a.score || 0);
+    if (Math.abs(wholePlanDifference) > .01) return wholePlanDifference;
+    const qualityDifference = readyOrder(a, b);
+    if (qualityDifference) return qualityDifference;
+    return Number(a.state.visitor.remaining_time_min || 0) - Number(b.state.visitor.remaining_time_min || 0);
+  };
+  selectablePool.sort(fullDayOrder);
+  const main = selectablePool.find(candidate => candidate.itinerary.length) || { itinerary: [], score: 0, score_breakdown: { preference: 0, cost: 0 }, state };
+  const alternatePool = selectablePool.filter(candidate => candidate !== main && candidate.itinerary.length && usefulActionCount(candidate.itinerary) >= minimumUseful);
   alternatePool.sort((a, b) => {
     const aDifferentFirst = actionSignature(a.itinerary[0]) !== actionSignature(main.itinerary[0]) ? 1 : 0;
     const bDifferentFirst = actionSignature(b.itinerary[0]) !== actionSignature(main.itinerary[0]) ? 1 : 0;
@@ -303,6 +333,7 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
   main.plan_id = `${basePlanId}_main_${main.itinerary.map(item => item.target_id).join('_') || 'none'}`;
   alternatives.forEach((candidate, index) => { candidate.plan_id = `${basePlanId}_alt${index + 1}_${candidate.itinerary.map(item => item.target_id).join('_')}`; });
   const summary = candidateSummary(main);
+  const specifiedExitUnavailable = Boolean(rules.preferred_exit_node_id && !main.itinerary.length);
   return {
     schema_version: graph.schema_version,
     scenario_id: state.scenario_id,
@@ -317,8 +348,8 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
     score_breakdown: summary.score_breakdown,
     alternative_plans: alternatives.map(candidateSummary),
     alternative_status: alternatives.length ? 'available' : 'none_feasible',
-    alternative_message: alternatives.length ? null : '当前约束下没有其他满足最少游览步数且不同于主方案的可执行方案',
-    reason: summary.reason,
+    alternative_message: specifiedExitUnavailable ? '无法在当前离园时间前到达指定出口，请更换出口或调整离园时间' : alternatives.length ? null : '当前约束下没有其他满足最少游览步数且不同于主方案的可执行方案',
+    reason: specifiedExitUnavailable ? '指定离园出口不可达' : summary.reason,
     feasible: main.itinerary.length > 0,
     diagnostics: {
       used_arrival_time_forecast: true,
@@ -328,7 +359,10 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
       satisfies_minimum_actions: usefulActionCount(main.itinerary) >= minimumUseful,
       rules_version: 'b-rules-0.2',
       alternative_count: alternatives.length,
-      preference_weights_applied: Boolean(Object.keys(state.visitor.preference_weights || {}).length)
+      preference_weights_applied: Boolean(Object.keys(state.visitor.preference_weights || {}).length),
+      planned_end_time: main.state.timestamp,
+      unallocated_time_min: Math.round(Number(main.state.visitor.remaining_time_min || 0) * 100) / 100,
+      reaches_exit: main.ended === true
     }
   };
 }

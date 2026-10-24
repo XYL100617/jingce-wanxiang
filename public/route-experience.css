@@ -1,0 +1,405 @@
+.trip-overview{overflow:hidden;border:1px solid #d8e5df;border-radius:18px;background:#fbf8ef;box-shadow:0 18px 55px #17382b12;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .35s ease,filter .6s ease}
+.map-stage-guide{display:flex;align-items:center;gap:10px;margin-top:14px;color:#7f9188;font-size:10px}.map-stage-guide span{padding:7px 11px;border:1px solid #dce7e2;border-radius:18px;background:#fff}.map-stage-guide span.active{border-color:#67a69a;background:#eaf5ef;color:#276c64}.map-stage-guide b{margin-right:4px}.map-stage-guide i{font-style:normal;color:#a4aaa4}
+.trip-overview-head,.guided-head{display:flex;align-items:center;justify-content:space-between;gap:22px;padding:24px 28px}.trip-kicker{font:700 9px Manrope,sans-serif;letter-spacing:.18em;color:#a07639}.trip-overview h2,.guided-head h2{margin:6px 0;color:#243d35;font-family:Georgia,'Noto Serif SC',serif;font-size:23px}.trip-overview-head p,.guided-head p{margin:0;color:#718179;font-size:11px}.trip-map-frame{position:relative;width:100%;overflow:hidden;background:#0b2424;aspect-ratio:3/2}.trip-map-frame canvas,.trip-map-frame svg{position:absolute;inset:0;width:100%;height:100%;display:block}.trip-map-frame canvas{object-fit:contain}.trip-map-frame svg{pointer-events:none}.trip-map-badge{position:absolute;right:13px;bottom:12px;padding:7px 10px;border:1px solid #ead6a975;border-radius:20px;background:#102c2bd9;color:#f5e5c3;font-size:9px;letter-spacing:.06em;backdrop-filter:blur(8px)}.trip-stops{display:flex;gap:10px;overflow:auto;padding:17px 22px 21px;background:#f5f0e4}.trip-stop{position:relative;min-width:155px;flex:1;padding:12px 13px;border:1px solid #e6dcc6;border-radius:11px;background:#fffdf8}.trip-stop:before{content:'';position:absolute;top:20px;left:-11px;width:10px;border-top:1px dashed #c5a76f}.trip-stop:first-child:before{display:none}.trip-stop span{color:#b18548;font:700 9px Manrope}.trip-stop b,.trip-stop small{display:block}.trip-stop b{margin:6px 0 4px;color:#35473c;font-size:12px}.trip-stop small{color:#869087;font-size:9px}.trip-stop em{display:inline-block;margin-top:8px;padding:4px 7px;border-radius:12px;background:#edf4eb;color:#5f8061;font-size:8px;font-style:normal}.trip-empty{width:100%;padding:18px;border:1px dashed #d6c8aa;border-radius:10px;color:#8b897b;text-align:center;font-size:11px}.trip-transition{display:flex;align-items:center;justify-content:center;gap:12px;padding:17px;color:#85928b;font-size:9px;letter-spacing:.12em;text-transform:uppercase}.trip-transition i{width:min(240px,25vw);height:1px;background:linear-gradient(90deg,#d4c29b,#16adae)}.guided-detail{display:none;opacity:0;transform:translateY(28px) scale(.98)}#view-navigation.is-guiding .trip-overview{opacity:.45;filter:saturate(.65);transform:translateY(-22px) scale(.985)}#view-navigation.is-guiding .guided-detail{display:block;animation:guide-in .65s cubic-bezier(.2,.8,.2,1) forwards}#view-navigation.is-guiding .trip-transition{color:#139a9d}.guided-head{padding:24px 4px}.guided-actions{display:flex;gap:9px;align-items:center}.navigation-layout{margin-bottom:10px}.guided-detail .navigation-layout{animation:map-in .75s .08s cubic-bezier(.2,.8,.2,1) both}.guided-detail .map-container{height:min(62vh,620px);min-height:410px}.guided-detail .navigation-side{align-self:stretch}@keyframes guide-in{to{opacity:1;transform:translateY(0) scale(1)}}@keyframes map-in{from{clip-path:inset(12% 7% round 30px);transform:scale(.96)}to{clip-path:inset(0 round 0);transform:scale(1)}}
+@media(max-width:700px){.map-stage-guide{align-items:flex-start;flex-direction:column}.map-stage-guide i{display:none}.trip-overview-head,.guided-head{align-items:flex-start;flex-direction:column;padding:18px}.trip-overview h2,.guided-head h2{font-size:19px}.trip-overview-head .teal-btn{width:100%}.trip-stops{padding:12px;gap:8px}.trip-stop{min-width:135px}.guided-actions{width:100%}.guided-actions button{flex:1}.guided-detail .map-container{height:460px;min-height:390px}.trip-map-badge{font-size:8px}}
+
+.guided-detail .map-container{height:min(70vh,700px);min-height:480px}
+#view-navigation.is-guiding .map-stage-guide span:first-child{border-color:#dce7e2;background:#fff;color:#7f9188}
+#view-navigation.is-guiding .map-stage-guide span:last-child{border-color:#67a69a;background:#eaf5ef;color:#276c64}
+@media(max-width:700px){.guided-detail .map-container{height:460px;min-height:390px}}
+.trip-map-frame{aspect-ratio:5.12/1;height:clamp(220px,24vw,500px)}
+.trip-map-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+#tripMapOverlay{overflow:visible}
+.trip-route-halo{fill:none;stroke:#fff8e7;stroke-width:21;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 3px 4px #182f4080)}
+.trip-route-line{fill:none;stroke:#00d4d7;stroke-width:12;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 3px #052b37)}
+.trip-route-stop circle{fill:#fffbeb;stroke:#e45a2e;stroke-width:6;filter:drop-shadow(0 3px 4px #2228)}
+.trip-route-stop text{fill:#243c3c;font:700 20px "Microsoft YaHei",sans-serif;text-anchor:middle;dominant-baseline:central}
+.trip-route-stop rect{fill:#fffaf0;stroke:#c98e4c;stroke-width:2;rx:9;filter:drop-shadow(0 3px 4px #2225)}
+.trip-route-stop .trip-stop-name{fill:#34493f;font:700 17px "Microsoft YaHei",sans-serif;text-anchor:middle}
+.trip-current-pin circle{fill:#0e595d;stroke:#fff8e7;stroke-width:5;filter:drop-shadow(0 4px 6px #1118)}
+.trip-current-pin text{fill:#fff;font:700 17px "Microsoft YaHei",sans-serif;text-anchor:middle}
+@media(max-width:700px){.trip-map-frame{height:390px;aspect-ratio:1.25/1}.trip-route-line{stroke-width:16}.trip-route-stop text{font-size:28px}.trip-route-stop .trip-stop-name{font-size:23px}}
+
+/* Rebuilt editorial overview: the source hand map informs relative placement,
+   while spacing, labels and route contrast are designed for recommendation. */
+.trip-map-frame{aspect-ratio:3.37/1;height:clamp(430px,43vw,650px);overflow:auto;background:#eaf0d8;scrollbar-color:#93aa8c #edf1da;scrollbar-width:thin}
+#tripMap{z-index:1}#tripMapOverlay{z-index:2}
+.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{width:100%;height:100%}
+.overview-ground{fill:url(#overviewGround)}
+.overview-area{stroke-width:3;stroke-dasharray:10 12;opacity:.13;stroke-linejoin:round}.overview-area-film{fill:#b9a77d;stroke:#9c8964}.overview-area-foreign{fill:#c49b91;stroke:#ad8178}.overview-area-pastoral{fill:#94b39a;stroke:#74947b}.overview-area-water-margin{fill:#89b3b3;stroke:#6f9999}.overview-area-xianxia{fill:#aaa0c1;stroke:#8980a5}.overview-area-jianghu{fill:#c6a879;stroke:#a98a5c}.overview-area-title{fill:#596b50;font:600 16px KaiTi,"Noto Serif SC",serif;paint-order:stroke;stroke:#f0edda;stroke-width:5px;opacity:.74}
+.overview-park{fill:#c8dba7;stroke:#7e9c6b;stroke-width:7}
+.overview-water{fill:#79bcc2;stroke:#f3e6ba;stroke-width:14;filter:drop-shadow(0 8px 9px #4a7a6b30)}
+.overview-water-line{fill:none;stroke:#cce4dc;stroke-width:7;stroke-linecap:round;opacity:.8}
+.overview-grove{fill:#87ac72;stroke:#6f925e;stroke-width:5;opacity:.82}.overview-grove-mid{fill:#719c72}.overview-grove-east{fill:#9ab16d}
+.overview-zone-title{fill:#4e6d58;font:700 26px Georgia,"Noto Serif SC",serif;letter-spacing:.15em;paint-order:stroke;stroke:#edf2d9;stroke-width:10px}
+.overview-tree-crown{fill:#517e58;stroke:#d6dea1;stroke-width:5}.overview-tree-trunk{fill:#836e4b}
+.overview-road-casing{fill:none;stroke:#fff8e8;stroke-width:29;stroke-linecap:round;stroke-linejoin:round}.overview-road-casing.is-main{stroke-width:41}
+.overview-road{fill:none;stroke:#d6bf8e;stroke-width:14;stroke-linecap:round;stroke-linejoin:round}.overview-road.is-main{stroke:#bc9861;stroke-width:22}
+.overview-secondary-road{fill:none;stroke:#f7eed8;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px #66806466)}.overview-secondary-road.is-schematic{stroke:#fff5df;stroke-width:7;stroke-dasharray:12 11;opacity:.8}
+.overview-building-shadow{fill:#2846352b}.overview-building-front{fill:#eadcc0;stroke:#806c56;stroke-width:2}.overview-building-side{fill:#b8a184;stroke:#806c56;stroke-width:2}
+.overview-roof{fill:#a7503d;stroke:#704132;stroke-width:3}.overview-roof.jade{fill:#4f8172}.overview-roof.gold{fill:#c28b42}.overview-roof.blue{fill:#537b93}.overview-window{fill:#496967}
+.overview-label-bg{fill:#123f49;stroke:#f5dfae;stroke-width:2;filter:drop-shadow(0 4px 6px #253a3040)}.overview-label{fill:#fff8e7;font:700 18px "Microsoft YaHei",sans-serif}
+.overview-gate path{fill:none;stroke:#824737;stroke-width:13;stroke-linecap:round;stroke-linejoin:round;paint-order:stroke;filter:drop-shadow(0 5px 4px #20382f33)}.overview-gate-label{fill:#663e30;font:700 21px "Microsoft YaHei",sans-serif;paint-order:stroke;stroke:#fff5dc;stroke-width:8px}
+.overview-reference path,.overview-reference polygon{fill:#f4e4bd;stroke:#537464;stroke-width:3}.overview-reference-water path{fill:#74bbc2;stroke:#eaf4df}.overview-reference-gate path{fill:none;stroke:#8c4b38;stroke-width:6}.overview-reference-label{fill:#315b58;font:700 13px "Microsoft YaHei",sans-serif;paint-order:stroke;stroke:#f4f0d9;stroke-width:5px;stroke-linejoin:round}.overview-facility circle{fill:#fffdf0;stroke:#337b78;stroke-width:3}.overview-facility text{fill:#286965;font-size:10px;font-weight:800}.overview-facility.is-simulated circle{stroke:#a88f64;stroke-dasharray:3 2}
+.trip-route-halo{stroke-width:32}.trip-route-line{stroke:#00aeb8;stroke-width:18}.trip-route-stop circle{r:30}.trip-route-stop .trip-stop-name{font-size:19px}
+@media(max-width:700px){.trip-map-frame{height:420px;aspect-ratio:auto}.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{width:1450px}.overview-label{font-size:25px}.overview-zone-title{font-size:34px}}
+
+/* Song-era illustrated-board refinement: quieter base roads, ivory numbered
+   labels and a slim route line keep buildings and POIs readable. */
+.trip-map-frame{height:auto;aspect-ratio:2.5/1;padding:18px;background:#071f21;box-shadow:inset 0 0 0 1px #c9a65b55,inset 0 0 48px #0007}
+.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{inset:18px;width:calc(100% - 36px);height:calc(100% - 36px);border-radius:12px}
+.overview-road-casing{stroke:#f7eed9;stroke-width:10;opacity:.72}.overview-road-casing.is-main{stroke-width:18;opacity:.9}
+.overview-road{stroke:#d8c8a9;stroke-width:4;opacity:.82}.overview-road.is-main{stroke:#c4a66f;stroke-width:9;opacity:1}
+.overview-secondary-road{stroke:#f4ead2;stroke-width:2.5;opacity:.32;filter:none}.overview-secondary-road.is-schematic{stroke-width:2;opacity:.24;stroke-dasharray:8 12}
+.overview-label-bg{fill:#f7ecd8;stroke:#9d7b49;stroke-width:1.5;filter:drop-shadow(0 3px 5px #27372a35)}
+.overview-number-seal{display:none}.overview-number{display:none}
+.overview-label-bg{opacity:.92}.overview-label{fill:#302f25;font:600 14px KaiTi,"Noto Serif SC",serif}
+.overview-reference-leader{fill:none;stroke:#7d6b4c;stroke-width:1.4;opacity:.64}
+.overview-reference-label-bg{fill:#f8eedb;stroke:#aa8b5c;stroke-width:1;filter:drop-shadow(0 2px 3px #27372a30)}
+.overview-reference-label{fill:#3b4134;font:700 12px KaiTi,"Noto Serif SC",serif;paint-order:normal;stroke:none}
+.trip-route-halo{stroke:#fff5df;stroke-width:9;filter:drop-shadow(0 2px 3px #35221966)}
+.trip-route-line{stroke:#aa3f32;stroke-width:4;stroke-dasharray:12 9;filter:none}
+.trip-route-stop circle{r:16;fill:#f8ead2;stroke:#a43f32;stroke-width:4}
+.trip-route-stop text{font-size:13px}.trip-route-stop rect{fill:#faf0dd;stroke:#9d7a4d}.trip-route-stop .trip-stop-name{font-size:14px;fill:#302f25}
+.trip-current-pin circle{r:22;fill:#153f42;stroke-width:4}.trip-current-pin text{font-size:12px}
+
+/* Keep turn-by-turn instructions in the page flow, not over the map's north-west corner. */
+.walking-nav-hud{position:relative;inset:auto;z-index:1;display:flex;align-items:center;gap:14px;max-width:none;min-width:0;margin:12px 16px;padding:13px 17px;border:1px solid #d7e4d1;border-radius:12px;background:#f8f5e9;color:#30463e;box-shadow:0 4px 14px #213b2b12}
+.walking-nav-hud .walking-turn{flex:0 0 46px;width:46px;height:46px;border-radius:12px;background:#356c55;color:#fff;font-size:24px;display:grid;place-items:center}
+.walking-nav-hud>div:last-child{display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:baseline;min-width:0}
+.walking-nav-hud small{grid-column:1/-1;color:#779084}.walking-nav-hud b{font-size:15px}.walking-nav-hud span{font-size:12px;color:#798b83}
+.trip-route-stop rect,.trip-route-stop .trip-stop-name{display:none}
+.trip-route-stop circle{r:19;fill:#fff8e8;stroke:#9e3d31;stroke-width:4;filter:drop-shadow(0 2px 3px #1b352c66)}
+.trip-route-stop text{fill:#8c332c;font-size:13px;font-weight:800}
+.trip-route-leader{fill:none;stroke:#9e3d31;stroke-width:2;stroke-dasharray:5 5;opacity:.72;pointer-events:none}
+.trip-route-line{stroke:#9e3d31;stroke-width:6;stroke-dasharray:none;marker-end:none}
+.trip-context-landmarks{pointer-events:none}.trip-context-pin{fill:#a24b3d;stroke:#f5e5c7;stroke-width:3}.trip-context-label{fill:#2f3429;font:600 17px KaiTi,"Noto Serif SC",serif;paint-order:stroke;stroke:#f5ecd9;stroke-width:6px;stroke-linejoin:round}
+
+/* Map 01 board furniture: the dark jade frame and archival plate follow the
+   supplied Song-style study, while the content remains the shared SVG graph. */
+.overview-board-header{pointer-events:none}.overview-title-seal{fill:#a94b3b;stroke:#e6c78c;stroke-width:2}.overview-title-seal-text{fill:#f7dfb0;font:700 23px KaiTi,"Noto Serif SC",serif}.overview-title-meta{fill:#8d9e85;font:700 9px Manrope,sans-serif;letter-spacing:.15em}.overview-title{fill:#e9d6a5;font:700 31px KaiTi,"Noto Serif SC",serif;letter-spacing:.08em}.overview-title-sub{fill:#9aaa88;font:600 11px KaiTi,"Noto Serif SC",serif}.overview-index-plate{fill:#0b292a;stroke:#869777;stroke-width:1;opacity:.86}.overview-index{fill:#e7d09a;font:700 18px Manrope,sans-serif;letter-spacing:.12em}.overview-index-sub{fill:#a9b69a;font:600 10px KaiTi,"Noto Serif SC",serif}.overview-roof-ridge{stroke:#efd59d;stroke-width:2;opacity:.65}.overview-number-seal{display:block;fill:#9c4133;stroke:#e5c78d;stroke-width:1}.overview-number{display:block;fill:#f7dfb0;font:700 8px Manrope,"Microsoft YaHei",sans-serif}.overview-map-furniture{pointer-events:none}.overview-compass circle{fill:#ecdfbf;stroke:#8a7650;stroke-width:1;opacity:.92}.overview-compass-needle{fill:#9a4435;stroke:#71402f;stroke-width:1}.overview-compass text{fill:#6e4a3c;font:700 12px Manrope,sans-serif;text-anchor:middle}.overview-scale{stroke:#806a4b;stroke-width:3}.overview-scale-text{fill:#6d654d;font:600 11px KaiTi,"Noto Serif SC",serif}.overview-legend-line{stroke-width:7;stroke-linecap:round}.overview-legend-text{fill:#64715a;font:600 11px KaiTi,"Noto Serif SC",serif}.overview-reference-muted{opacity:.5}.overview-muted-icon{fill:#6d9271;stroke:#e3e8c9;stroke-width:2}.overview-muted-roof{fill:none;stroke:#61846b;stroke-width:2}
+.overview-microzone{fill:#fff7df;fill-opacity:.08;stroke:#788c70;stroke-width:1.5;stroke-dasharray:5 8;opacity:.42}.overview-microzone-label{fill:#687b67;font:600 10px KaiTi,"Noto Serif SC",serif;opacity:.58}
+
+/* Use the supplied 2400×1600 hand-painted board for Map 01. The live route
+   remains a transparent SVG above it and shares A's node/edge IDs. */
+.trip-map-frame{aspect-ratio:3/2;height:clamp(520px,58vw,820px);padding:0;overflow:hidden;background:#d8cbaa;border:1px solid #b9aa83;box-shadow:none;border-radius:0;touch-action:none}
+.trip-map-frame #tripMap{inset:0;width:100%;height:100%;object-fit:contain;border-radius:0}
+.trip-map-frame #tripMapOverlay{inset:0;width:100%;height:100%;border-radius:0}
+.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{transform-origin:50% 50%;transition:transform .18s ease;cursor:grab}
+.trip-map-frame.is-panning #tripMap,.trip-map-frame.is-panning #tripMapOverlay{cursor:grabbing;transition:none}
+.trip-map-controls{position:absolute;z-index:5;top:16px;left:16px;right:auto;display:flex;flex-direction:column;gap:4px;padding:5px;border:1px solid #ad9c73aa;border-radius:10px;background:#fff9e6dd;box-shadow:0 4px 12px #5b4a2a22;backdrop-filter:blur(6px)}
+.trip-map-controls button{width:32px;height:30px;border:0;border-radius:6px;background:#fffdf5;color:#4a6a58;font-size:18px;line-height:1;cursor:pointer}
+.trip-map-controls button:hover{background:#e7f0dd;color:#8f4c35}
+
+/* The detailed map keeps route/navigation lines below buildings and labels. */
+.c-road-casing.main{stroke-width:21}.c-road-line.main{stroke-width:11}.c-road-line.walk{stroke-width:6}.c-road-casing.walk{stroke-width:13}
+.c-secondary-path{stroke-width:5;opacity:.68;filter:none}.c-secondary-path.is-schematic{stroke-width:4;opacity:.45;stroke-dasharray:10 12}
+.c-route-halo{stroke:#fff4df;stroke-width:15;filter:drop-shadow(0 2px 3px #35221955)}
+.c-route-line{stroke:#ad4033;stroke-width:7;stroke-dasharray:17 11;filter:none}
+.c-navigation-halo{stroke-width:17}.c-navigation-line{stroke-width:9}
+.c-building-label rect{fill:#f8edd8;stroke:#9a7849;stroke-width:1.5;filter:drop-shadow(0 3px 4px #26372d44)}
+.c-label-title{fill:#302f25;font-family:KaiTi,"Noto Serif SC",serif;font-size:16px}.c-label-sub{fill:#77664b;font-size:10px}
+.c-poi-name rect{fill:#f8edd8;stroke:#9a7849;stroke-width:1.5}.c-poi-name text{fill:#302f25;font-family:KaiTi,"Noto Serif SC",serif;font-size:14px}
+.c-reference-pin text{font-size:10px;stroke-width:4px}.c-reference-pin circle{r:6}
+@media(max-width:700px){.trip-map-frame{height:420px;aspect-ratio:auto;padding:8px}.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{inset:8px;width:calc(1450px - 16px);height:calc(100% - 16px)}}
+
+/* Map 01 follows the real east-west visitor-map footprint. Keep it a single
+   long readable panel; zoom and drag reveal detail without squashing the park
+   into the square canvas used by the first prototype. */
+.trip-map-frame{height:auto;min-height:0;aspect-ratio:5.12/1;padding:0;overflow:hidden;background:#cfe0b4;border:1px solid #aab88e;border-radius:8px;box-shadow:0 10px 26px #334b3022}
+.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{inset:0;width:100%;height:100%;border-radius:0;transform-origin:50% 50%;touch-action:none}
+.trip-map-frame #tripMap{z-index:1}.trip-map-frame #tripMapOverlay{z-index:2}
+.trip-map-badge{right:12px;bottom:10px;padding:5px 8px;font-size:9px}
+.overview-label-bg{fill:#f8edd8;fill-opacity:.97;stroke:#8d7148;stroke-width:1.5;filter:drop-shadow(0 2px 3px #27372a35)}
+.overview-label{fill:#302f25;font:700 24px KaiTi,"Noto Serif SC",serif}
+.overview-label-leader{fill:none;stroke:#f8edd8;stroke-width:5;stroke-linecap:round;opacity:.95}
+.overview-node-label{pointer-events:none}
+.overview-number-seal{fill:#9c4133;stroke:#e5c78d;stroke-width:1.5}
+.overview-number{fill:#f7dfb0;font:700 15px Manrope,"Microsoft YaHei",sans-serif}
+.overview-road-casing{stroke-width:15}.overview-road-casing.is-main{stroke-width:23}
+.overview-road{stroke-width:7}.overview-road.is-main{stroke-width:12}
+.trip-route-halo{stroke-width:18;filter:none}.trip-route-line{stroke-width:10;filter:none}
+@media(max-width:700px){.trip-map-frame{height:auto;min-height:0;aspect-ratio:5.12/1;padding:0}.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{inset:0;width:100%;height:100%}}
+
+/* Keep Map 01 at its original hand-map height while allowing the full east-
+   west drawing to be panned. A responsive 5:1 fit made labels tiny and
+   compressed the north/south spacing; this viewport deliberately crops only
+   the horizontal extent, not the map geometry. */
+.trip-map-frame{height:500px;min-height:500px;aspect-ratio:auto;overflow:hidden;background:#cfe0b4;touch-action:none;cursor:grab}
+.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{inset:0 auto auto 0;width:2560px;height:500px;max-width:none;transform-origin:0 0;transition:transform .18s ease;touch-action:none}
+.trip-map-frame.is-panning{cursor:grabbing}
+.overview-road-casing{stroke-width:11;opacity:.82}.overview-road-casing.is-main{stroke-width:17;opacity:.92}
+.overview-road{stroke-width:4;opacity:.86}.overview-road.is-main{stroke-width:7;opacity:1}
+.overview-area{stroke-width:2;stroke-dasharray:8 12;opacity:.075}
+.trip-route-halo{stroke-width:16;opacity:.9}.trip-route-line{stroke-width:8}
+@media(max-width:700px){.trip-map-frame{height:500px;min-height:500px;aspect-ratio:auto;padding:0}.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{inset:0 auto auto 0;width:2560px;height:500px}}
+
+/* Hand-illustrated Wansui map treatment. Keep the graphic native SVG so the
+   route, POIs, labels, and live heat overlays remain independent layers. */
+.trip-map-frame{height:600px;min-height:600px;background:#102d2b;border:1px solid #183b37;border-radius:8px;box-shadow:0 14px 34px #172c2833}
+.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{width:2560px;height:600px;max-width:none;preserveAspectRatio:none}
+.overview-ground{fill:#173634}
+.overview-board{fill:#d3c7a1;stroke:#796f4e;stroke-width:3;filter:drop-shadow(0 3px 6px #10272566)}
+.overview-board-inset{fill:#aebd8e;stroke:#76845e;stroke-width:1.5;opacity:.98}
+.overview-park{fill:url(#overviewGroundTexture);stroke:#758361;stroke-width:3;stroke-linejoin:round}
+.overview-area{stroke-width:2.5;stroke-dasharray:7 10;opacity:.12;stroke-linejoin:round;filter:none}
+.overview-area-water-margin{fill:#6c9d9b;stroke:#557f7e}
+.overview-area-xianxia{fill:#a2ae7b;stroke:#708762}
+.overview-area-jianghu{fill:#b68a76;stroke:#916b60}
+.overview-area-title{fill:#435843;font:600 17px KaiTi,"Noto Serif SC",serif;paint-order:stroke;stroke:#d8d2b3;stroke-width:5px;opacity:.78}
+.overview-water{fill:url(#overviewWater);stroke:#557f78;stroke-width:4;opacity:.94}
+.overview-water-line{fill:none;stroke:#d4e2c4;stroke-width:2.2;stroke-dasharray:18 16;opacity:.56}
+.overview-grove{fill:#6c8967;opacity:.25}.overview-grove-mid{fill:#728e68}.overview-grove-east{fill:#6c855f}
+.overview-tree-shadow{fill:#30483355}.overview-tree-trunk{fill:none;stroke:#71583a;stroke-width:3;stroke-linecap:round}
+.overview-leaf{fill:#496e50;stroke:#3f6348;stroke-width:1.2}.overview-leaf.leaf-1{fill:#6c8957}.overview-leaf.leaf-2{fill:#82945b}
+.overview-blossom-leaf{fill:#d78c94;stroke:#b86e75;stroke-width:1}.overview-blossom-leaf.leaf-1{fill:#edb0ad}.overview-blossom-leaf.leaf-2{fill:#c97983}
+.overview-building-shadow{fill:#263a2d55;filter:url(#overviewSoftShadow)}
+.overview-building-plinth{fill:#cdbb8e;stroke:#8b7854;stroke-width:1.4}
+.overview-building-front{fill:#c97d58;stroke:#704b3a;stroke-width:1.5}
+.overview-building-side{fill:#9b634b;stroke:#704b3a;stroke-width:1.5}
+.overview-building-upper{fill:#d19462;stroke:#714d38;stroke-width:1.4}
+.overview-timber-beam{fill:none;stroke:#70432f;stroke-width:3}
+.overview-window{fill:#4d4133;stroke:#dbc697;stroke-width:1.3}.overview-window-lattice{fill:none;stroke:#e5d3a6;stroke-width:1}
+.overview-building-door{fill:#443a2d;stroke:#e5c98c;stroke-width:1.4}.overview-building-step{fill:none;stroke:#edcf91;stroke-width:2}
+.overview-fall-rock{fill:#9caa87;stroke:#536e5d;stroke-width:2}.overview-fall-water{fill:none;stroke:#e0e8c8;stroke-width:5;stroke-linecap:round}.overview-fall-pool{fill:#73a9a0;stroke:#d6d6a6;stroke-width:2}
+.overview-stage-base{fill:#d8bd79;stroke:#8d6b45;stroke-width:2}.overview-stage-ring{fill:#b78c56;stroke:#f0d595;stroke-width:2}
+.overview-wall-body{fill:#bca77a;stroke:#74583d;stroke-width:2}.overview-wall-detail{fill:none;stroke:#e3d09c;stroke-width:2}
+.overview-roof{stroke:#5d4537;stroke-width:1.4;stroke-linejoin:round;filter:drop-shadow(0 2px 1px #29332c66)}
+.overview-roof.red{fill:#8e4438}.overview-roof.jade{fill:#264944}.overview-roof.gold{fill:#9b7440}.overview-roof.blue{fill:#375b5a}
+.overview-roof-eave{fill:none;stroke:#d7b879;stroke-width:2.4;stroke-linecap:round}.overview-roof-ridge{fill:none;stroke:#d8c28f;stroke-width:2.2;stroke-linecap:round}.overview-roof-rib{fill:none;stroke:#a89568;stroke-width:1;opacity:.85}
+.overview-roof-upper{opacity:.98}
+.overview-label-bg,.overview-reference-label-bg{fill:#f1e4bd;stroke:#9b8050;stroke-width:1.5;filter:drop-shadow(1px 2px 2px #283b2e66)}
+.overview-label{fill:#3e382c;font:600 15px KaiTi,"Noto Serif SC",serif}
+.overview-label-leader,.overview-reference-leader{stroke:#8a7754;stroke-width:1.4;opacity:.82}
+.overview-number-seal{fill:#994b3b;stroke:#e7d09c;stroke-width:1.5}.overview-number{fill:#f6e7be;font:700 12px Manrope,"Microsoft YaHei",sans-serif}
+.overview-reference-label-bg{fill:#e7d9b1}.overview-reference-label{fill:#405347;font:600 12px KaiTi,"Noto Serif SC",serif}
+.overview-reference{fill:#f3e2b0;stroke:#87583e;stroke-width:2}.overview-reference path,.overview-reference polygon{fill:#e5d4a6;stroke:#755e43;stroke-width:1.8}.overview-reference-gate path{fill:#a9553d;stroke:#70402f}.overview-reference-water path{fill:#5f9690;stroke:#e0d3a8}.overview-reference-show path{fill:#b78342;stroke:#704d35}
+.overview-map-furniture{color:#435646}.overview-compass circle{fill:#e2d7b6;stroke:#8a7c57;stroke-width:2}.overview-compass-needle{fill:#a44f3e;stroke:#f0dfb5;stroke-width:1}.overview-compass text{fill:#4b4532;font:700 12px Georgia,serif}
+.overview-scale{stroke:#f0e5c6;stroke-width:3}.overview-scale-text,.overview-legend-text{fill:#f0e5c6;font:600 12px KaiTi,"Noto Serif SC",serif;paint-order:stroke;stroke:#465846;stroke-width:2px}
+.overview-legend-line{stroke-width:5;stroke-linecap:round}
+.overview-roads{filter:drop-shadow(0 1px 0 #31463666)}
+.overview-road-casing{stroke:#d9cba5;stroke-width:12;opacity:.88}.overview-road-casing.is-main{stroke-width:18}
+.overview-road{stroke:#b5905c;stroke-width:5;opacity:.95}.overview-road.is-main{stroke:#d3ad6b;stroke-width:8}
+.overview-node-label{filter:drop-shadow(0 1px 0 #fff7d8)}
+.trip-route-halo{stroke-width:18;opacity:.94;filter:drop-shadow(0 1px 1px #26322b)}.trip-route-line{stroke-width:9;filter:drop-shadow(0 1px 1px #26322b)}
+@media(max-width:700px){.trip-map-frame{height:600px;min-height:600px}.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{width:2560px;height:600px}}
+
+/* Quiet paper-and-woodland finish; keep the illustrated map itself edge-to-
+   edge rather than boxing it in with the prototype's heavy dark frame. */
+.trip-map-frame{background:#c9c99d;border:1px solid #9d956c;border-radius:5px;box-shadow:0 8px 22px #43543a1c;user-select:none;-webkit-user-select:none}
+.overview-ground{fill:#c9c99d}
+.overview-board{fill:#ddd4ae;stroke:#a18e5b;stroke-width:2;filter:none}
+.overview-board-inset{fill:url(#overviewPaper);stroke:#8b9a72;stroke-width:1.5}
+.overview-park{stroke:#87916c;stroke-width:2}
+.overview-area-water-margin{fill:#73a9a4;stroke:#5a8f8b}.overview-area-xianxia{fill:#aac18f;stroke:#829e71}.overview-area-jianghu{fill:#c39b83;stroke:#a77b66}
+.overview-area-title{opacity:.68}
+.overview-road-casing{stroke-width:6;opacity:.76}.overview-road-casing.is-main{stroke-width:10}
+.overview-road{stroke-width:2.2;opacity:.88}.overview-road.is-main{stroke-width:4.8}
+.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{touch-action:none;-webkit-user-drag:none}
+.trip-map-controls button{font-size:17px}
+.overview-reference-landmarks{opacity:1}
+.overview-minor-road{fill:none;stroke:#f1e9d2;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;opacity:.78;stroke-dasharray:none}
+.overview-roof-gable{fill:#b87951;stroke:#f1d49a;stroke-width:1.6;stroke-linejoin:round}
+.overview-timber-beam{fill:none;stroke:#6f4534;stroke-width:2.2;opacity:.88}
+.overview-window-lattice{fill:none;stroke:#f1d49a;stroke-width:1.3}
+.overview-area-title-bg{fill:#e7e6c9;fill-opacity:.91;stroke:#98a17b;stroke-width:1.4;filter:drop-shadow(0 2px 2px #35453133)}
+.overview-area-title{fill:#405844;font:700 18px KaiTi,"Noto Serif SC",serif;paint-order:stroke;stroke:#e7e6c9;stroke-width:2px;opacity:1}
+.overview-reference-number-bg{fill:#a64f3b;stroke:#edd49e;stroke-width:1}
+.overview-reference-number{fill:#fff0cf;font:700 9px Manrope,"Microsoft YaHei",sans-serif;text-anchor:middle}
+.overview-lake-mark{fill:none;stroke:#5d9290;stroke-width:3;stroke-linecap:round;opacity:.88}
+
+/* Keep map controls above the canvas as a compact toolbar, never over POIs. */
+.trip-map-controls{position:static;display:flex;flex-direction:row;align-items:center;gap:5px;width:max-content;margin:0 16px 9px auto;padding:4px;background:#f5efd9;border-color:#b9aa82;box-shadow:none;backdrop-filter:none}
+.trip-map-controls button{width:36px;height:32px}
+.trip-overview-head .trip-map-controls{margin:0;flex-shrink:0}
+@media(max-width:700px){.trip-overview-head .trip-map-controls{align-self:flex-end}}
+.overview-area-water-margin{fill:#9cae82;stroke:#748c68;opacity:.16}
+.overview-area-xianxia{opacity:.12}.overview-area-jianghu{opacity:.11}
+.overview-grove-patch{fill:#63855c;fill-opacity:.14;stroke:#517653;stroke-opacity:.12;stroke-width:2}
+.overview-hall-court{fill:none;stroke:#ead7a3;stroke-width:2.3;stroke-linecap:round;opacity:.92}
+.overview-hall-wing{fill:none;stroke:#704d38;stroke-width:2.3;stroke-linejoin:round}
+.overview-building-temple .overview-building-front,.overview-building-museum .overview-building-front{fill:#b96f4e}
+.overview-building-temple .overview-roof,.overview-building-museum .overview-roof{filter:drop-shadow(0 2px 2px #29332c77)}
+.overview-building-theater .overview-building-front{fill:#b85b47}
+.overview-building-market .overview-building-front,.overview-building-water_street .overview-building-front{fill:#cb865c}
+.overview-pavilion-platform{fill:#cbb98c;stroke:#83704e;stroke-width:1.4}
+.overview-pavilion-posts{fill:none;stroke:#79573a;stroke-width:2.4;stroke-linecap:round}
+.overview-pavilion-roof{fill:#315951;stroke:#674d38;stroke-width:1.8;stroke-linejoin:round}
+.overview-pavilion-eave{fill:none;stroke:#e1c27f;stroke-width:2.1}
+.overview-fortress-wall{fill:#bd7655;stroke:#704a39;stroke-width:1.7;stroke-linejoin:round}
+.overview-grove{fill:#547a59;opacity:.14;stroke:#47724f;stroke-opacity:.1;stroke-width:2}.overview-grove-1{fill:#64875b;opacity:.12}.overview-grove-2{fill:#759770;opacity:.15}
+.overview-water{fill:#74b7d4;fill-opacity:.37;stroke:#78acc0;stroke-opacity:.45;stroke-width:1.5;opacity:1}
+.overview-water-line{stroke:#e7f8f5;stroke-width:1.3;opacity:.36}
+.overview-building-terrace{fill:#d2c196;stroke:#89785b;stroke-width:1.2}
+.overview-stage-banner{fill:#b4513a;stroke:#eed3a4;stroke-width:1}
+.overview-market-awning{fill:#b75e47;stroke:#e8c99b;stroke-width:1}
+.overview-gate .overview-gate-wall{fill:#c9b283;stroke:#745941;stroke-width:2;filter:none}
+.overview-gate .overview-gate-arch{fill:#3f4637;stroke:#f1d7a0;stroke-width:2;filter:none}
+.overview-gate .overview-gate-roof{fill:#294841;stroke:#674734;stroke-width:2;filter:drop-shadow(0 2px 2px #31402a66)}
+.overview-gate .overview-gate-ridge{fill:none;stroke:#e7c785;stroke-width:2;filter:none}
+.overview-gate-window{fill:#6b382e;stroke:#e8c797;stroke-width:1}
+.overview-gate-lantern{fill:#b95039;stroke:#e9ca8f;stroke-width:1}
+.overview-compact-poi circle{fill:#9d4d39;stroke:#fae7bb;stroke-width:2;filter:drop-shadow(0 1px 2px #273b2d77)}
+.overview-compact-poi-number{fill:#fff3d4;font:700 9px Manrope,"Microsoft YaHei",sans-serif}
+
+/* Taller paper viewport with a quiet northern margin. The route overlay uses
+   the identical SVG viewBox, so stretching does not shift any route anchor. */
+.trip-map-frame{height:700px;min-height:700px;background:#d5d4ad;border-color:#b4a980}
+.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{height:700px}
+@media(max-width:700px){.trip-map-frame{height:700px;min-height:700px}.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{height:700px}}
+.overview-board{fill:#e1dbb8;stroke:#a69971}
+.overview-board-inset{fill:#cbd4ac;stroke:#879775}
+.overview-park{fill:url(#overviewGroundTexture);stroke:#7d926f}
+.overview-grove{fill:url(#overviewHillWash);opacity:1;stroke:#648468;stroke-opacity:.14;stroke-width:1.4}
+.overview-grove-1,.overview-grove-2{fill:url(#overviewHillWash);opacity:.86}
+.overview-hill-shoulder{fill:#516f51;fill-opacity:.11}
+.overview-terrain-mist{opacity:.6}
+.overview-area{stroke-width:2.2;stroke-dasharray:8 8;stroke-linejoin:round}
+.overview-area-water-margin{fill:#6baea2;stroke:#408875;opacity:.38}
+.overview-area-xianxia{fill:#8da5d1;stroke:#6f83b0;opacity:.32}
+.overview-area-jianghu{fill:#d89283;stroke:#b56f65;opacity:.32}
+.overview-area-title-bg{fill:#fff7df;fill-opacity:.96;stroke:#9a9e82}
+.overview-water{fill:#7bbcd3;fill-opacity:.43;stroke:#619db2;stroke-opacity:.5}
+.overview-stage-base{fill:#d3b273;stroke:#80623e;stroke-width:2}.overview-stage-ring{fill:#a87d4e;stroke:#ead09a;stroke-width:2}
+.overview-market-stall{fill:#c28561;stroke:#7c4d3d;stroke-width:1.2}
+.overview-market-awning{fill:#a7483d;stroke:#e3c18d;stroke-width:1.3}
+.overview-hall-lantern{fill:#b9513b;stroke:#eac88d;stroke-width:1.2}
+.overview-hall-column{fill:none;stroke:#684838;stroke-width:2}
+.overview-pagoda-wall{fill:#c78a5d;stroke:#744d3c;stroke-width:1.5}
+.overview-pagoda-roof{fill:#31544b;stroke:#5b4035;stroke-width:1.5}
+.overview-pagoda-eave,.overview-pagoda-finial{fill:none;stroke:#e9c885;stroke-width:1.6;stroke-linecap:round}
+
+/* Final cartographic cleanup: districts are land tints; only traced water
+   polygons are blue. Keep map furniture pinned while the map pans beneath. */
+.overview-area{stroke:#64785e!important;stroke-opacity:.48!important;stroke-width:1.8!important;stroke-dasharray:4 7!important;stroke-linejoin:round;filter:none!important;opacity:.18!important}
+.overview-area-water-margin{fill:#89b9aa!important;opacity:.2!important}
+.overview-area-xianxia{fill:#a9a5cd!important;stroke:#777aa7!important;opacity:.19!important}
+.overview-area-jianghu{fill:#ddb17e!important;stroke:#a7784c!important;opacity:.2!important}
+.overview-area-title-bg{fill:#f4eed9;fill-opacity:.88;stroke:#8c9774}
+.overview-area-title{fill:#465c48;stroke:#f4eed9}
+.overview-water{fill:#78b9d1;fill-opacity:.31;stroke:#639fb1;stroke-opacity:.48}
+.overview-road-casing{stroke-width:6;opacity:.68}.overview-road-casing.is-main{stroke-width:9;opacity:.82}
+.overview-road{stroke-width:2;opacity:.8}.overview-road.is-main{stroke-width:4.2;opacity:.92}
+.overview-minor-road{stroke-width:1.7;opacity:.57}
+.overview-plaza-ground{fill:#c8b68d;stroke:#90764b;stroke-width:1.6}
+.overview-plaza-ring{fill:#d9c99f;stroke:#a38b5e;stroke-width:1.2}
+.overview-plaza-joints{fill:none;stroke:#eee0b9;stroke-width:1.3}
+.overview-plaza-center{fill:#9b6143;stroke:#e6cc92;stroke-width:1.2}
+.overview-circus-canopy{fill:#b74f40;stroke:#e7c994;stroke-width:1.7}
+.overview-circus-seam{fill:none;stroke:#f0d5a0;stroke-width:1.5}
+.overview-circus-skirt{fill:#d1a367;stroke:#80533c;stroke-width:1.4}
+.trip-map-compass{position:absolute;z-index:20;top:28px;right:28px;width:58px;height:72px;display:flex;align-items:center;justify-content:flex-end;flex-direction:column;gap:0;padding:5px 0 3px;box-sizing:border-box;border:1px solid #9a875e;border-radius:30px;background:linear-gradient(145deg,#f7f0d9f5,#e8ddbbf5);box-shadow:0 2px 8px #283a2c38,inset 0 0 0 3px #fff8e866;pointer-events:none}
+.trip-map-compass span{position:static;color:#554936;font:700 11px/12px Georgia,serif;letter-spacing:.04em}
+.trip-map-compass svg{display:block;width:38px;height:38px;overflow:visible}
+.trip-map-compass-ring{fill:#efe5c8;stroke:#aa9566;stroke-width:1.1}
+.trip-map-compass-needle{stroke:#f4e4bd;stroke-width:.8;stroke-linejoin:round}
+.trip-map-compass-north{fill:#a54839}
+.trip-map-compass-south{fill:#667c67}
+.trip-map-compass-pivot{fill:#d9bf81;stroke:#745d3e;stroke-width:.8}
+@media(max-width:700px){.trip-map-compass{top:24px;right:24px;width:52px;height:66px}.trip-map-compass svg{width:34px;height:34px}}
+.trip-map-frame #tripMap,.trip-map-frame #tripMapOverlay{transform-origin:0 0}
+
+/* Map furniture sits in a slim rail outside the illustration: compass at the
+   upper-right, zoom controls at the lower-right, neither covering landmarks. */
+.trip-map-shell{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px;align-items:stretch;width:100%;min-width:0}
+.trip-map-shell>.trip-map-frame{min-width:0;width:100%}
+.trip-map-tools{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:8px;min-height:0;padding:8px 0;box-sizing:border-box;pointer-events:auto}
+.trip-map-tools .trip-map-controls{position:static;z-index:auto;display:flex;flex-direction:column;align-items:center;gap:3px;width:42px;margin:0;padding:3px;border:1px solid #a39473;border-radius:12px;background:#f6efd9ee;box-shadow:0 2px 7px #283a2c30}
+.trip-map-tools .trip-map-controls button{display:grid;place-items:center;width:34px;height:34px;min-height:34px;padding:0;border:0;border-radius:8px;background:#fffdf5;color:#4a6a58;font-size:19px;line-height:1;cursor:pointer;pointer-events:auto;touch-action:manipulation}
+.trip-map-tools .trip-map-controls button:hover{background:#e7f0dd;color:#8f4c35}
+.trip-map-tools .trip-map-compass{position:relative;inset:auto;z-index:auto;width:36px;height:36px;padding:0;flex-direction:column-reverse;justify-content:center;border-radius:50%;box-shadow:0 2px 7px #283a2c30}
+.trip-map-tools .trip-map-compass svg{width:27px;height:27px}
+.trip-map-tools .trip-map-compass span{position:absolute;top:-8px;font-size:9px;line-height:9px}
+.trip-map-frame{cursor:grab;touch-action:none;overscroll-behavior:contain}
+.trip-map-frame *{user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.trip-map-frame .trip-map-badge{pointer-events:none}
+.trip-map-frame.is-panning #tripMap,.trip-map-frame.is-panning #tripMapOverlay{transition:none}
+.trip-map-frame .trip-map-content{position:absolute;top:0;left:0;width:2560px;height:700px;transform-origin:0 0;transition:transform .18s ease;pointer-events:none}
+.trip-map-frame.is-panning .trip-map-content{transition:none}
+.trip-map-frame .trip-map-content #tripMap,.trip-map-frame .trip-map-content #tripMapOverlay{top:0;left:0;transform:none;transition:none}
+@media(max-width:700px){.trip-map-shell{grid-template-columns:minmax(0,1fr) 44px;gap:5px}.trip-map-tools{padding:6px 0}.trip-map-tools .trip-map-controls{width:40px}.trip-map-tools .trip-map-controls button{width:32px;height:32px;min-height:32px}}
+.overview-plaza-ground{fill:#cba477;stroke:#845b3d;stroke-width:1.8}
+.overview-plaza-ring{fill:none;stroke:#f0d4a0;stroke-width:2}
+.overview-plaza-swords{fill:none;stroke:#74483a;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.overview-plaza-flag{fill:#a9473d;stroke:#e8c388;stroke-width:1.2}
+.overview-plaza-ribbon{fill:none;stroke:#9b4f40;stroke-width:4;stroke-linecap:round}
+.overview-plaza-star{fill:#d6b16b;stroke:#8e6245;stroke-width:2}
+.overview-fall-rock{fill:#718777;stroke:#425f5b;stroke-width:2.2}
+.overview-fall-rock-detail{fill:none;stroke:#486859;stroke-width:2;stroke-linecap:round}
+.overview-fall-water{fill:none;stroke:#e8f9ed;stroke-width:3.4;stroke-linecap:round}
+.overview-fall-pool{fill:#84bfbd;stroke:#e4e0ba;stroke-width:1.5}
+.overview-fall-spray{fill:none;stroke:#f7f6da;stroke-width:1.7;stroke-linecap:round}
+.overview-lake-mark{stroke:#e8f8ec;stroke-width:1.5;opacity:.7}
+.overview-martial-wing{fill:#ac654b;stroke:#684636;stroke-width:1.8}
+.overview-martial-front{fill:#ba7754;stroke:#5e4637;stroke-width:2}
+.overview-martial-roof{fill:#284b44;stroke:#6d483a;stroke-width:2.1}
+.overview-martial-eave{fill:none;stroke:#ebca85;stroke-width:2;stroke-linecap:round}
+.overview-stage-seating{fill:none;stroke:#efd6a0;stroke-width:1.5;opacity:.92}
+.overview-area-water-margin{fill:#7eaf9c!important;opacity:.37!important}
+.overview-area-xianxia{fill:#98a4bb!important;opacity:.35!important}
+.overview-area-jianghu{fill:#d8b38a!important;opacity:.38!important}
+.overview-area-link{stroke:none!important}
+.overview-circus-canopy{fill:#f0e9d4;stroke:#ac8a67;stroke-width:1.8}
+.overview-circus-stripe{fill:#be7968;fill-opacity:.78;stroke:none}
+.overview-circus-skirt{fill:#e2c8a4;stroke:#805b46}
+.overview-south-swell{fill:#6e946d;fill-opacity:.12;stroke:#5c805f;stroke-opacity:.12;stroke-width:2;stroke-linejoin:round}
+
+/* One clear label system and a restrained recommended route. The place-name
+   cards belong to the base illustration; the route adds only stop order. */
+.trip-route-halo{stroke:#fff8df;stroke-width:10;opacity:.8;filter:none}
+.trip-route-line{stroke:#aa5142;stroke-width:4.5;stroke-dasharray:9 7;marker-end:none!important;filter:none}
+.trip-route-stop circle{r:13;fill:#fff8e7;stroke:#a54e3d;stroke-width:3;filter:drop-shadow(0 1px 2px #243b2b55)}
+.trip-route-stop text{font-size:11px;fill:#873b31}
+.trip-current-pin circle{r:18;stroke-width:3}
+.trip-current-pin text{font-size:10px}
+.trip-route-leader{stroke-width:1.2;stroke-dasharray:3 4;opacity:.48}
+
+/* Organic district washes trace attraction clusters, without painting all
+   intervening parkland. Lettering uses the same hue and no caption plaque. */
+.overview-area{stroke-width:2!important;stroke-dasharray:none!important;stroke-opacity:.65!important;opacity:.46!important}
+.overview-area-water-margin{fill:#69aa88!important;stroke:#377f61!important;opacity:.39!important}
+.overview-area-xianxia{fill:#91a5cd!important;stroke:#687eaa!important;opacity:.38!important}
+.overview-area-jianghu{fill:#d4ab80!important;stroke:#aa7c51!important;opacity:.42!important}
+.overview-area-link{stroke:none!important;opacity:.2!important}
+.overview-area-title-bg{display:none}
+.overview-area-title{font:700 22px KaiTi,"Noto Serif SC",serif;letter-spacing:.12em;opacity:1;stroke:#f1efd8;stroke-width:3px;stroke-linejoin:round}
+.overview-area-title-water-margin{fill:#2d7055}
+.overview-area-title-xianxia{fill:#526a9c}
+.overview-area-title-jianghu{fill:#99633d}
+.overview-water-link{fill:#78b9d1;fill-opacity:.42;stroke:none}
+
+/* Connected but locally bounded district washes and a quiet route hierarchy. */
+.overview-area-water-margin{opacity:.31!important}
+.overview-area-xianxia{opacity:.29!important}
+.overview-area-jianghu{opacity:.32!important}
+.overview-area-link{opacity:.3!important}
+.overview-minor-road.is-upper{stroke-width:1.35;opacity:.34}
+.overview-label{font-size:13px}
+.overview-number{font-size:11px}
+.trip-route-halo{stroke-width:7;opacity:.64}
+.trip-route-line{stroke-width:3.3;stroke-dasharray:none;marker-end:none!important}
+.trip-route-leader{display:none}
+.overview-fall-rock{fill:#6f8777;stroke:#47655d;stroke-width:1.7}
+.overview-fall-water{fill:#add6d1;stroke:#f3fbef;stroke-width:1.2;opacity:.96}
+.overview-fall-water-detail{fill:none;stroke:#f4fbef;stroke-width:1.6;stroke-linecap:round;opacity:.85}
+.overview-fall-pool{fill:#83bdc6;stroke:#d3ece0;stroke-width:1.2}
+
+/* Readable streets and unambiguous callouts on the widened northern courts. */
+.overview-road-casing{stroke:#f8efd8;stroke-width:8;opacity:.9}
+.overview-road-casing.is-main{stroke-width:12;opacity:.96}
+.overview-road{stroke:#b6996c;stroke-width:3.1;opacity:.96}
+.overview-road.is-main{stroke:#bf975b;stroke-width:5.5;opacity:1}
+.overview-minor-road{stroke:#fff5dd;stroke-width:2.8;opacity:.83}
+.overview-minor-road.is-upper{stroke-width:2.3;opacity:.76}
+.overview-minor-roads{display:none}
+.trip-map-frame.show-reference-paths .overview-minor-roads{display:block}
+.trip-map-controls button[data-overview-action="toggle-reference"]{font-size:15px;color:#74836c}
+.trip-map-controls button[data-overview-action="toggle-reference"].active{background:#dce9d4;color:#315b49}
+.overview-label-leader{stroke:#785e40;stroke-width:1.8;opacity:.92;paint-order:stroke;filter:drop-shadow(0 1px 0 #fff3d6)}
+.overview-label-anchor{fill:#8d5239;stroke:#f9eed2;stroke-width:1.2}
+.overview-area{stroke-width:1.7!important;stroke-opacity:.5!important}
+
+/* The upper roof is supported by a visible storey, never a floating tile. */
+.overview-building-upper-storey{fill:#bd7957;stroke:#664836;stroke-width:1.5;stroke-linejoin:round}
+.overview-upper-window{fill:none;stroke:#ecd4a4;stroke-width:1.6;stroke-linecap:round}
+.overview-market-posts{fill:none;stroke:#704c38;stroke-width:1.4;stroke-linecap:round}

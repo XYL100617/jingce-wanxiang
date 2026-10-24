@@ -5,6 +5,7 @@
   "description": "景策万象——轻量化世界模型驱动的景区全程自适应游览决策系统",
   "scripts": {
     "start": "node server/index.js",
-    "test": "node server/tests/contract.test.js && node server/tests/http.test.js && node --test test/planner.test.js test/preference.test.js test/live-adapter.test.js"
+    "sync:scenic-data": "node scripts/expand-scenic-network.js",
+    "test": "node server/tests/contract.test.js && node server/tests/http.test.js && node --test server/tests/account.test.js test/planner.test.js test/preference.test.js test/live-adapter.test.js test/c-map.test.js"
   }
 }

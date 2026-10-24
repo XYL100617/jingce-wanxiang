@@ -1,0 +1,134 @@
+.map-container{background:#cddcc6}.map-container #cMapSurface{position:absolute;inset:0;width:100%;height:100%;z-index:2;background:#b8cba9}.map-container #navMap{z-index:1}.map-container #cMapSurface.is-osm{display:none}.map-container #navMap.is-hidden{visibility:hidden}.c-layerbar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:11px 16px;border-bottom:1px solid #edf1f2;background:#fbfdfc}.c-layerbar button{border:1px solid #dce7e2;border-radius:14px;padding:6px 10px;background:#fff;color:#73857a;font-size:9px;cursor:pointer}.c-layerbar button.active{border-color:#6b9e7b;background:#edf7ec;color:#397453}.c-layerbar .c-map-mode{margin-left:auto;border-color:#2d6260;background:#2d6260;color:#fff}.map-container #cMapSurface svg{display:block;width:100%;height:100%;background:linear-gradient(155deg,#c8d9bc,#d9ddba 55%,#d2d5ad)}.c-park-ground{fill:#779e65;stroke:#50794c;stroke-width:5}.c-zone{stroke:#f0e8ce;stroke-width:2;stroke-dasharray:7 5;opacity:.68}.c-zone-water{fill:#d3bf82;fill-opacity:.53}.c-zone-fantasy{fill:#789b60;fill-opacity:.35}.c-zone-jianghu{fill:#aa9460;fill-opacity:.3}.c-water{fill:#6fa7a2;stroke:#e4d6a9;stroke-width:5}.c-water-ripple{fill:none;stroke:#bad7c8;stroke-width:4;stroke-linecap:round;opacity:.75}.c-green-island{fill:#6a965b;stroke:#9cb67a;stroke-width:3}.c-tree{fill:#3e7044;stroke:#a9bd79;stroke-width:2}.tree-1{fill:#527f48}.tree-2{fill:#77924c}.c-service-road-under{fill:none;stroke:#f3ecd9;stroke-width:31;stroke-linecap:round}.c-service-road{fill:none;stroke:#555762;stroke-width:24;stroke-linecap:round}.c-service-mark{fill:none;stroke:#e8c956;stroke-width:2;stroke-dasharray:17 15}.c-road-caption{fill:#344442;font-size:13px;font-weight:700;paint-order:stroke;stroke:#f6f0de;stroke-width:5px;stroke-linejoin:round}.c-zone-label rect{fill:#f8f0dc;stroke:#b79b66;stroke-width:1}.c-building-label rect{fill:#1d4b55;stroke:#e2c889;stroke-width:1.2;filter:drop-shadow(0 2px 2px #22372d80)}.c-label-title{fill:#fff9e7;font-size:12px;font-weight:700}.c-label-sub{fill:#d4e8d3;font-size:8px;letter-spacing:.06em}.c-building-front{fill:#e0d6bd;stroke:#786b56;stroke-width:1.6}.c-building-side{fill:#9e8e73;stroke:#6c604f;stroke-width:1.5}.c-building-roof{fill:#a54f3e;stroke:#6e392f;stroke-width:1.8}.c-building-show .c-building-roof{fill:#c58b44}.c-building-window{fill:#5c7370;stroke:#f3e3bd;stroke-width:.8}.c-road-casing{fill:none;stroke:#f6f0df;stroke-linecap:round;stroke-linejoin:round}.c-road-casing.main{stroke-width:22}.c-road-line{fill:none;stroke:#c6aa79;stroke-linecap:round;stroke-linejoin:round;cursor:pointer}.c-road-line.main{stroke-width:14;stroke:#bd9d64}.c-road-line.walk{stroke-width:8;stroke:#e2d2ae}.c-road-line.is-road-closed{stroke:#c4564c;stroke-dasharray:8 7;opacity:.9}.c-road-casing.is-road-closed{stroke:#fff0e8}.c-poi-shadow{fill:#30433266}.c-poi-pin{fill:#fff9e7;stroke:#1c5860;stroke-width:3;filter:drop-shadow(0 3px 3px #1a332866)}.c-poi-glyph{fill:#17515a;font-size:10px;font-weight:800}.c-queue-pill{fill:#fbf6e8;stroke:#c9a96e;stroke-width:1.2}.c-queue-text{fill:#4a5b4a;font-size:9px;font-weight:800}.c-poi{cursor:pointer;outline:none}.c-poi:hover .c-poi-pin,.c-poi:focus .c-poi-pin{stroke:#ef8a39;stroke-width:5}.c-poi.is-closed .c-poi-pin{fill:#ded3c3;stroke:#b6574f}.c-poi.is-closed .c-queue-pill{fill:#f4d8d2}.c-crowd-mid .c-queue-pill{stroke:#d79e3e}.c-crowd-high .c-queue-pill{fill:#f6d6c9;stroke:#d3674d}.c-heat-ring{fill:#ee825033;stroke:#e0774f77;stroke-width:3}.c-heat-ring.mid{fill:#e7ac4333;stroke:#d79e3e88}.c-heat-ring.low{fill:#5ba98222;stroke:#5ba98266}.c-event-pin path{fill:#9a61cb;stroke:white;stroke-width:2}.c-event-pin text{fill:#fff;font-size:10px;font-weight:bold}.c-route-halo{fill:none;stroke:#fff;stroke-width:19;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 3px #203a2c80)}.c-route-line{fill:none;stroke:#05a9b4;stroke-width:11;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 3px #1a3e3d99)}.c-next-target-ring{fill:#ed9f3740;stroke:#f28127;stroke-width:4;stroke-dasharray:6 4}.c-next-target-label{fill:#6c3b1e;font-size:13px;font-weight:800;paint-order:stroke;stroke:#fff7e8;stroke-width:5px}.c-visitor-pulse{fill:#2db7d233;stroke:#2ab1c8;stroke-width:3;animation:c-pulse 1.8s ease-out infinite}.c-visitor-dot{fill:#fff;stroke:#087e9c;stroke-width:4}.c-visitor-arrow{fill:#087e9c}.c-visitor-pin text{fill:#fff;font-size:12px;font-weight:800;paint-order:stroke;stroke:#1e565c;stroke-width:5px;stroke-linejoin:round}.c-poi-detail{position:absolute;z-index:4;left:15px;top:15px;width:min(270px,55%);padding:12px 14px;border:1px solid #d9c99e;border-radius:12px;background:#fffaf0ed;box-shadow:0 8px 24px #203a2c40;backdrop-filter:blur(8px);font-size:10px;color:#66776b}.c-poi-detail b,.c-poi-detail span{display:block}.c-poi-detail b{font-size:13px;color:#234b48;margin-bottom:5px}.c-poi-detail button{margin-top:8px;border:0;border-radius:14px;background:#197b7d;color:#fff;padding:6px 10px;font-size:9px;cursor:pointer}.c-map-legend{display:flex;gap:12px;align-items:center;padding:9px 16px;background:#f9fbf8;color:#7a8981;font-size:8px}.c-map-legend span{display:flex;align-items:center;gap:5px}.c-map-legend i{display:inline-block;width:12px;height:5px;border-radius:4px;background:#bd9d64}.c-map-legend .legend-walk{background:#e2d2ae;border:1px solid #c6aa79}.c-map-legend .legend-route{height:7px;background:#05a9b4}.c-map-legend .legend-service{height:7px;background:#555762}.c-map-legend .legend-heat{height:10px;width:10px;border-radius:50%;background:#e0774f66;border:1px solid #d3674d}.map-container.is-osm #cMapSurface{display:none}.map-container.is-osm #navMap{visibility:visible!important}
+.c-gate-pin path{fill:#8b4735;stroke:#fff0cf;stroke-width:3;filter:drop-shadow(0 3px 3px #1a332866)}.c-gate-pin text{fill:#fff6de;font-size:11px;font-weight:800}.c-gate-pin .c-gate-name{fill:#fff;font-size:10px;paint-order:stroke;stroke:#365c4d;stroke-width:4px;stroke-linejoin:round}.c-navigation-halo{fill:none;stroke:#fff;stroke-width:16;stroke-linecap:round;stroke-linejoin:round}.c-navigation-line{fill:none;stroke:#436ed1;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 3px #20375b88)}
+@keyframes c-pulse{from{opacity:.8;r:10}to{opacity:0;r:34}}@media(max-width:700px){.c-layerbar{gap:4px;padding:8px}.c-layerbar button{padding:5px 7px;font-size:8px}.c-layerbar .c-map-mode{margin-left:0}.c-map-legend{flex-wrap:wrap;gap:8px;padding:8px}.c-poi-detail{width:65%;left:8px;top:8px;padding:8px}.c-label-title{font-size:10px}}
+.map-container #cMapSurface svg{background:linear-gradient(180deg,#d7d7b5 0 9%,#9eb978 9% 100%)}
+.c-park-ground{fill:#95af72;stroke:#66804e;stroke-width:4}
+.c-zone{stroke:#efe1bb;stroke-width:4;stroke-dasharray:14 10;opacity:.62}
+.c-zone-water{fill:#d7bd7e;fill-opacity:.38}.c-zone-fantasy{fill:#6f9a65;fill-opacity:.25}.c-zone-jianghu{fill:#cfaa72;fill-opacity:.24}
+.c-water{fill:#74b4bd;stroke:#e8d9aa;stroke-width:9}.c-water-ripple{stroke-width:7}
+.c-green-island{stroke-width:5}.c-tree{stroke-width:3}
+.c-service-road-under{stroke-width:38}.c-service-road{stroke-width:29}.c-service-mark{stroke-width:3;stroke-dasharray:none}
+.c-road-caption{font-size:21px;stroke-width:8px}
+.c-building-front{stroke-width:2.5}.c-building-side{stroke-width:2.3}.c-building-roof{stroke-width:2.6}.c-building-window{width:9px;height:9px}
+.c-building-access{fill:none;stroke:#eadbb8;stroke-width:13;stroke-linecap:round;stroke-dasharray:4 5}
+.c-building-label rect{stroke-width:2}.c-label-title{font-size:20px}.c-label-sub{font-size:13px}
+.c-road-casing.main{stroke-width:28}.c-road-line.main{stroke-width:18}.c-road-line.walk{stroke-width:11}
+.c-poi-shadow{rx:2}.c-poi-pin{stroke-width:4}.c-poi-glyph{font-size:16px}.c-queue-pill{stroke-width:2}.c-queue-text{font-size:14px}
+.c-event-pin text{font-size:16px}.c-route-halo{stroke-width:30}.c-route-line{stroke-width:18}.c-next-target-ring{stroke-width:6}.c-next-target-label{font-size:21px;stroke-width:8px}
+.c-visitor-pulse{stroke-width:5}.c-visitor-dot{stroke-width:6}.c-visitor-pin text{font-size:19px;stroke-width:8px}
+.c-navigation-halo{stroke-width:25}.c-navigation-line{stroke-width:14}
+.c-navigation-destination circle{fill:#3977dc;stroke:#fff;stroke-width:6;filter:drop-shadow(0 5px 8px #183a7755)}.c-navigation-destination path{fill:#fff}.c-navigation-destination text{fill:#244d8d;font-size:19px;font-weight:800;paint-order:stroke;stroke:#fff;stroke-width:8px}
+.walking-nav-hud{position:absolute;z-index:6;top:16px;left:16px;display:flex;align-items:center;gap:13px;min-width:310px;max-width:calc(100% - 100px);padding:13px 17px;border:1px solid #dce9ee;border-radius:15px;background:#fffefaed;box-shadow:0 12px 30px #12394e30;backdrop-filter:blur(12px);color:#27434a}.walking-nav-hud .walking-turn{display:grid;place-items:center;width:46px;height:46px;flex:none;border-radius:13px;background:#3977dc;color:#fff;font-size:29px;font-weight:800}.walking-nav-hud small,.walking-nav-hud b,.walking-nav-hud span{display:block}.walking-nav-hud small{color:#7c9094;font-size:9px;letter-spacing:.08em}.walking-nav-hud b{margin:3px 0;color:#203e47;font-size:14px}.walking-nav-hud span{color:#6f8386;font-size:9px}.walking-nav-sheet{position:absolute;z-index:6;left:50%;bottom:15px;display:flex;align-items:center;gap:28px;min-width:380px;max-width:calc(100% - 110px);padding:12px 15px 12px 19px;border:1px solid #dce9ee;border-radius:16px;background:#fffefaef;box-shadow:0 10px 28px #14344730;transform:translateX(-50%);backdrop-filter:blur(12px)}.walking-nav-sheet>div{min-width:115px}.walking-nav-sheet small,.walking-nav-sheet b{display:block}.walking-nav-sheet small{color:#859599;font-size:8px}.walking-nav-sheet b{margin-top:3px;color:#29444b;font-size:12px}.walking-nav-sheet button{margin-left:auto;width:38px;height:38px;border:0;border-radius:50%;background:#e7f0ff;color:#3977dc;font-size:20px;cursor:pointer}
+.c-gate-pin path{stroke-width:5}.c-gate-pin text{font-size:17px}.c-gate-pin .c-gate-name{font-size:17px;stroke-width:7px}
+@media(max-width:700px){.c-road-caption{font-size:30px}.c-label-title{font-size:25px}.c-label-sub{font-size:17px}.c-poi-detail{font-size:12px}.c-poi-detail b{font-size:16px}}
+@media(max-width:700px){.walking-nav-hud{top:9px;left:9px;min-width:0;max-width:calc(100% - 68px);padding:9px 11px}.walking-nav-hud .walking-turn{width:37px;height:37px;font-size:22px}.walking-nav-hud b{font-size:11px}.walking-nav-hud span{font-size:8px}.walking-nav-sheet{bottom:8px;min-width:0;width:calc(100% - 18px);max-width:none;gap:12px;padding:9px 11px}.walking-nav-sheet>div{min-width:0;flex:1}.walking-nav-sheet b{font-size:10px}}
+
+/* Improve road hierarchy: the generated route network stays legible while
+   secondary hand-map traces remain an optional orientation layer. */
+.c-road-casing.walk{stroke:#f8f3e6;stroke-width:12;opacity:.94}
+.c-road-line.walk{stroke:#a99c7d;stroke-width:4;opacity:.94}
+.c-road-line.main{stroke:#bd9860;stroke-width:11;opacity:1}
+.c-road-casing.main{stroke:#fff8e8;stroke-width:21;opacity:.98}
+.c-road-line.is-road-closed{stroke:#b94e42;stroke-width:7;opacity:1}
+.c-road-line:focus{stroke:#158b91;stroke-width:10;outline:none}
+.c-secondary-path{stroke:#e4dec8;stroke-width:5;opacity:.7}
+.c-secondary-path.is-schematic{stroke-width:4;opacity:.45}
+.c-map-layerbar [data-c-layer="referencePaths"]:not(.active){border-style:dashed;color:#9a8a67}
+.map-attribution{max-width:calc(100% - 24px);padding:6px 9px;border-radius:6px;background:#fffdf0e8;color:#765d3c;font-weight:700}
+
+/* Dense, proportion-preserving cartographic detail shared by both C maps. */
+.c-secondary-path{fill:none;stroke:#efe5c9;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px #48604655)}
+.c-secondary-path.is-schematic{stroke:#f6eed6;stroke-width:6;stroke-dasharray:12 10;opacity:.78}
+.c-reference-roof{fill:#bf7656;stroke:#694f3e;stroke-width:2}.c-reference-front{fill:#d8c8a5;stroke:#756650;stroke-width:2}
+.c-reference-building .c-building-label{opacity:.92}.c-reference-building .c-building-label rect{fill:#315f5d}.c-reference-building .c-label-title{font-size:14px}.c-reference-building .c-label-sub{font-size:9px}
+.c-reference-pin{pointer-events:none}.c-reference-pin circle{fill:#f8f0d7;stroke:#54786b;stroke-width:2}.c-reference-pin text{fill:#314f4c;font-size:12px;font-weight:700;paint-order:stroke;stroke:#f1efd9;stroke-width:5px;stroke-linejoin:round}
+.c-reference-pin-water circle{fill:#78bdc4;stroke:#eaf6eb}.c-reference-pin-gate circle{fill:#9f513e;stroke:#fff0cf}
+.c-facility-pin rect{fill:#fffdf2;stroke:#2f817c;stroke-width:2}.c-facility-pin text{fill:#246d69;font-size:10px;font-weight:800}.c-facility-pin.is-simulated rect{stroke:#a18d62;stroke-dasharray:4 3}
+.c-water{stroke-width:6}.c-water-ripple{fill:none}.c-park-ground{filter:drop-shadow(inset 0 0 20px #34563833)}
+.c-poi-name rect{fill:#164750;stroke:#f1d9a2;stroke-width:2;filter:drop-shadow(0 3px 4px #20383266)}.c-poi-name text{fill:#fff9e8;font-size:15px;font-weight:800}
+
+/* Refined platform cartography: paths sit under landmarks, use a subdued
+   hierarchy, and reserve the strongest contrast for the active route. */
+.c-road-casing.main{stroke-width:21}.c-road-line.main{stroke-width:11}.c-road-line.walk{stroke-width:6}.c-road-casing.walk{stroke-width:13}
+.c-secondary-path{stroke-width:5;opacity:.68;filter:none}.c-secondary-path.is-schematic{stroke-width:4;opacity:.45;stroke-dasharray:10 12}
+.c-route-halo{stroke:#fff4df;stroke-width:15;filter:drop-shadow(0 2px 3px #35221955)}
+.c-route-line{stroke:#ad4033;stroke-width:7;stroke-dasharray:17 11;filter:none}
+.c-navigation-halo{stroke-width:17}.c-navigation-line{stroke-width:9}
+.c-poi-name rect{fill:#f8edd8;stroke:#9a7849;stroke-width:1.5}.c-poi-name text{fill:#302f25;font-family:KaiTi,"Noto Serif SC",serif;font-size:14px}
+.c-reference-pin text{font-size:10px;stroke-width:4px}.c-reference-pin circle{r:6}
+
+/* Turn-by-turn focus keeps the full cartographic context available while
+   making the current pedestrian segment read like a navigation product. */
+.c-road-line.walk{stroke-width:4;opacity:.72}.c-road-casing.walk{stroke-width:9;opacity:.78}
+.c-secondary-path{stroke-width:3;opacity:.5}.c-secondary-path.is-schematic{stroke-width:2.5;opacity:.34}
+#cMapSurface[data-navigation-focus="true"] [data-layer-group="roads"]{opacity:.52}
+#cMapSurface[data-navigation-focus="true"] .c-road-line.walk,
+#cMapSurface[data-navigation-focus="true"] .c-secondary-path{opacity:.28}
+#cMapSurface[data-navigation-focus="true"] .c-reference-building,
+#cMapSurface[data-navigation-focus="true"] .c-reference-pin{opacity:.3}
+#cMapSurface[data-navigation-focus="true"] [data-layer-group="heat"]{opacity:.38}
+#cMapSurface[data-navigation-focus="true"] [data-layer-group="navigation"]{opacity:1}
+#cMapSurface[data-navigation-focus="true"] .c-navigation-halo{stroke-width:20}
+#cMapSurface[data-navigation-focus="true"] .c-navigation-line{stroke-width:11}
+
+/* Six official-style park districts. Geometry is schematic until surveyed. */
+.c-zone-film{fill:#b7a56f;fill-opacity:.23}.c-zone-foreign{fill:#b88e78;fill-opacity:.2}
+.c-zone-pastoral{fill:#74a078;fill-opacity:.22}.c-zone-water{fill:#78a9a4;fill-opacity:.2}
+.c-zone-fantasy{fill:#8378aa;fill-opacity:.16}.c-zone-jianghu{fill:#c89b63;fill-opacity:.2}
+
+/* Real thematic modes for the visible SVG map, not only the hidden OSM layer. */
+#cMapSurface:not([data-theme="crowd"]) [data-layer-group="heat"]{display:none}
+#cMapSurface[data-theme="crowd"] [data-layer-group="heat"]{display:inline;opacity:.9}
+#cMapSurface[data-theme="crowd"] .c-heat-ring.low{fill:#55a97d33;stroke:#3d966c99}
+#cMapSurface[data-theme="crowd"] .c-heat-ring.mid{fill:#e0a43b55;stroke:#c5851dbb}
+#cMapSurface[data-theme="crowd"] .c-heat-ring.high{fill:#d853435f;stroke:#b9352acc;stroke-width:6}
+#cMapSurface[data-theme="crowd"] .c-road-line{opacity:.35}
+#cMapSurface[data-theme="comfort"] .c-road-line.c-comfort-high{stroke:#37966f;opacity:1}
+#cMapSurface[data-theme="comfort"] .c-road-line.c-comfort-mid{stroke:#d29a3c;opacity:1}
+#cMapSurface[data-theme="comfort"] .c-road-line.c-comfort-low{stroke:#c65349;opacity:1}
+#cMapSurface[data-theme="comfort"] .c-poi.c-comfort-high .c-poi-pin{fill:#ddf4e5;stroke:#2f8862}
+#cMapSurface[data-theme="comfort"] .c-poi.c-comfort-mid .c-poi-pin{fill:#fff0cf;stroke:#c5862c}
+#cMapSurface[data-theme="comfort"] .c-poi.c-comfort-low .c-poi-pin{fill:#f8d9d3;stroke:#b8433b}
+
+/* The second map is deliberately a navigation product, not another hand-drawn
+   poster. Keep the shared geometry but render it as a quiet, high-contrast
+   pedestrian basemap so roads, junctions and live overlays remain legible. */
+.map-container #cMapSurface svg{background:#e9eef1;font-family:Inter,"Microsoft YaHei",sans-serif}
+.c-park-ground{fill:#e6eee7;stroke:#b7c6bc;stroke-width:3;filter:none}
+.c-zone{stroke:#cbd6d0;stroke-width:2;stroke-dasharray:9 8;opacity:.72}
+.c-zone-film{fill:#e7e5dc;fill-opacity:.82}.c-zone-foreign{fill:#ece2df;fill-opacity:.74}
+.c-zone-pastoral{fill:#e1eee3;fill-opacity:.78}.c-zone-water{fill:#e0eeee;fill-opacity:.72}
+.c-zone-fantasy{fill:#e9e5f0;fill-opacity:.7}.c-zone-jianghu{fill:#eee8dc;fill-opacity:.78}
+.c-zone{stroke:#91a690;stroke-width:3;stroke-dasharray:13 12;opacity:.43;stroke-linejoin:round}
+.c-zone-film{fill:#e6dcc3;fill-opacity:.2}.c-zone-water{fill:#d8e8e5;fill-opacity:.2}.c-zone-fantasy{fill:#e4e0ed;fill-opacity:.2}.c-zone-jianghu{fill:#eadfce;fill-opacity:.2}
+.c-zone-title{fill:#637763;font:600 20px KaiTi,"Noto Serif SC",serif;paint-order:stroke;stroke:#f1efdf;stroke-width:6px;opacity:.73;pointer-events:none}
+.c-water{fill:#b9dce8;stroke:#f7fbfc;stroke-width:5}.c-water-ripple{stroke:#e6f5f8;stroke-width:3}
+.c-green-island{fill:#d5e5d5;stroke:#c1d7c3}.c-tree{fill:#8eb493;stroke:#f2f7f2}
+.c-secondary-path{stroke:#fff;stroke-width:5;opacity:.92;filter:none}.c-secondary-path.is-schematic{stroke:#fff;stroke-width:4;opacity:.7;stroke-dasharray:9 8}
+.c-road-casing.main{stroke:#c8d0d5;stroke-width:20}.c-road-line.main{stroke:#fff;stroke-width:14}
+.c-road-casing.walk{stroke:#d8dfe2;stroke-width:12;opacity:1}.c-road-line.walk{stroke:#fbfcfc;stroke-width:7;opacity:1}
+.c-service-road-under{stroke:#c4ccd2;stroke-width:27}.c-service-road{stroke:#f8fafb;stroke-width:21}.c-service-mark{stroke:#b5bec5;stroke-width:2;stroke-dasharray:12 10}
+.c-road-caption{fill:#718087;font-family:Inter,"Microsoft YaHei",sans-serif;font-size:16px;stroke:#f5f8f8;stroke-width:6px}
+.c-building-front,.c-reference-front{fill:#e7ecef;stroke:#aab6bc}.c-building-side{fill:#c7d0d4;stroke:#a4afb5}
+.c-building-roof,.c-reference-roof,.c-building-show .c-building-roof{fill:#b8c5cb;stroke:#919fa6}
+.c-building-window{fill:#91a8b4;stroke:#eef4f6}
+.c-reference-building{opacity:.66}.c-reference-building .c-building-label{display:none}
+.c-poi-name rect{fill:#fff;stroke:#ccd8de;filter:drop-shadow(0 3px 6px #425d6c22)}
+.c-poi-name text{fill:#33464f;font-family:Inter,"Microsoft YaHei",sans-serif;font-size:13px}
+.c-poi-pin{fill:#fff;stroke:#3977dc;filter:drop-shadow(0 4px 6px #30568233)}.c-poi-glyph{fill:#3977dc}
+.c-queue-pill{fill:#fff;stroke:#c9d4da}.c-queue-text{fill:#526870}
+.c-gate-pin path{fill:#506b78;stroke:#fff}.c-gate-pin .c-gate-name{font-family:Inter,"Microsoft YaHei",sans-serif;stroke:#fff;fill:#344a53}
+.c-route-halo{stroke:#fff;stroke-width:18}.c-route-line{stroke:#3977dc;stroke-width:9;stroke-dasharray:none}
+.c-navigation-halo{stroke:#fff;stroke-width:21}.c-navigation-line{stroke:#1677ff;stroke-width:12;filter:drop-shadow(0 3px 5px #1556a84d)}
+.c-map-legend,.c-layerbar{background:#fff;border-color:#e0e7ea}
+.c-poi-detail{background:#fffffff2;border-color:#d8e2e7;color:#60757e}
+
+/* Thematic modes still override the neutral basemap without obscuring the
+   active recommended/navigation route, which always stays in the top layer. */
+#cMapSurface[data-theme="crowd"] .c-road-line{opacity:.55}
+#cMapSurface[data-theme="comfort"] .c-road-line.c-comfort-high{stroke:#40a578}
+#cMapSurface[data-theme="comfort"] .c-road-line.c-comfort-mid{stroke:#e3a63d}
+#cMapSurface[data-theme="comfort"] .c-road-line.c-comfort-low{stroke:#d85a4f}
+.walking-nav-hud{top:auto;left:auto;max-width:none;min-width:0}
+.planner-event-controls{align-items:center}.planner-event-selection{flex-basis:100%;color:#6f8176;font-size:9px;padding:3px 2px}
+.planner-event-controls button:disabled,.map-status-row button:disabled{opacity:.55;cursor:wait}

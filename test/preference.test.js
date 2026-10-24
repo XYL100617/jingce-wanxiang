@@ -5,6 +5,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { inferPreference } = require('../server/preference-engine');
+
+test('前端八维权重在首次访问的 null 偏好状态下使用安全默认值', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
+  assert.match(source, /p && typeof p === 'object' \? p : \{ time:/);
+  assert.match(source, /weights\[b\[0\]\]/);
+  assert.doesNotMatch(source, /function renderVector\(p = app\.data\?\.user\.preference/);
+});
 const { createMockScenario, planItinerary, replan } = require('../server/planner');
 
 test('完整问卷生成归一化的八维连续权重和可解释约束', () => {

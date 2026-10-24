@@ -100,7 +100,7 @@ POST /api/v1/scenario-event  {"event_type":"ROAD_SLOWDOWN","target_id":"edge_001
 | 顶层 | `event_states: Record<event_id, EventState>`、`feedback: object[]` | 演出/活动状态和用户反馈记录。 |
 | 顶层 | `legacy_crowd: Record<string, number>`、`legacy_queues: Record<string, number>`、`scenario_events?: ScenarioEvent[]` | 旧版展示兼容数据；`scenario_events` 在提交场景事件后出现，记录预测用异常事件。B、C 判断 POI 和道路状态应使用 `poi_states`、`road_states`。 |
 | `Visitor` | `visitor_id: string`、`current_node_id: string`、`remaining_time_min: number`、`fatigue: number`、`walked_distance_m: number`、`visited_poi_ids: string[]` | 游客 ID、当前位置节点、剩余分钟、疲劳值、已走米数、已访问的 POI ID。 |
-| `Visitor` | `preference: null \| object` | 初始值为 `null`；经现有偏好接口设置后，对象包含 `time`、`interest`、`comfort`、`freedom`、`culture` 五个数值权重。 |
+| `Visitor` | `preference: null \| object` | 初始值为 `null`；经偏好接口设置后保存 `time`、`interest`、`comfort`、`freedom`、`culture`、`nature`、`performance`、`food` 八维归一化权重。旧版固定候选路线所需五维聚合只在兼容评分函数内部临时计算，不再覆盖主状态。 |
 | `Weather` | `label: string`、`temp: number`、`uv: number`、`rain: number` | 天气描述、温度、紫外线值、降雨值。 |
 | `PoiState` | `open: boolean`、`queue_min: number`、`crowd_ratio: number`、`crowd_level: string` | 是否开放、当前排队分钟、拥挤比例、拥挤等级（当前使用 `LOW` / `MEDIUM` / `HIGH`）。 |
 | `RoadState` | `available: boolean`、`travel_time_min: number` | 当前是否可通行、当前通行分钟数；规划时必须先判断 `available`。 |
@@ -163,3 +163,21 @@ Invoke-RestMethod -Method Post -ContentType 'application/json' -Body '{"variant"
 个性化路线问卷现包含游览节奏、同行人群、步行能力、六类兴趣和八项情境量表。`server/preference-engine.js` 使用“画像先验 + 量表贡献矩阵 + Softmax 归一化”生成八维连续权重，同时输出单段步行、最大排队和休息约束。权重随游客状态进入 B 规划器，直接影响每个候选动作的效用分，而不是只作为界面标签。
 
 接口返回 `preferenceProfile`，其中包含权重、可信度、前三项偏好、约束及主要答案贡献。正式契约见 `docs/contracts/b-planner.schema.json`，可运行样例见 `docs/contracts/examples/`。
+
+## C模块：路线总览与逐段导航
+
+路线页上层不再直接展示原手绘 JPG。`public/assets/scenic-handdrawn-reference.jpg` 只作为景点相对方位的离线参考；当前主页面直接加载 `public/wandashan-map2d.js` 的原始 Canvas 手绘 2.5D 绘制器，并将 27 个可路由景点、8 个参考景点、片区和补全建筑绘入场景。景点名称和相对分布按手绘资料，并结合公开景区导览资料中的武侠路、水浒街、城寨沙场、九龙瀑、风云庄、大宋海船、龙坛、万岁寺和城墙遗址等地标校正；公开地图同时明确支持滚轮缩放和拖动平移（例如 [Meet99 景区地图](https://www.meet99.com/map-wansuishan.html)）。`public/scenic-overview.js` 仍作为无 Canvas 环境下的 SVG 降级实现；`public/scenic-layout.js` 统一保存两张地图共用的入口、分区、景点锚点和 A 的 45 条道路折线。B 的 `PlanResult` 依 `node_id` / `edge_id` 独立叠加为高对比路线，路线按物理 edge 去重并对建筑/景点 footprint 做透明避让，底图、道路、建筑、标签和路线互不遮盖。总览图支持右上角按钮、滚轮缩放和拖动，拖动范围会限制在当前缩放视口内。
+
+在“个性化路线”生成并选择方案后，点击“在总览图查看并开始导航”，可看到全程路线、停靠顺序和预计到达信息；进入细致导航后，路线改由 `/api/navigation` 基于 A 的步行图计算，并显示逐路段距离、耗时、人流、遮阴和道路事件。点击“我已到达”会提交当前位置进度，触发 B 从新位置滚动重规划；“导航下一站”只切换导航目标，不会伪造到达状态。没有个性化游程时，仍可从“实时导航”直接使用点到点导航。
+
+图面坐标是示意性的，真实游客导航仍需景区实测路网、准确 POI 坐标、定位数据和现场验证；当前不可将总览图上的路线当作现场逐米导航指引。
+
+### C 模块精细 2.5D 分层地图
+
+主平台的第二张地图由 `public/c-map.js` 与 `public/c-map.css` 绘制，是面向行人的精细 2.5D 导航界面，而不是第一张总览图的缩放版。它沿用同一景点相对布局并展开纵向空间，包含类似步行导航的顶部转向卡、剩余距离/时间底部卡、路线自动聚焦和回中按钮；同时将 A 的 `ScenicGraph`、实时 `ScenicState`、预测摘要和 B 的 `PlanResult` 分层叠加。底图含水面、绿地和分区；示意建筑以 2.5D 立面绘制；主游览步道与普通步道使用不同线宽和颜色，步行道不画车道虚线；模拟服务车行道路单独开关并明确标记为非真实路网。路线由 B 的 `node_sequence` / `edge_sequence` 生成高对比描边，当前导航路段、热度、活动、POI 名称和游客位置可独立开关。
+
+地图坐标映射保存在 `public/scenic-layout.js`，总览路线和下层导航地图共用该文件；当前包含 27 个 A 路由节点、45 条 A 道路、28 个手绘图可辨认参考地标、18 条次级步道、4 片水系和 6 个服务设施点。每条 A 路径首尾都与边端节点一致。坐标仅在 C 展示层使用，不回写 A 的 `algorithm_x/y`，也不改变 A 的拓扑；资料不足的支路和设施带 `verified: false`，以虚线或模拟样式显示，不能进入规划器。总览图使用 `public/wandashan-map2d.js` 的原始 Canvas 手绘 2.5D 场景，已将 27 个可路由景点、8 个 C-only 参考景点、6 个低透明度片区和新增建筑直接加入同一绘制层；下层导航图继续使用独立图层。路线/热度/事件/游客等保持分层；POI 点击先以统一 ID 记入 C 交互，再请求 B 从游客当前位置重规划，同时 A 的点到点导航给出选中景点的分段指引。C 不自行计算路线或预测人流。
+
+正式使用只需打开主平台 `http://localhost:4173/`，进入“实时导航”：第一张路线推荐总览和第二张精细 2.5D 导航地图都嵌在同一页面，直接读取 A 的路网、状态与预测，以及 B 的当前主/备选 `PlanResult`。本次发布不包含本地开发用的 C 图层演示页；主平台也不会加载其演示 JSON。
+
+当前参照图本身是手绘插画；道路中心线和节点是按图面相对位置人工描点，无法从插画恢复测绘精度。图上的模拟建筑、服务路和资料不足的支路不可作为真实位置/通行承诺。要作为游客现场导航，仍需确认道路中心线、通行权限、POI 坐标、建筑边界并接入定位。`npm test` 含 C 样例图 ID 连通性和“每条描绘道路首尾匹配 A 图节点”的检查。

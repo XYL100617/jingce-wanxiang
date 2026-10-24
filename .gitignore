@@ -4,5 +4,9 @@ node_modules/
 !.env.example
 npm-debug.log*
 *.log
+server/data/accounts.local.json
+server/data/audit.local.jsonl
+server/data/.account-test-*/
+server/data/.http-test-*/
 .DS_Store
 Thumbs.db

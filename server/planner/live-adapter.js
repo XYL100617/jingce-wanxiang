@@ -41,7 +41,7 @@ function buildLivePlannerScenario(sourceGraph, sourceState, runtimeUser = {}, so
     .map(node => {
       const poiId = node.poi_id;
       const startTime = sourceState.timestamp.slice(0, 10) + ' 09:00:00';
-      const closeTime = sourceState.timestamp.slice(0, 10) + ' 18:00:00';
+      const closeTime = sourceState.timestamp.slice(0, 10) + ' 22:00:00';
       return {
         poi_id: poiId,
         node_id: node.node_id || node.id,
@@ -98,8 +98,8 @@ function buildLivePlannerScenario(sourceGraph, sourceState, runtimeUser = {}, so
       remaining_time_min: sourceState.visitor.remaining_time_min,
       fatigue: sourceState.visitor.fatigue,
       visited_poi_ids: sourceState.visitor.visited_poi_ids || [],
-      attended_event_ids: [],
-      visited_facility_ids: [],
+      attended_event_ids: sourceState.visitor.attended_event_ids || [],
+      visited_facility_ids: sourceState.visitor.visited_facility_ids || [],
       preferred_categories: preferredCategories(weights),
       preference_weights: weights,
       preference_profile: profile,

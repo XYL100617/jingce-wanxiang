@@ -13,10 +13,22 @@ function getCandidateActions(graph, state, options = {}) {
   const visitor = options.visitor || state.visitor;
   const excluded = new Set(options.excluded_target_ids || []);
   const actions = [];
-  for (const poi of graph.pois || []) {
-    if (!excluded.has(poi.poi_id) && !(visitor.visited_poi_ids || []).includes(poi.poi_id)) {
-      actions.push({ action_type: 'VISIT_POI', target_id: poi.poi_id, target_node_id: poi.node_id });
-    }
+  const nodeById = new Map((graph.nodes || []).map(node => [node.node_id, node]));
+  const currentNode = nodeById.get(visitor.current_node_id) || {};
+  const preferred = new Set(visitor.preferred_categories || []);
+  const poiCandidates = (graph.pois || [])
+    .filter(poi => !excluded.has(poi.poi_id) && !(visitor.visited_poi_ids || []).includes(poi.poi_id))
+    .map(poi => {
+      const node = nodeById.get(poi.node_id) || {};
+      const distance = Math.hypot(Number(node.algorithm_x || 0) - Number(currentNode.algorithm_x || 0), Number(node.algorithm_y || 0) - Number(currentNode.algorithm_y || 0));
+      const queue = Number(state.poi_states?.[poi.poi_id]?.current_queue_min || 0);
+      const priority = Number(poi.base_utility || 0) + (preferred.has(poi.category) ? 18 : 0) - distance * .12 - queue * .18;
+      return { poi, priority };
+    })
+    .sort((a, b) => b.priority - a.priority);
+  const candidateLimit = Number(options.candidate_limit || 0);
+  for (const { poi } of candidateLimit > 0 ? poiCandidates.slice(0, candidateLimit) : poiCandidates) {
+    actions.push({ action_type: 'VISIT_POI', target_id: poi.poi_id, target_node_id: poi.node_id });
   }
   for (const event of graph.events || []) {
     if (!excluded.has(event.event_id) && !(visitor.attended_event_ids || []).includes(event.event_id)) {
@@ -50,9 +62,10 @@ function reject(action, reason, route = null) {
   return { legal: false, action, reason, route };
 }
 
-function earliestExitRoute(graph, state, forecast, fromNodeId, departureTime) {
+function earliestExitRoute(graph, state, forecast, fromNodeId, departureTime, preferredExitNodeId = null) {
   let best = null;
   for (const exit of graph.exits || []) {
+    if (preferredExitNodeId && exit.node_id !== preferredExitNodeId) continue;
     const route = findPath({ graph, state, forecast, startNodeId: fromNodeId, goalNodeId: exit.node_id, departureTime });
     if (route.reachable && (!best || route.travel_time_min < best.travel_time_min)) best = route;
   }
@@ -69,6 +82,7 @@ function isActionLegal({ graph, state, forecast, action, visitor = state.visitor
   if (visitor.require_rest === true && !(visitor.visited_facility_ids || []).length && !['REST', 'EXIT'].includes(action.action_type)) return reject(action, '当前偏好要求先完成一次休息');
 
   const targetNodeId = definition.node_id || action.target_node_id || visitor.current_node_id;
+  if (action.action_type === 'EXIT' && rules.preferred_exit_node_id && targetNodeId !== rules.preferred_exit_node_id) return reject(action, '与指定离园出口不一致');
   const route = findPath({ graph, state, forecast, startNodeId: visitor.current_node_id, goalNodeId: targetNodeId, departureTime: state.timestamp });
   if (!route.reachable) return reject(action, route.reason, route);
 
@@ -111,7 +125,7 @@ function isActionLegal({ graph, state, forecast, action, visitor = state.visitor
 
   let returnRoute = null;
   if (action.action_type !== 'EXIT') {
-    returnRoute = earliestExitRoute(graph, state, forecast, targetNodeId, completionTime);
+    returnRoute = earliestExitRoute(graph, state, forecast, targetNodeId, completionTime, rules.preferred_exit_node_id);
     if (!returnRoute) return reject(action, '完成动作后无法到达出口', route);
     if (totalActionMin + returnRoute.travel_time_min + rules.return_buffer_min > Number(visitor.remaining_time_min || 0)) return reject(action, '动作后无法保留返回出口的必要时间', route);
   }
@@ -131,10 +145,10 @@ function isActionLegal({ graph, state, forecast, action, visitor = state.visitor
   };
 }
 
-function getLegalActions({ graph, state, forecast, visitor = state.visitor, rules = {}, excluded_target_ids = [] }) {
+function getLegalActions({ graph, state, forecast, visitor = state.visitor, rules = {}, excluded_target_ids = [], candidate_limit = 0 }) {
   const legal = [];
   const rejected = [];
-  for (const action of getCandidateActions(graph, state, { visitor, excluded_target_ids })) {
+  for (const action of getCandidateActions(graph, state, { visitor, excluded_target_ids, candidate_limit })) {
     const evaluation = isActionLegal({ graph, state, forecast, action, visitor, rules });
     (evaluation.legal ? legal : rejected).push(evaluation);
   }
@@ -150,7 +164,7 @@ function getLegalActions({ graph, state, forecast, visitor = state.visitor, rule
   return { legal, rejected };
 }
 
-function stepByRules({ graph, state, forecast, action, visitor = state.visitor, evaluation = null, rules: ruleOverrides = {} }) {
+function stepByRules({ graph, state, forecast, action, visitor = state.visitor, evaluation = null, rules: ruleOverrides = {}, compute_next_actions = true }) {
   const rules = mergeRules(ruleOverrides);
   const checked = evaluation || isActionLegal({ graph, state, forecast, action, visitor, rules });
   if (!checked.legal) throw new Error(`非法动作 ${actionId(action)}: ${checked.reason}`);
@@ -181,13 +195,13 @@ function stepByRules({ graph, state, forecast, action, visitor = state.visitor, 
     .filter(event => event.latest_entry_time && toMillis(nextState.timestamp) > toMillis(event.latest_entry_time))
     .filter(event => !nextVisitor.attended_event_ids.includes(event.event_id))
     .map(event => event.event_id);
-  const nextActions = action.action_type === 'EXIT'
+  const nextActions = action.action_type === 'EXIT' || !compute_next_actions
     ? { legal: [] }
     : getLegalActions({ graph, state: nextState, forecast, visitor: nextVisitor, rules });
   nextVisitor.next_legal_actions = nextActions.legal.map(item => item.action);
   nextVisitor.must_exit = action.action_type === 'EXIT'
     || nextVisitor.remaining_time_min <= rules.return_buffer_min
-    || !nextActions.legal.some(item => item.action.action_type !== 'EXIT');
+    || (compute_next_actions && !nextActions.legal.some(item => item.action.action_type !== 'EXIT'));
   return {
     state: nextState,
     visitor: nextVisitor,
@@ -195,6 +209,7 @@ function stepByRules({ graph, state, forecast, action, visitor = state.visitor, 
       action_type: action.action_type,
       target_id: action.target_id,
       target_node_id: checked.action.target_node_id,
+      visit_duration_min: checked.duration_min,
       arrival_time: checked.arrival_time,
       predicted_queue_min: checked.predicted_queue_min,
       service_start_time: checked.service_start_time,

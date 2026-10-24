@@ -2,6 +2,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const accountTestDir = fs.mkdtempSync(path.join(__dirname, '../data/.http-test-'));
+process.env.ACCOUNTS_FILE = path.join(accountTestDir, 'accounts.json');
+process.env.AUDIT_FILE = path.join(accountTestDir, 'audit.jsonl');
+process.env.ADMIN_USERNAME = 'http_test_manager';
+process.env.ADMIN_PASSWORD = 'http-test-manager-pass-2026';
+process.on('exit', () => fs.rmSync(accountTestDir, { recursive: true, force: true }));
+let adminCookie = '';
 
   const examplePath = path.join(__dirname, '../examples/http_integration.json');
   const graphFile = require('../data/scenic_graph.json');
@@ -25,7 +32,11 @@ const test = require('node:test');
       });
     });
     try {
-      return await run(`http://127.0.0.1:${server.address().port}`);
+      const base = `http://127.0.0.1:${server.address().port}`;
+      const login = await fetch(`${base}/api/account/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: process.env.ADMIN_USERNAME, password: process.env.ADMIN_PASSWORD }) });
+      assert.equal(login.status, 200);
+      adminCookie = login.headers.get('set-cookie').split(';')[0];
+      return await run(base);
     } finally {
       await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     }
@@ -34,7 +45,7 @@ const test = require('node:test');
   async function request(base, method, route, payload) {
     const response = await fetch(`${base}${route}`, {
       method,
-      headers: payload === undefined ? undefined : { 'Content-Type': 'application/json' },
+      headers: { ...(payload === undefined ? {} : { 'Content-Type': 'application/json' }), Cookie: adminCookie },
       body: payload === undefined ? undefined : JSON.stringify(payload)
     });
     return { status: response.status, body: await response.json() };
@@ -71,14 +82,62 @@ const test = require('node:test');
       const museum = queueFields(await queue(base, 'museum', timestamp, 5));
       const edge001 = Object.fromEntries(await Promise.all([0, 20, 30, 60, 90].map(async offset => [offset, roadFields(await road(base, 'edge_001', timestamp, offset))])));
       const replan = await post(base, '/api/replan', {});
-      return { graph, state, forecast, repeated, invalidHorizon, invalidStep, invalidEvent, snapshot, navigation, market, museum, edge001, replan };
+      const preferences = await post(base, '/api/preferences', { answers: { type: 'free', group: 'friends', mobility: 'normal', interests: ['nature', 'food', 'photo'], queue_tolerance: 2, walking_tolerance: 4, schedule_preference: 2, depth_preference: 4, crowd_sensitivity: 4, novelty_preference: 5, rest_need: 3, photo_preference: 5 }, leaveAt: '15:30', current_node_id: 'southgate' });
+      const stateAfterPreference = await get(base, '/api/v1/state');
+      const snapshotAfterPreference = await get(base, '/api/snapshot');
+      const cPoiClick = await post(base, '/api/c/user-event', { event: { schema_version: state.body.schema_version, scenario_id: state.body.scenario_id, event_type: 'POI_CLICK', target_id: 'market', timestamp } });
+      const cRoadClick = await post(base, '/api/c/user-event', { event: { schema_version: state.body.schema_version, scenario_id: state.body.scenario_id, event_type: 'ROAD_CLICK', edge_id: 'edge_001', timestamp } });
+      const cInvalidClick = await post(base, '/api/c/user-event', { event: { schema_version: state.body.schema_version, scenario_id: state.body.scenario_id, event_type: 'POI_CLICK', target_id: 'private_poi', timestamp } });
+      return { graph, state, forecast, repeated, invalidHorizon, invalidStep, invalidEvent, snapshot, navigation, market, museum, edge001, replan, preferences, stateAfterPreference, snapshotAfterPreference, cPoiClick, cRoadClick, cInvalidClick };
+    });
+
+    await t.test('C地图点击使用统一ID回传且拒绝未知对象', () => {
+      assert.equal(baseline.cPoiClick.status, 202);
+      assert.equal(baseline.cPoiClick.body.event.target_id, 'market');
+      assert.equal(baseline.cPoiClick.body.event_count, 1);
+      assert.equal(baseline.cRoadClick.status, 202);
+      assert.equal(baseline.cRoadClick.body.event.edge_id, 'edge_001');
+      assert.equal(baseline.cInvalidClick.status, 404);
+    });
+
+    await t.test('B完整八维偏好写入后端状态且当前方案可从快照恢复', () => {
+      const factors = ['time', 'interest', 'comfort', 'freedom', 'culture', 'nature', 'performance', 'food'];
+      assert.equal(baseline.preferences.status, 200);
+      assert.deepEqual(Object.keys(baseline.preferences.body.preference).sort(), [...factors].sort());
+      assert.deepEqual(Object.keys(baseline.preferences.body.user.preference).sort(), [...factors].sort());
+      assert.deepEqual(Object.keys(baseline.stateAfterPreference.body.visitor.preference).sort(), [...factors].sort());
+      assert.ok(Math.abs(Object.values(baseline.stateAfterPreference.body.visitor.preference).reduce((sum, value) => sum + value, 0) - 1) < .001);
+      assert.equal(baseline.snapshotAfterPreference.body.planResult.plan_id, baseline.preferences.body.planResult.plan_id);
+      assert.equal(baseline.snapshotAfterPreference.body.user.currentPlanId, baseline.preferences.body.planResult.plan_id);
+      assert.equal(baseline.stateAfterPreference.body.visitor.current_node_id, 'southgate');
+    });
+
+    await t.test('个性化路线可选指定离园出口，留空继续自动推荐', async () => {
+      await withServer(async base => {
+        const answers = { type: 'normal', interests: ['culture', 'nature'] };
+        const invalid = await post(base, '/api/preferences', { answers, exit_node_id: 'lake' });
+        assert.equal(invalid.status, 400);
+        const chosen = await post(base, '/api/preferences', { answers, leaveAt: '18:30', current_node_id: 'gate', exit_node_id: 'westgate' });
+        assert.equal(chosen.status, 200);
+        assert.equal(chosen.body.user.preferredExitNodeId, 'westgate');
+        assert.equal(chosen.body.preferenceProfile.planner_rules.preferred_exit_node_id, 'westgate');
+        assert.equal(chosen.body.planResult.itinerary.at(-1)?.target_node_id, 'westgate');
+        assert.ok(chosen.body.planResult.alternative_plans.every(plan => plan.itinerary.at(-1)?.target_node_id === 'westgate'));
+        const replanned = await post(base, '/api/replan', {});
+        assert.equal(replanned.status, 200);
+        assert.equal(replanned.body.planResult.itinerary.at(-1)?.target_node_id, 'westgate');
+        const automatic = await post(base, '/api/preferences', { answers, leaveAt: '18:30', current_node_id: 'gate', exit_node_id: null });
+        assert.equal(automatic.status, 200);
+        assert.equal(automatic.body.preferenceProfile.planner_rules.preferred_exit_node_id, undefined);
+        assert.equal(automatic.body.user.preferredExitNodeId, undefined);
+      });
     });
 
     await t.test('静态图、当前状态、预测与错误响应', () => {
       assert.equal(baseline.graph.status, 200);
       assert.deepEqual(baseline.graph.body, graphFile);
-      assert.equal(baseline.graph.body.nodes.length, 13);
-      assert.equal(baseline.graph.body.edges.length, 20);
+      assert.equal(baseline.graph.body.nodes.length, graphFile.nodes.length);
+      assert.equal(baseline.graph.body.edges.length, graphFile.edges.length);
       const nodes = new Set(baseline.graph.body.nodes.map(node => node.node_id));
       assert.ok(baseline.graph.body.edges.every(edge => nodes.has(edge.from_node_id) && nodes.has(edge.to_node_id)));
       for (const [id, area] of [['market', 'water_margin'], ['juxianzhuang', 'xianxia'], ['summit', 'jianghu_art']]) {
@@ -86,15 +145,15 @@ const test = require('node:test');
         assert.equal(node.area_id, area);
         assert.deepEqual(node.access_roles, ['AREA_ENTRANCE']);
       }
-      for (const id of ['gate', 'southgate']) {
+      for (const id of ['gate', 'southgate', 'westgate', 'eastgate']) {
         const roles = baseline.graph.body.nodes.find(node => node.node_id === id).access_roles;
         assert.ok(roles.includes('PARK_ENTRANCE') && roles.includes('PARK_EXIT'));
       }
       assert.equal(baseline.state.status, 200);
       assert.deepEqual(baseline.state.body, stateFile);
       assert.deepEqual(baseline.state.body, normalStateExample);
-      assert.equal(Object.keys(baseline.state.body.poi_states).length, 11);
-      assert.equal(Object.keys(baseline.state.body.road_states).length, 20);
+      assert.equal(Object.keys(baseline.state.body.poi_states).length, graphFile.nodes.filter(node => node.poi_id).length);
+      assert.equal(Object.keys(baseline.state.body.road_states).length, graphFile.edges.length);
       assert.deepEqual(Object.keys(baseline.state.body.poi_states).sort(), baseline.graph.body.nodes.filter(node => node.poi_id).map(node => node.poi_id).sort());
       assert.deepEqual(Object.keys(baseline.state.body.road_states).sort(), baseline.graph.body.edges.map(edge => edge.edge_id).sort());
       assert.ok(baseline.state.body.visitor && baseline.state.body.event_states && baseline.state.body.timestamp && baseline.state.body.state_version);
@@ -103,8 +162,8 @@ const test = require('node:test');
       assert.deepEqual(baseline.forecast.body, normalForecastExample);
       assert.equal(baseline.forecast.body.horizon_min, 60);
       assert.equal(baseline.forecast.body.step_min, 10);
-      assert.equal(Object.keys(baseline.forecast.body.poi_predictions).length, 11);
-      assert.equal(Object.keys(baseline.forecast.body.road_predictions).length, 20);
+      assert.equal(Object.keys(baseline.forecast.body.poi_predictions).length, graphFile.nodes.filter(node => node.poi_id).length);
+      assert.equal(Object.keys(baseline.forecast.body.road_predictions).length, graphFile.edges.length);
       assert.deepEqual(Object.keys(baseline.forecast.body.poi_predictions).sort(), Object.keys(baseline.state.body.poi_states).sort());
       assert.deepEqual(Object.keys(baseline.forecast.body.road_predictions).sort(), Object.keys(baseline.state.body.road_states).sort());
       assert.deepEqual(baseline.forecast.body.poi_predictions.market.map(point => point.offset_min), [0, 10, 20, 30, 40, 50, 60]);
@@ -164,16 +223,25 @@ const test = require('node:test');
       const payload = { event_type: 'ROAD_CLOSE', target_id: 'edge_001', timestamp: state.body.timestamp, duration_min: 60 };
       const submitted = await post(base, '/api/v1/scenario-event', payload);
       const navigation = await get(base, '/api/navigation?from=gate&to=southgate');
-      const blocked = await post(base, '/api/v1/scenario-event', { ...payload, target_id: 'edge_002' });
+      // The expanded A graph gives the middle gate five valid connections. Close
+      // every incident edge so this remains a genuine no-route contract test.
+      const incidentGateEdges = graphFile.edges
+        .filter(edge => edge.from_node_id === 'gate' || edge.to_node_id === 'gate')
+        .map(edge => edge.edge_id);
+      const blocked = [];
+      for (const edgeId of incidentGateEdges.filter(edgeId => edgeId !== payload.target_id)) {
+        blocked.push(await post(base, '/api/v1/scenario-event', { ...payload, target_id: edgeId }));
+      }
       const noRoute = await get(base, '/api/navigation?from=gate&to=southgate');
-      return { payload, submitted, navigation, blocked, noRoute };
+      return { payload, submitted, navigation, blocked, noRoute, incidentGateEdges };
     });
     await t.test('关闭道路绕行及无可行路径', () => {
       assert.equal(closedRoute.submitted.status, 200);
       assert.equal(closedRoute.navigation.status, 200);
       assert.ok(closedRoute.navigation.body.segments.every(segment => segment.edge_id !== 'edge_001'));
       assert.notDeepEqual(closedRoute.navigation.body.path, baseline.navigation.body.path);
-      assert.equal(closedRoute.blocked.status, 200);
+      assert.ok(closedRoute.blocked.every(response => response.status === 200));
+      assert.ok(closedRoute.incidentGateEdges.length >= 2);
       assert.equal(closedRoute.noRoute.status, 409);
       assert.deepEqual(closedRoute.noRoute.body, { error: 'No feasible route', from: 'gate', to: 'southgate' });
     });
@@ -212,8 +280,12 @@ const test = require('node:test');
       assert.ok(futureSlowdown.start.body.travel_time_min > futureSlowdown.before.body.travel_time_min);
       assert.equal(futureSlowdown.navigation.status, 200);
       assert.ok(closedRoute.navigation.body.segments.some(segment => segment.edge_id === 'edge_020'));
-      assert.ok(futureSlowdown.navigation.body.segments.every(segment => segment.edge_id !== 'edge_020'));
-      assert.ok(futureSlowdown.navigation.body.totalMinutes !== closedRoute.navigation.body.totalMinutes ||
+      const futureEdge = futureSlowdown.navigation.body.segments.find(segment => segment.edge_id === 'edge_020');
+      const baselineEdge = closedRoute.navigation.body.segments.find(segment => segment.edge_id === 'edge_020');
+      // A slowdown may either trigger a detour or remain the least-cost route
+      // while carrying the increased predicted traversal time.
+      assert.ok(!futureEdge || futureEdge.minutes > baselineEdge.minutes);
+      assert.ok(futureSlowdown.navigation.body.totalMinutes > closedRoute.navigation.body.totalMinutes ||
         JSON.stringify(futureSlowdown.navigation.body.path) !== JSON.stringify(closedRoute.navigation.body.path));
     });
 
@@ -243,6 +315,9 @@ const test = require('node:test');
       ]
     };
     await t.test('精简交付样例与真实 HTTP 响应一致', () => {
+      if (process.env.UPDATE_HTTP_EXAMPLE === '1') {
+        fs.writeFileSync(examplePath, `${JSON.stringify(sample, null, 2)}\n`, 'utf8');
+      }
       assert.deepEqual(sample, JSON.parse(fs.readFileSync(examplePath, 'utf8')));
     });
   });

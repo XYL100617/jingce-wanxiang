@@ -19,6 +19,21 @@
     },
     "Timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$" },
     "IdArray": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "PreferenceWeights": {
+      "type": "object",
+      "required": ["time", "interest", "comfort", "freedom", "culture", "nature", "performance", "food"],
+      "additionalProperties": false,
+      "properties": {
+        "time": { "type": "number", "minimum": 0, "maximum": 1 },
+        "interest": { "type": "number", "minimum": 0, "maximum": 1 },
+        "comfort": { "type": "number", "minimum": 0, "maximum": 1 },
+        "freedom": { "type": "number", "minimum": 0, "maximum": 1 },
+        "culture": { "type": "number", "minimum": 0, "maximum": 1 },
+        "nature": { "type": "number", "minimum": 0, "maximum": 1 },
+        "performance": { "type": "number", "minimum": 0, "maximum": 1 },
+        "food": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
     "Node": {
       "type": "object", "required": ["node_id"],
       "properties": { "node_id": { "type": "string", "minLength": 1 }, "node_type": { "type": "string" }, "algorithm_x": { "type": "number" }, "algorithm_y": { "type": "number" } }
@@ -51,7 +66,7 @@
           "state_version": { "type": "string" }, "timestamp": { "$ref": "#/$defs/Timestamp" },
           "visitor": { "type": "object", "required": ["current_node_id", "remaining_time_min", "fatigue"], "properties": {
             "visitor_id": { "type": "string" }, "current_node_id": { "type": "string" }, "remaining_time_min": { "type": "number", "minimum": 0 }, "fatigue": { "type": "number", "minimum": 0, "maximum": 1 },
-            "visited_poi_ids": { "$ref": "#/$defs/IdArray" }, "attended_event_ids": { "$ref": "#/$defs/IdArray" }, "visited_facility_ids": { "$ref": "#/$defs/IdArray" }, "preferred_categories": { "type": "array", "items": { "type": "string" } }, "preference_weights": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 } }, "require_rest": { "type": "boolean" }
+            "visited_poi_ids": { "$ref": "#/$defs/IdArray" }, "attended_event_ids": { "$ref": "#/$defs/IdArray" }, "visited_facility_ids": { "$ref": "#/$defs/IdArray" }, "preferred_categories": { "type": "array", "items": { "type": "string" } }, "preference_weights": { "$ref": "#/$defs/PreferenceWeights" }, "require_rest": { "type": "boolean" }
           } },
           "poi_states": { "type": "object", "additionalProperties": { "type": "object", "properties": { "is_open": { "type": "boolean" }, "current_queue_min": { "type": "number", "minimum": 0 }, "crowd_level": { "type": "number", "minimum": 0 } } } },
           "road_states": { "type": "object", "additionalProperties": { "type": "object", "required": ["available"], "properties": { "available": { "type": "boolean" }, "travel_time_min": { "type": "number", "minimum": 0 } } } },

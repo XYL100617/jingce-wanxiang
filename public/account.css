@@ -1,0 +1,17 @@
+.account{border:0;background:transparent;cursor:pointer;display:flex;align-items:center;gap:8px;color:inherit}
+.account-form label{display:block;padding:9px 0;font-size:11px;color:#53666e}
+.account-form input,.permission-card #profileSettings input[type="text"],#profileDisplayName{display:block;width:100%;box-sizing:border-box;margin-top:7px;padding:10px;border:1px solid #d9e5e8;border-radius:5px;background:#fff;color:#34545b}
+.account-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px;justify-content:center}
+.permission-card .account-actions{justify-content:flex-start}
+.account-history,.manager-panel{padding:22px 25px;margin-top:15px}
+.account-history h3,.manager-panel h3{margin:0 0 12px;font-size:15px}
+.account-history p,.manager-panel p{font-size:11px;color:#70828a;line-height:1.6}
+.account-history-row{padding:11px 0;border-top:1px solid #e5ecef;font-size:11px;color:#425e63}
+.account-history-row small{display:block;margin-top:5px;color:#87999e}
+.manager-panel pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f6f8f6;padding:12px;border-radius:5px;font-size:11px;line-height:1.5;max-height:320px;overflow:auto}
+[hidden]{display:none!important}
+body:not([data-account-role="manager"]) #simulateEvent,
+body:not([data-account-role="manager"]) #simulateRoadClosure,
+body:not([data-account-role="manager"]) [data-planner-event="POI_CLOSED"],
+body:not([data-account-role="manager"]) [data-planner-event="EVENT_CANCELLED"],
+body:not([data-account-role="manager"]) [data-planner-event="ROAD_OPENED"]{display:none!important}

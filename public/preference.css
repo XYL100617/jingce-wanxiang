@@ -10,4 +10,10 @@
 .scale-questions input{width:100%;accent-color:#0fa8aa}.preference-summary{margin-top:16px;padding:12px;background:#f5faf9;border-radius:6px;color:#6e8589;line-height:1.6}
 .preference-summary b,.preference-summary span,.preference-summary small{display:block}.preference-summary b{color:#287f81;font-size:10px}.preference-summary span{font-size:9px;margin-top:4px}.preference-summary small{font-size:8px;margin-top:4px}
 .vector-card{align-self:start;position:sticky;top:68px}
-@media(max-width:700px){.survey-context{grid-template-columns:1fr}.scale-questions label>div{grid-template-columns:70px 1fr 70px}}
+#preferenceVector{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}.vector-card .vector-row{margin:11px 0}
+.survey-bottom .current-location-field{min-width:190px;flex:1}.survey-bottom select{display:block;width:100%;margin-top:6px;border:1px solid #dbe6e9;border-radius:5px;background:#fff;padding:8px 9px;color:#40565d;font-size:10px}
+.survey-bottom .exit-location-field{min-width:150px;flex:1}.survey-bottom .exit-location-field small{color:#8c9b9c;font-size:9px;margin-left:3px}
+.survey-bottom{flex-wrap:wrap;gap:12px}.survey-bottom>.teal-btn{flex-basis:100%}
+@media(max-width:700px){.survey-context{grid-template-columns:1fr}.scale-questions label>div{grid-template-columns:70px 1fr 70px}#preferenceVector{grid-template-columns:1fr}}
+@media(max-width:700px){.survey-bottom .current-location-field{min-width:0}.survey-bottom select{margin-bottom:10px}}
+@media(max-width:700px){.survey-bottom .exit-location-field{min-width:0}}

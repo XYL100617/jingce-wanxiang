@@ -2,7 +2,7 @@
   "schema_version": "0.1",
   "scenario_id": "demo_001",
   "state_version": "state_0001",
-  "forecast_version": "forecast_50d7992c546a",
+  "forecast_version": "forecast_f0ad6b19cf2d",
   "base_timestamp": "2026-10-20 10:18:00",
   "horizon_min": 60,
   "step_min": 10,
@@ -644,6 +644,1746 @@
         "crowd_level": "MEDIUM",
         "open": true
       }
+    ],
+    "fortress": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 18,
+        "crowd_ratio": 0.56,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 18.2,
+        "crowd_ratio": 0.564,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 18.4,
+        "crowd_ratio": 0.568,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 18.6,
+        "crowd_ratio": 0.573,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 18.8,
+        "crowd_ratio": 0.577,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 19,
+        "crowd_ratio": 0.581,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 19.2,
+        "crowd_ratio": 0.585,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "hero_square": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 2,
+        "crowd_ratio": 0.3,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 2.2,
+        "crowd_ratio": 0.304,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 2.4,
+        "crowd_ratio": 0.308,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 2.6,
+        "crowd_ratio": 0.313,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 2.8,
+        "crowd_ratio": 0.317,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 3,
+        "crowd_ratio": 0.321,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 3.2,
+        "crowd_ratio": 0.325,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "feiyunpu": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 10,
+        "crowd_ratio": 0.52,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 10.2,
+        "crowd_ratio": 0.524,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 10.4,
+        "crowd_ratio": 0.528,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 10.6,
+        "crowd_ratio": 0.533,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 10.8,
+        "crowd_ratio": 0.537,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 11,
+        "crowd_ratio": 0.541,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 11.2,
+        "crowd_ratio": 0.545,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "shenboat": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 8,
+        "crowd_ratio": 0.43,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 8.2,
+        "crowd_ratio": 0.434,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 8.4,
+        "crowd_ratio": 0.438,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 8.6,
+        "crowd_ratio": 0.443,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 8.8,
+        "crowd_ratio": 0.447,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 9,
+        "crowd_ratio": 0.451,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 9.2,
+        "crowd_ratio": 0.455,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "wangpo_island": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 25,
+        "crowd_ratio": 0.72,
+        "crowd_level": "HIGH",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 25.2,
+        "crowd_ratio": 0.724,
+        "crowd_level": "HIGH",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 25.4,
+        "crowd_ratio": 0.728,
+        "crowd_level": "HIGH",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 25.6,
+        "crowd_ratio": 0.732,
+        "crowd_level": "HIGH",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 25.8,
+        "crowd_ratio": 0.737,
+        "crowd_level": "HIGH",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 26,
+        "crowd_ratio": 0.741,
+        "crowd_level": "HIGH",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 26.2,
+        "crowd_ratio": 0.745,
+        "crowd_level": "HIGH",
+        "open": true
+      }
+    ],
+    "water_street": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 7,
+        "crowd_ratio": 0.6,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 7.2,
+        "crowd_ratio": 0.604,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 7.4,
+        "crowd_ratio": 0.608,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 7.6,
+        "crowd_ratio": 0.612,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 7.8,
+        "crowd_ratio": 0.617,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 8,
+        "crowd_ratio": 0.621,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 8.2,
+        "crowd_ratio": 0.625,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "wanfo_tower": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 1,
+        "crowd_ratio": 0.2,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 1.2,
+        "crowd_ratio": 0.204,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 1.4,
+        "crowd_ratio": 0.208,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 1.6,
+        "crowd_ratio": 0.213,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 1.8,
+        "crowd_ratio": 0.217,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 2,
+        "crowd_ratio": 0.221,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 2.2,
+        "crowd_ratio": 0.225,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "xianxia_square": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.48,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.484,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 5.4,
+        "crowd_ratio": 0.488,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 5.6,
+        "crowd_ratio": 0.493,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 5.8,
+        "crowd_ratio": 0.497,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 6,
+        "crowd_ratio": 0.501,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 6.2,
+        "crowd_ratio": 0.505,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "xianxia_stage": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 14,
+        "crowd_ratio": 0.63,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 14.2,
+        "crowd_ratio": 0.634,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 14.4,
+        "crowd_ratio": 0.638,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 14.6,
+        "crowd_ratio": 0.643,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 14.8,
+        "crowd_ratio": 0.647,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 15,
+        "crowd_ratio": 0.651,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 15.2,
+        "crowd_ratio": 0.655,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "film_studio": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 4,
+        "crowd_ratio": 0.38,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 4.2,
+        "crowd_ratio": 0.384,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 4.4,
+        "crowd_ratio": 0.388,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 4.6,
+        "crowd_ratio": 0.393,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 4.8,
+        "crowd_ratio": 0.397,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.401,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.405,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "art_square": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 6,
+        "crowd_ratio": 0.58,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 6.2,
+        "crowd_ratio": 0.584,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 6.4,
+        "crowd_ratio": 0.588,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 6.6,
+        "crowd_ratio": 0.592,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 6.8,
+        "crowd_ratio": 0.597,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 7,
+        "crowd_ratio": 0.601,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 7.2,
+        "crowd_ratio": 0.605,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "children_park": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.45,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.454,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 5.4,
+        "crowd_ratio": 0.458,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 5.6,
+        "crowd_ratio": 0.463,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 5.8,
+        "crowd_ratio": 0.467,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 6,
+        "crowd_ratio": 0.471,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 6.2,
+        "crowd_ratio": 0.475,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "circus": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 12,
+        "crowd_ratio": 0.56,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 12.2,
+        "crowd_ratio": 0.564,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 12.4,
+        "crowd_ratio": 0.568,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 12.6,
+        "crowd_ratio": 0.573,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 12.8,
+        "crowd_ratio": 0.577,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 13,
+        "crowd_ratio": 0.581,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 13.2,
+        "crowd_ratio": 0.585,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "tiger_hall": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 3,
+        "crowd_ratio": 0.32,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 3.2,
+        "crowd_ratio": 0.324,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 3.4,
+        "crowd_ratio": 0.328,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 3.6,
+        "crowd_ratio": 0.333,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 3.8,
+        "crowd_ratio": 0.337,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 4,
+        "crowd_ratio": 0.341,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 4.2,
+        "crowd_ratio": 0.345,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "qianqiu_lake": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 2,
+        "crowd_ratio": 0.24,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 2.2,
+        "crowd_ratio": 0.244,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 2.4,
+        "crowd_ratio": 0.248,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 2.6,
+        "crowd_ratio": 0.253,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 2.8,
+        "crowd_ratio": 0.257,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 3,
+        "crowd_ratio": 0.261,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 3.2,
+        "crowd_ratio": 0.265,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "wanshou_lake": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 4,
+        "crowd_ratio": 0.3,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 4.2,
+        "crowd_ratio": 0.304,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 4.4,
+        "crowd_ratio": 0.308,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 4.6,
+        "crowd_ratio": 0.313,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 4.8,
+        "crowd_ratio": 0.317,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.321,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.325,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "retro_block": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.42,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.424,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 5.4,
+        "crowd_ratio": 0.428,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 5.6,
+        "crowd_ratio": 0.433,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 5.8,
+        "crowd_ratio": 0.437,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 6,
+        "crowd_ratio": 0.441,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 6.2,
+        "crowd_ratio": 0.445,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "puyi_wharf": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 2,
+        "crowd_ratio": 0.28,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 2.2,
+        "crowd_ratio": 0.284,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 2.4,
+        "crowd_ratio": 0.288,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 2.6,
+        "crowd_ratio": 0.293,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 2.8,
+        "crowd_ratio": 0.297,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 3,
+        "crowd_ratio": 0.301,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 3.2,
+        "crowd_ratio": 0.305,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "dyehouse": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 2,
+        "crowd_ratio": 0.22,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 2.2,
+        "crowd_ratio": 0.224,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 2.4,
+        "crowd_ratio": 0.228,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 2.6,
+        "crowd_ratio": 0.233,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 2.8,
+        "crowd_ratio": 0.237,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 3,
+        "crowd_ratio": 0.241,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 3.2,
+        "crowd_ratio": 0.245,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "wulin_square": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 6,
+        "crowd_ratio": 0.5,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 6.2,
+        "crowd_ratio": 0.504,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 6.4,
+        "crowd_ratio": 0.508,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 6.6,
+        "crowd_ratio": 0.513,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 6.8,
+        "crowd_ratio": 0.517,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 7,
+        "crowd_ratio": 0.521,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 7.2,
+        "crowd_ratio": 0.525,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "bailemen": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 3,
+        "crowd_ratio": 0.31,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 3.2,
+        "crowd_ratio": 0.314,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 3.4,
+        "crowd_ratio": 0.318,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 3.6,
+        "crowd_ratio": 0.323,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 3.8,
+        "crowd_ratio": 0.327,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 4,
+        "crowd_ratio": 0.331,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 4.2,
+        "crowd_ratio": 0.335,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "shili_yangchang": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 4,
+        "crowd_ratio": 0.36,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 4.2,
+        "crowd_ratio": 0.364,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 4.4,
+        "crowd_ratio": 0.368,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 4.6,
+        "crowd_ratio": 0.373,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 4.8,
+        "crowd_ratio": 0.377,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.381,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.385,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "kuaipolin": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 2,
+        "crowd_ratio": 0.26,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 2.2,
+        "crowd_ratio": 0.264,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 2.4,
+        "crowd_ratio": 0.268,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 2.6,
+        "crowd_ratio": 0.273,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 2.8,
+        "crowd_ratio": 0.277,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 3,
+        "crowd_ratio": 0.281,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 3.2,
+        "crowd_ratio": 0.285,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "chaguan": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.4,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.404,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 5.4,
+        "crowd_ratio": 0.408,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 5.6,
+        "crowd_ratio": 0.413,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 5.8,
+        "crowd_ratio": 0.417,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 6,
+        "crowd_ratio": 0.421,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 6.2,
+        "crowd_ratio": 0.425,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "zhu_family_fort": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 16,
+        "crowd_ratio": 0.64,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 16.2,
+        "crowd_ratio": 0.644,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 16.4,
+        "crowd_ratio": 0.648,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 16.6,
+        "crowd_ratio": 0.653,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 16.8,
+        "crowd_ratio": 0.657,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 17,
+        "crowd_ratio": 0.661,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 17.2,
+        "crowd_ratio": 0.665,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "magic_square": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.43,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.434,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 5.4,
+        "crowd_ratio": 0.438,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 5.6,
+        "crowd_ratio": 0.443,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 5.8,
+        "crowd_ratio": 0.447,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 6,
+        "crowd_ratio": 0.451,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 6.2,
+        "crowd_ratio": 0.455,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "shuihu_li": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.48,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.484,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 5.4,
+        "crowd_ratio": 0.488,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 5.6,
+        "crowd_ratio": 0.493,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 5.8,
+        "crowd_ratio": 0.497,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 6,
+        "crowd_ratio": 0.501,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 6.2,
+        "crowd_ratio": 0.505,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "flower_camp": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 2,
+        "crowd_ratio": 0.3,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 2.2,
+        "crowd_ratio": 0.304,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 2.4,
+        "crowd_ratio": 0.308,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 2.6,
+        "crowd_ratio": 0.313,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 2.8,
+        "crowd_ratio": 0.317,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 3,
+        "crowd_ratio": 0.321,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 3.2,
+        "crowd_ratio": 0.325,
+        "crowd_level": "LOW",
+        "open": true
+      }
+    ],
+    "creative_market": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 4,
+        "crowd_ratio": 0.43,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 4.2,
+        "crowd_ratio": 0.434,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 4.4,
+        "crowd_ratio": 0.438,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 4.6,
+        "crowd_ratio": 0.443,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 4.8,
+        "crowd_ratio": 0.447,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 5,
+        "crowd_ratio": 0.451,
+        "crowd_level": "MEDIUM",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 5.2,
+        "crowd_ratio": 0.455,
+        "crowd_level": "MEDIUM",
+        "open": true
+      }
+    ],
+    "forest_boardwalk": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "queue_min": 2,
+        "crowd_ratio": 0.22,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "queue_min": 2.2,
+        "crowd_ratio": 0.224,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "queue_min": 2.4,
+        "crowd_ratio": 0.228,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "queue_min": 2.6,
+        "crowd_ratio": 0.233,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "queue_min": 2.8,
+        "crowd_ratio": 0.237,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "queue_min": 3,
+        "crowd_ratio": 0.241,
+        "crowd_level": "LOW",
+        "open": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "queue_min": 3.2,
+        "crowd_ratio": 0.245,
+        "crowd_level": "LOW",
+        "open": true
+      }
     ]
   },
   "road_predictions": {
@@ -651,43 +2391,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 6,
+        "travel_time_min": 6.4,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 6.04,
+        "travel_time_min": 6.44,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 6.08,
+        "travel_time_min": 6.49,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 6.12,
+        "travel_time_min": 6.53,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 6.16,
+        "travel_time_min": 6.57,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 6.2,
+        "travel_time_min": 6.61,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 6.24,
+        "travel_time_min": 6.66,
         "available": true
       }
     ],
@@ -695,43 +2435,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 5,
+        "travel_time_min": 2.93,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 5.03,
+        "travel_time_min": 2.95,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 5.07,
+        "travel_time_min": 2.97,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 5.1,
+        "travel_time_min": 2.99,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 5.13,
+        "travel_time_min": 3.01,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 5.17,
+        "travel_time_min": 3.03,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 5.2,
+        "travel_time_min": 3.05,
         "available": true
       }
     ],
@@ -739,43 +2479,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 5,
+        "travel_time_min": 12.13,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 5.03,
+        "travel_time_min": 12.21,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 5.07,
+        "travel_time_min": 12.29,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 5.1,
+        "travel_time_min": 12.37,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 5.13,
+        "travel_time_min": 12.45,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 5.17,
+        "travel_time_min": 12.53,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 5.2,
+        "travel_time_min": 12.62,
         "available": true
       }
     ],
@@ -783,43 +2523,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 6,
+        "travel_time_min": 10,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 6.04,
+        "travel_time_min": 10.07,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 6.08,
+        "travel_time_min": 10.13,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 6.12,
+        "travel_time_min": 10.2,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 6.16,
+        "travel_time_min": 10.27,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 6.2,
+        "travel_time_min": 10.33,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 6.24,
+        "travel_time_min": 10.4,
         "available": true
       }
     ],
@@ -827,43 +2567,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 5,
+        "travel_time_min": 2.93,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 5.03,
+        "travel_time_min": 2.95,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 5.07,
+        "travel_time_min": 2.97,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 5.1,
+        "travel_time_min": 2.99,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 5.13,
+        "travel_time_min": 3.01,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 5.17,
+        "travel_time_min": 3.03,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 5.2,
+        "travel_time_min": 3.05,
         "available": true
       }
     ],
@@ -871,43 +2611,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 5,
+        "travel_time_min": 5.73,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 5.03,
+        "travel_time_min": 5.77,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 5.07,
+        "travel_time_min": 5.81,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 5.1,
+        "travel_time_min": 5.84,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 5.13,
+        "travel_time_min": 5.88,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 5.17,
+        "travel_time_min": 5.92,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 5.2,
+        "travel_time_min": 5.96,
         "available": true
       }
     ],
@@ -959,43 +2699,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 4,
+        "travel_time_min": 3.33,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 4.03,
+        "travel_time_min": 3.35,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 4.05,
+        "travel_time_min": 3.37,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 4.08,
+        "travel_time_min": 3.4,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 4.11,
+        "travel_time_min": 3.42,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 4.13,
+        "travel_time_min": 3.44,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 4.16,
+        "travel_time_min": 3.46,
         "available": true
       }
     ],
@@ -1003,43 +2743,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 5,
+        "travel_time_min": 10.07,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 5.03,
+        "travel_time_min": 10.14,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 5.07,
+        "travel_time_min": 10.2,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 5.1,
+        "travel_time_min": 10.27,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 5.13,
+        "travel_time_min": 10.34,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 5.17,
+        "travel_time_min": 10.41,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 5.2,
+        "travel_time_min": 10.47,
         "available": true
       }
     ],
@@ -1047,43 +2787,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 6,
+        "travel_time_min": 9.2,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 6.04,
+        "travel_time_min": 9.26,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 6.08,
+        "travel_time_min": 9.32,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 6.12,
+        "travel_time_min": 9.38,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 6.16,
+        "travel_time_min": 9.45,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 6.2,
+        "travel_time_min": 9.51,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 6.24,
+        "travel_time_min": 9.57,
         "available": true
       }
     ],
@@ -1091,43 +2831,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 8,
+        "travel_time_min": 2,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 8.05,
+        "travel_time_min": 2.01,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 8.11,
+        "travel_time_min": 2.03,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 8.16,
+        "travel_time_min": 2.04,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 8.21,
+        "travel_time_min": 2.05,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 8.27,
+        "travel_time_min": 2.07,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 8.32,
+        "travel_time_min": 2.08,
         "available": true
       }
     ],
@@ -1135,43 +2875,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 5,
+        "travel_time_min": 5.27,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 5.03,
+        "travel_time_min": 5.31,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 5.07,
+        "travel_time_min": 5.34,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 5.1,
+        "travel_time_min": 5.38,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 5.13,
+        "travel_time_min": 5.41,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 5.17,
+        "travel_time_min": 5.45,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 5.2,
+        "travel_time_min": 5.48,
         "available": true
       }
     ],
@@ -1179,43 +2919,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 5,
+        "travel_time_min": 2.6,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 5.03,
+        "travel_time_min": 2.62,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 5.07,
+        "travel_time_min": 2.63,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 5.1,
+        "travel_time_min": 2.65,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 5.13,
+        "travel_time_min": 2.67,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 5.17,
+        "travel_time_min": 2.69,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 5.2,
+        "travel_time_min": 2.7,
         "available": true
       }
     ],
@@ -1223,43 +2963,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 7,
+        "travel_time_min": 8.93,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 7.05,
+        "travel_time_min": 8.99,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 7.09,
+        "travel_time_min": 9.05,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 7.14,
+        "travel_time_min": 9.11,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 7.19,
+        "travel_time_min": 9.17,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 7.23,
+        "travel_time_min": 9.23,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 7.28,
+        "travel_time_min": 9.29,
         "available": true
       }
     ],
@@ -1267,43 +3007,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 10,
+        "travel_time_min": 14.87,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 10.07,
+        "travel_time_min": 14.97,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 10.13,
+        "travel_time_min": 15.07,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 10.2,
+        "travel_time_min": 15.17,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 10.27,
+        "travel_time_min": 15.27,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 10.33,
+        "travel_time_min": 15.37,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 10.4,
+        "travel_time_min": 15.46,
         "available": true
       }
     ],
@@ -1311,43 +3051,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 8,
+        "travel_time_min": 11.4,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 8.05,
+        "travel_time_min": 11.48,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 8.11,
+        "travel_time_min": 11.55,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 8.16,
+        "travel_time_min": 11.63,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 8.21,
+        "travel_time_min": 11.7,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 8.27,
+        "travel_time_min": 11.78,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 8.32,
+        "travel_time_min": 11.86,
         "available": true
       }
     ],
@@ -1355,43 +3095,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 5,
+        "travel_time_min": 1.73,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 5.03,
+        "travel_time_min": 1.74,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 5.07,
+        "travel_time_min": 1.75,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 5.1,
+        "travel_time_min": 1.76,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 5.13,
+        "travel_time_min": 1.78,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 5.17,
+        "travel_time_min": 1.79,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 5.2,
+        "travel_time_min": 1.8,
         "available": true
       }
     ],
@@ -1399,43 +3139,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 5,
+        "travel_time_min": 4.73,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 5.03,
+        "travel_time_min": 4.76,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 5.07,
+        "travel_time_min": 4.79,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 5.1,
+        "travel_time_min": 4.82,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 5.13,
+        "travel_time_min": 4.86,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 5.17,
+        "travel_time_min": 4.89,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 5.2,
+        "travel_time_min": 4.92,
         "available": true
       }
     ],
@@ -1443,43 +3183,43 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 6,
+        "travel_time_min": 13.53,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 6.04,
+        "travel_time_min": 13.62,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 6.08,
+        "travel_time_min": 13.71,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 6.12,
+        "travel_time_min": 13.8,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 6.16,
+        "travel_time_min": 13.89,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 6.2,
+        "travel_time_min": 13.98,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 6.24,
+        "travel_time_min": 14.07,
         "available": true
       }
     ],
@@ -1487,43 +3227,2155 @@
       {
         "offset_min": 0,
         "timestamp": "2026-10-20 10:18:00",
-        "travel_time_min": 7,
+        "travel_time_min": 4.47,
         "available": true
       },
       {
         "offset_min": 10,
         "timestamp": "2026-10-20 10:28:00",
-        "travel_time_min": 7.05,
+        "travel_time_min": 4.5,
         "available": true
       },
       {
         "offset_min": 20,
         "timestamp": "2026-10-20 10:38:00",
-        "travel_time_min": 7.09,
+        "travel_time_min": 4.53,
         "available": true
       },
       {
         "offset_min": 30,
         "timestamp": "2026-10-20 10:48:00",
-        "travel_time_min": 7.14,
+        "travel_time_min": 4.56,
         "available": true
       },
       {
         "offset_min": 40,
         "timestamp": "2026-10-20 10:58:00",
-        "travel_time_min": 7.19,
+        "travel_time_min": 4.59,
         "available": true
       },
       {
         "offset_min": 50,
         "timestamp": "2026-10-20 11:08:00",
-        "travel_time_min": 7.23,
+        "travel_time_min": 4.62,
         "available": true
       },
       {
         "offset_min": 60,
         "timestamp": "2026-10-20 11:18:00",
-        "travel_time_min": 7.28,
+        "travel_time_min": 4.65,
+        "available": true
+      }
+    ],
+    "edge_021": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.33,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.34,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.35,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.36,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.37,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.37,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.38,
+        "available": true
+      }
+    ],
+    "edge_022": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.53,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.55,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.56,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.58,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.6,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.61,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.63,
+        "available": true
+      }
+    ],
+    "edge_023": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 3.47,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 3.49,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 3.52,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 3.54,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 3.56,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 3.59,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 3.61,
+        "available": true
+      }
+    ],
+    "edge_024": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.07,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.08,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.1,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.11,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.13,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.14,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.15,
+        "available": true
+      }
+    ],
+    "edge_025": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_026": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.2,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.21,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.23,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.24,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.26,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.27,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.29,
+        "available": true
+      }
+    ],
+    "edge_027": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.13,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.14,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.15,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.15,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.16,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.17,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.18,
+        "available": true
+      }
+    ],
+    "edge_028": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.33,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.34,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.35,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.36,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.37,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.37,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.38,
+        "available": true
+      }
+    ],
+    "edge_029": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_030": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.73,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.74,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.75,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.76,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.78,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.79,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.8,
+        "available": true
+      }
+    ],
+    "edge_031": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_032": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_033": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.87,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.88,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.89,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.91,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.92,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.93,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.94,
+        "available": true
+      }
+    ],
+    "edge_034": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.93,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.94,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.96,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.97,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.98,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.99,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.01,
+        "available": true
+      }
+    ],
+    "edge_035": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_036": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.93,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.95,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.97,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.99,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 3.01,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 3.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 3.05,
+        "available": true
+      }
+    ],
+    "edge_037": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_038": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_039": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.73,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.74,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.75,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.76,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.78,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.79,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.8,
+        "available": true
+      }
+    ],
+    "edge_040": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.4,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.42,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.43,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.45,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.46,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.48,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.5,
+        "available": true
+      }
+    ],
+    "edge_041": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.47,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.49,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.5,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.52,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.54,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.55,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.57,
+        "available": true
+      }
+    ],
+    "edge_042": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.53,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.54,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.55,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.56,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.57,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.58,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.59,
+        "available": true
+      }
+    ],
+    "edge_043": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.87,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.88,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.89,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.91,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.92,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.93,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.94,
+        "available": true
+      }
+    ],
+    "edge_044": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.03,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.04,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.05,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.07,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.08,
+        "available": true
+      }
+    ],
+    "edge_045": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 6.53,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 6.57,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 6.62,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 6.66,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 6.7,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 6.75,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 6.79,
+        "available": true
+      }
+    ],
+    "edge_046": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.2,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.21,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.23,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.24,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.26,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.27,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.29,
+        "available": true
+      }
+    ],
+    "edge_047": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_048": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.07,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.08,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.1,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.11,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.13,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.14,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.15,
+        "available": true
+      }
+    ],
+    "edge_049": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.07,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.08,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.1,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.11,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.13,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.14,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.15,
+        "available": true
+      }
+    ],
+    "edge_050": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 2.33,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 2.35,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 2.36,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 2.38,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 2.39,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 2.41,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 2.42,
+        "available": true
+      }
+    ],
+    "edge_051": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 3.2,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 3.22,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 3.24,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 3.26,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 3.29,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 3.31,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 3.33,
+        "available": true
+      }
+    ],
+    "edge_052": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_053": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.4,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.41,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.42,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.43,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.44,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.45,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.46,
+        "available": true
+      }
+    ],
+    "edge_054": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.2,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.21,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.22,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.22,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.23,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.24,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.25,
+        "available": true
+      }
+    ],
+    "edge_055": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_056": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1.4,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.41,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.42,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.43,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.44,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.45,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.46,
+        "available": true
+      }
+    ],
+    "edge_057": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_058": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_059": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_060": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_061": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_062": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_063": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_064": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_065": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_066": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_067": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
+        "available": true
+      }
+    ],
+    "edge_068": [
+      {
+        "offset_min": 0,
+        "timestamp": "2026-10-20 10:18:00",
+        "travel_time_min": 1,
+        "available": true
+      },
+      {
+        "offset_min": 10,
+        "timestamp": "2026-10-20 10:28:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 20,
+        "timestamp": "2026-10-20 10:38:00",
+        "travel_time_min": 1.01,
+        "available": true
+      },
+      {
+        "offset_min": 30,
+        "timestamp": "2026-10-20 10:48:00",
+        "travel_time_min": 1.02,
+        "available": true
+      },
+      {
+        "offset_min": 40,
+        "timestamp": "2026-10-20 10:58:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 50,
+        "timestamp": "2026-10-20 11:08:00",
+        "travel_time_min": 1.03,
+        "available": true
+      },
+      {
+        "offset_min": 60,
+        "timestamp": "2026-10-20 11:18:00",
+        "travel_time_min": 1.04,
         "available": true
       }
     ]

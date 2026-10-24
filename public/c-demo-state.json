@@ -1,0 +1,571 @@
+{
+  "schema_version": "0.1",
+  "scenario_id": "demo_001",
+  "state_version": "state_0001",
+  "timestamp": "2026-10-20 10:18:00",
+  "visitor": {
+    "visitor_id": "visitor_001",
+    "current_node_id": "gate",
+    "remaining_time_min": 272,
+    "fatigue": 0.12,
+    "walked_distance_m": 0,
+    "visited_poi_ids": [],
+    "preference": null
+  },
+  "weather": {
+    "label": "晴间多云",
+    "temp": 27,
+    "uv": 6,
+    "rain": 0.08
+  },
+  "poi_states": {
+    "lake": {
+      "open": true,
+      "queue_min": 4,
+      "crowd_ratio": 0.41,
+      "crowd_level": "MEDIUM"
+    },
+    "market": {
+      "open": true,
+      "queue_min": 6,
+      "crowd_ratio": 0.62,
+      "crowd_level": "MEDIUM"
+    },
+    "museum": {
+      "open": true,
+      "queue_min": 12,
+      "crowd_ratio": 0.35,
+      "crowd_level": "LOW"
+    },
+    "longtan": {
+      "open": true,
+      "queue_min": 4,
+      "crowd_ratio": 0.29,
+      "crowd_level": "LOW"
+    },
+    "forest": {
+      "open": true,
+      "queue_min": 3,
+      "crowd_ratio": 0.28,
+      "crowd_level": "LOW"
+    },
+    "theater": {
+      "open": true,
+      "queue_min": 22,
+      "crowd_ratio": 0.76,
+      "crowd_level": "HIGH"
+    },
+    "shizipo": {
+      "open": true,
+      "queue_min": 15,
+      "crowd_ratio": 0.64,
+      "crowd_level": "MEDIUM"
+    },
+    "summit": {
+      "open": true,
+      "queue_min": 8,
+      "crowd_ratio": 0.58,
+      "crowd_level": "MEDIUM"
+    },
+    "rest": {
+      "open": true,
+      "queue_min": 0,
+      "crowd_ratio": 0.32,
+      "crowd_level": "LOW"
+    },
+    "temple": {
+      "open": true,
+      "queue_min": 2,
+      "crowd_ratio": 0.25,
+      "crowd_level": "LOW"
+    },
+    "juxianzhuang": {
+      "open": true,
+      "queue_min": 8,
+      "crowd_ratio": 0.48,
+      "crowd_level": "MEDIUM"
+    },
+    "fortress": {
+      "open": true,
+      "queue_min": 18,
+      "crowd_ratio": 0.56,
+      "crowd_level": "MEDIUM"
+    },
+    "hero_square": {
+      "open": true,
+      "queue_min": 2,
+      "crowd_ratio": 0.3,
+      "crowd_level": "LOW"
+    },
+    "feiyunpu": {
+      "open": true,
+      "queue_min": 10,
+      "crowd_ratio": 0.52,
+      "crowd_level": "MEDIUM"
+    },
+    "shenboat": {
+      "open": true,
+      "queue_min": 8,
+      "crowd_ratio": 0.43,
+      "crowd_level": "MEDIUM"
+    },
+    "wangpo_island": {
+      "open": true,
+      "queue_min": 25,
+      "crowd_ratio": 0.72,
+      "crowd_level": "HIGH"
+    },
+    "water_street": {
+      "open": true,
+      "queue_min": 7,
+      "crowd_ratio": 0.6,
+      "crowd_level": "MEDIUM"
+    },
+    "wanfo_tower": {
+      "open": true,
+      "queue_min": 1,
+      "crowd_ratio": 0.2,
+      "crowd_level": "LOW"
+    },
+    "xianxia_square": {
+      "open": true,
+      "queue_min": 5,
+      "crowd_ratio": 0.48,
+      "crowd_level": "MEDIUM"
+    },
+    "xianxia_stage": {
+      "open": true,
+      "queue_min": 14,
+      "crowd_ratio": 0.63,
+      "crowd_level": "MEDIUM"
+    },
+    "film_studio": {
+      "open": true,
+      "queue_min": 4,
+      "crowd_ratio": 0.38,
+      "crowd_level": "LOW"
+    },
+    "art_square": {
+      "open": true,
+      "queue_min": 6,
+      "crowd_ratio": 0.58,
+      "crowd_level": "MEDIUM"
+    },
+    "children_park": {
+      "open": true,
+      "queue_min": 5,
+      "crowd_ratio": 0.45,
+      "crowd_level": "MEDIUM"
+    },
+    "circus": {
+      "open": true,
+      "queue_min": 12,
+      "crowd_ratio": 0.56,
+      "crowd_level": "MEDIUM"
+    },
+    "tiger_hall": {
+      "open": true,
+      "queue_min": 3,
+      "crowd_ratio": 0.32,
+      "crowd_level": "LOW"
+    },
+    "qianqiu_lake": {
+      "open": true,
+      "queue_min": 2,
+      "crowd_ratio": 0.24,
+      "crowd_level": "LOW"
+    },
+    "wanshou_lake": {
+      "open": true,
+      "queue_min": 4,
+      "crowd_ratio": 0.3,
+      "crowd_level": "LOW"
+    },
+    "retro_block": {
+      "open": true,
+      "queue_min": 5,
+      "crowd_ratio": 0.42,
+      "crowd_level": "MEDIUM"
+    },
+    "puyi_wharf": {
+      "open": true,
+      "queue_min": 2,
+      "crowd_ratio": 0.28,
+      "crowd_level": "LOW"
+    },
+    "dyehouse": {
+      "open": true,
+      "queue_min": 2,
+      "crowd_ratio": 0.22,
+      "crowd_level": "LOW"
+    },
+    "wulin_square": {
+      "open": true,
+      "queue_min": 6,
+      "crowd_ratio": 0.5,
+      "crowd_level": "MEDIUM"
+    },
+    "bailemen": {
+      "open": true,
+      "queue_min": 3,
+      "crowd_ratio": 0.31,
+      "crowd_level": "LOW"
+    },
+    "shili_yangchang": {
+      "open": true,
+      "queue_min": 4,
+      "crowd_ratio": 0.36,
+      "crowd_level": "LOW"
+    },
+    "kuaipolin": {
+      "open": true,
+      "queue_min": 2,
+      "crowd_ratio": 0.26,
+      "crowd_level": "LOW"
+    },
+    "chaguan": {
+      "open": true,
+      "queue_min": 5,
+      "crowd_ratio": 0.4,
+      "crowd_level": "MEDIUM"
+    },
+    "zhu_family_fort": {
+      "open": true,
+      "queue_min": 16,
+      "crowd_ratio": 0.64,
+      "crowd_level": "MEDIUM"
+    },
+    "magic_square": {
+      "open": true,
+      "queue_min": 5,
+      "crowd_ratio": 0.43,
+      "crowd_level": "MEDIUM"
+    },
+    "shuihu_li": {
+      "open": true,
+      "queue_min": 5,
+      "crowd_ratio": 0.48,
+      "crowd_level": "MEDIUM"
+    },
+    "flower_camp": {
+      "open": true,
+      "queue_min": 2,
+      "crowd_ratio": 0.3,
+      "crowd_level": "LOW"
+    },
+    "creative_market": {
+      "open": true,
+      "queue_min": 4,
+      "crowd_ratio": 0.43,
+      "crowd_level": "MEDIUM"
+    },
+    "forest_boardwalk": {
+      "open": true,
+      "queue_min": 2,
+      "crowd_ratio": 0.22,
+      "crowd_level": "LOW"
+    }
+  },
+  "road_states": {
+    "edge_001": {
+      "available": true,
+      "travel_time_min": 6.4
+    },
+    "edge_002": {
+      "available": true,
+      "travel_time_min": 2.93
+    },
+    "edge_003": {
+      "available": true,
+      "travel_time_min": 12.13
+    },
+    "edge_004": {
+      "available": true,
+      "travel_time_min": 10
+    },
+    "edge_005": {
+      "available": true,
+      "travel_time_min": 2.93
+    },
+    "edge_006": {
+      "available": true,
+      "travel_time_min": 5.73
+    },
+    "edge_007": {
+      "available": true,
+      "travel_time_min": 4
+    },
+    "edge_008": {
+      "available": true,
+      "travel_time_min": 3.33
+    },
+    "edge_009": {
+      "available": true,
+      "travel_time_min": 10.07
+    },
+    "edge_010": {
+      "available": true,
+      "travel_time_min": 9.2
+    },
+    "edge_011": {
+      "available": true,
+      "travel_time_min": 2
+    },
+    "edge_012": {
+      "available": true,
+      "travel_time_min": 5.27
+    },
+    "edge_013": {
+      "available": true,
+      "travel_time_min": 2.6
+    },
+    "edge_014": {
+      "available": true,
+      "travel_time_min": 8.93
+    },
+    "edge_015": {
+      "available": true,
+      "travel_time_min": 14.87
+    },
+    "edge_016": {
+      "available": true,
+      "travel_time_min": 11.4
+    },
+    "edge_017": {
+      "available": true,
+      "travel_time_min": 1.73
+    },
+    "edge_018": {
+      "available": true,
+      "travel_time_min": 4.73
+    },
+    "edge_019": {
+      "available": true,
+      "travel_time_min": 13.53
+    },
+    "edge_020": {
+      "available": true,
+      "travel_time_min": 4.47
+    },
+    "edge_021": {
+      "available": true,
+      "travel_time_min": 1.33
+    },
+    "edge_022": {
+      "available": true,
+      "travel_time_min": 2.53
+    },
+    "edge_023": {
+      "available": true,
+      "travel_time_min": 3.47
+    },
+    "edge_024": {
+      "available": true,
+      "travel_time_min": 2.07
+    },
+    "edge_025": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_026": {
+      "available": true,
+      "travel_time_min": 2.2
+    },
+    "edge_027": {
+      "available": true,
+      "travel_time_min": 1.13
+    },
+    "edge_028": {
+      "available": true,
+      "travel_time_min": 1.33
+    },
+    "edge_029": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_030": {
+      "available": true,
+      "travel_time_min": 1.73
+    },
+    "edge_031": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_032": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_033": {
+      "available": true,
+      "travel_time_min": 1.87
+    },
+    "edge_034": {
+      "available": true,
+      "travel_time_min": 1.93
+    },
+    "edge_035": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_036": {
+      "available": true,
+      "travel_time_min": 2.93
+    },
+    "edge_037": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_038": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_039": {
+      "available": true,
+      "travel_time_min": 1.73
+    },
+    "edge_040": {
+      "available": true,
+      "travel_time_min": 2.4
+    },
+    "edge_041": {
+      "available": true,
+      "travel_time_min": 2.47
+    },
+    "edge_042": {
+      "available": true,
+      "travel_time_min": 1.53
+    },
+    "edge_043": {
+      "available": true,
+      "travel_time_min": 1.87
+    },
+    "edge_044": {
+      "available": true,
+      "travel_time_min": 2
+    },
+    "edge_045": {
+      "available": true,
+      "travel_time_min": 6.53
+    },
+    "edge_046": {
+      "available": true,
+      "travel_time_min": 2.2
+    },
+    "edge_047": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_048": {
+      "available": true,
+      "travel_time_min": 2.07
+    },
+    "edge_049": {
+      "available": true,
+      "travel_time_min": 2.07
+    },
+    "edge_050": {
+      "available": true,
+      "travel_time_min": 2.33
+    },
+    "edge_051": {
+      "available": true,
+      "travel_time_min": 3.2
+    },
+    "edge_052": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_053": {
+      "available": true,
+      "travel_time_min": 1.4
+    },
+    "edge_054": {
+      "available": true,
+      "travel_time_min": 1.2
+    },
+    "edge_055": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_056": {
+      "available": true,
+      "travel_time_min": 1.4
+    },
+    "edge_057": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_058": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_059": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_060": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_061": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_062": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_063": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_064": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_065": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_066": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_067": {
+      "available": true,
+      "travel_time_min": 1
+    },
+    "edge_068": {
+      "available": true,
+      "travel_time_min": 1
+    }
+  },
+  "event_states": {
+    "show-1": {
+      "event_id": "show-1",
+      "node_id": "theater",
+      "status": "upcoming",
+      "start_time": "2026-10-20 11:20:00",
+      "latest_entry_time": "2026-10-20 11:20:00",
+      "capacity": 180,
+      "title": "沉浸剧场 · 第二场"
+    },
+    "market-peak": {
+      "event_id": "market-peak",
+      "node_id": "market",
+      "status": "forecast",
+      "start_time": "2026-10-20 11:35:00",
+      "latest_entry_time": "2026-10-20 11:35:00",
+      "capacity": 220,
+      "title": "非遗市集客流高峰"
+    }
+  },
+  "feedback": [],
+  "legacy_crowd": {
+    "gate": 0.24,
+    "southgate": 0.18
+  },
+  "legacy_queues": {
+    "southgate": 0
+  }
+}
