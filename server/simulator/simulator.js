@@ -2,11 +2,13 @@
 
 const provider = require('../state/stateProvider');
 const { SeededRNG } = require('./seeded-rng');
-const { resolveScenario, resolveParameters, VERSION } = require('./parameter-registry');
+const { resolveScenario, resolveParameters, resolveObservationParameters,
+  VERSION, OBSERVATION_VERSION } = require('./parameter-registry');
 const { EventClock } = require('./event-clock');
 const { createSimulationState, clone, GRAPH_VERSION } = require('./simulation-state');
 const { advancePopulation, advancePoiService } = require('./dynamics');
 const { evaluateLegalActions } = require('./legal-action-adapter');
+const { generateObservation, createObservationBuffer } = require('./observation');
 const { dispatchNodeWalkers, advanceTransit, advanceExitIntents, summarizeExitLedger } = require('./mobility');
 const { toMillis } = require('../planner/time');
 
@@ -144,21 +146,30 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
     cumulative_population: 'PASS', closed_road: 'PASS', graph_version: 'PASS', time: 'PASS' };
 }
 
-function createSimulator({ initialGraph = provider.getScenicGraph(), initialState = provider.getState(), scenario = 'P0_BASELINE', seed = 42, events = [], rules = {} } = {}) {
+function createSimulator({ initialGraph = provider.getScenicGraph(), initialState = provider.getState(),
+  scenario = 'P0_BASELINE', observationScenario = 'P1D_CLEAN', seed = 42,
+  events = [], rules = {} } = {}) {
   const sourceGraph = clone(initialGraph);
   const sourceState = clone(initialState);
   const sourceEvents = clone(events);
   const rng = new SeededRNG(seed);
   const selectedScenario = resolveScenario(scenario);
   const parameters = resolveParameters(selectedScenario, rng);
+  const observationParameters = resolveObservationParameters();
+  // Separate substream: sensor draws never alter environmental dynamics.
+  const observationRng = new SeededRNG((seed ^ 0x9e3779b9) >>> 0);
   const arrivalOnlyParameters = Object.freeze({ ...parameters, departure_rate: 0 });
   const { graph, state } = createSimulationState(sourceGraph, sourceState, selectedScenario, parameters);
   const clock = new EventClock(state.simulation_time, parameters.simulation_step_min, sourceEvents);
   validateEvents(sourceEvents, graph);
   validateInvariants(state, null, null, null, graph);
+  const observationBuffer = createObservationBuffer();
+  observationBuffer.capture(generateObservation(state, observationRng,
+    observationParameters, observationScenario));
 
   function getLegalActionsSnapshot() {
-    const result = evaluateLegalActions(graph, state, rules);
+    const result = evaluateLegalActions(graph,
+      observationBuffer.latestAvailable(state.simulation_time), rules, observationParameters);
     validateInvariants(state, null, null, result, graph);
     return clone(result);
   }
@@ -254,7 +265,10 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
         throw new Error(`POI flow conservation failed: ${id}`);
       }
     }
-    const legal = evaluateLegalActions(graph, state, rules);
+    observationBuffer.capture(generateObservation(state, observationRng,
+      observationParameters, observationScenario));
+    const availableObservation = observationBuffer.latestAvailable(state.simulation_time);
+    const legal = evaluateLegalActions(graph, availableObservation, rules, observationParameters);
     const invariant_summary = validateInvariants(state, beforeTime, population, legal, graph);
     const nodeAfter = Object.values(state.mobility_ledger.node_walkers).reduce((sum, count) => sum + count, 0);
     const transitAfter = state.mobility_ledger.transit_groups.reduce((sum, group) => sum + group.count, 0);
@@ -273,6 +287,7 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
       poi_status_changes: applied.filter(event => event.event_type.startsWith('POI_')),
       legal_actions: legal.legal,
       rejected_actions: legal.rejected,
+      observation: availableObservation,
       invariant_summary
     });
   }
@@ -285,11 +300,16 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
   return {
     step, runSteps,
     getState: () => clone(state),
+    getObservation: () => clone(observationBuffer.latestAvailable(state.simulation_time)),
     getExitLedger: () => clone(summarizeExitLedger(state)),
     getGraph: () => clone(graph),
     getLegalActions: getLegalActionsSnapshot,
-    getMetadata: () => ({ graph_version: GRAPH_VERSION, scenario_id: scenario, seed, parameter_version: VERSION, synthetic: true, source_tier: 'T4' }),
-    reset: (nextSeed = seed) => createSimulator({ initialGraph: sourceGraph, initialState: sourceState, scenario, seed: nextSeed, events: sourceEvents, rules })
+    getMetadata: () => ({ graph_version: GRAPH_VERSION, scenario_id: scenario,
+      observation_scenario_id: observationScenario, observation_version: OBSERVATION_VERSION,
+      observation_parameter_version: OBSERVATION_VERSION,
+      seed, parameter_version: VERSION, synthetic: true, source_tier: 'T4' }),
+    reset: (nextSeed = seed) => createSimulator({ initialGraph: sourceGraph, initialState: sourceState,
+      scenario, observationScenario, seed: nextSeed, events: sourceEvents, rules })
   };
 }
 

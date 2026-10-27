@@ -1,6 +1,7 @@
 'use strict';
 
 const { PARAMETERS, VERSION } = require('./config/default-parameters');
+const { PARAMETERS: OBSERVATION_PARAMETERS, VERSION: OBSERVATION_VERSION } = require('./config/observation-parameters');
 const SCENARIOS = require('./config/scenarios');
 
 function resolveScenario(scenario = 'P0_BASELINE') {
@@ -22,4 +23,10 @@ function resolveParameters(scenario, rng) {
   return Object.freeze(values);
 }
 
-module.exports = { PARAMETERS, VERSION, resolveScenario, resolveParameters };
+function resolveObservationParameters() {
+  return Object.freeze(Object.fromEntries(Object.entries(OBSERVATION_PARAMETERS)
+    .map(([name, definition]) => [name, definition.value])));
+}
+
+module.exports = { PARAMETERS, VERSION, resolveScenario, resolveParameters,
+  OBSERVATION_PARAMETERS, OBSERVATION_VERSION, resolveObservationParameters };

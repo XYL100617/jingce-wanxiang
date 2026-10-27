@@ -135,3 +135,27 @@ POI 关闭后不接收新的 walking→queue，原队列保留并暂停入场；
 已进入的道路关闭后仍可走完该段；在下一节点遇到后续封路时，先向原出口重新调用 C 寻路，原出口不可达则重评所有出口并可改选。全部出口不可达时，群组留在当前节点并转为 `pending_exit_intent`；初次选路失败亦如此，下个仿真步重试，不允许瞬移或强制离园。
 
 主动离园意图为持久状态，本版不取消。每步从真实节点待离园人数和 `EXIT_TRAVEL` 在途群组派生互斥账本：`exit_intent_created = exit_completed + exit_in_transit + exit_pending_at_node`。`exit_completed` 同时包含园门节点直接离园与返程群组抵达园门后的离园；`exit_arrivals_completed_total` 仅统计后者，因此不能单独用它解释全部已完成意图。`blocked_exit_intent[node_id]` 是当前不可达出口的待离园人数，逐节点不超过 `pending_exit_intent[node_id]`，故 `exit_blocked ≤ exit_pending_at_node`，不得重复加进闭合等式。`exit_blocked_attempts_total` 另累计受阻尝试次数，可能对同一群组重复计数。节点待离园人数本身是 `node_walkers` 子集，不在园区人口中重复加和。`mobility_flow.exit_ledger` 给出每步闭合快照；仍使用示意道路时间与 DEMO POI 节点，不增加逐人 agent、拥堵、疲劳离园或天气离园。
+
+## 12. P1-D 可见观测层（2026-10-27）
+
+`getState()` 返回 B 内部 `latent_state`，仅供仿真、审计和测试；`getObservation()` 返回当前已可用的 `observation`。`step()` 为内部审计仍返回真实人口和移动流水，同时把已可用观测单独放在 `observation` 字段；未来模型输入只能取该观测字段，不能把整个 `step()` 结果或 `getState()` 传进去。当前尚无外部模型访问控制，集成时必须守住这一 API 边界。新增的 `observation.js` 只从当前 latent 快照读取白名单字段，生成独立副本，不修改真实队列、道路、游客或人口账本。每次捕获记录 `synthetic=true`、`source_tier=T4`、`observation_version=obs-p1d.1`、`parameter_version=obs-p1d.1`、`observed_at` 和普通字段的 `available_at`。环境参数继续保持 `p1c.1`；观测参数单独注册，避免观测抽样改变动力学参数或随机序列。观测使用由同一 seed 派生的独立 `SeededRNG` 子流。
+
+可见负载仅包含天气、POI 的估计排队人数/分钟与拥挤比例及开放状态、道路的估计耗时及开闭状态、当前游客的系统已知位置/剩余时间与历史、已公布的演出日程和状态。后者是初始状态中已公布的时刻表，不是 Event Clock 中尚未发生的道路/POI 临时事件。未来排队、下一 latent 状态、未来出入园、在途群组、内部人口流水、RNG 状态和未来行动均不进入 observation。
+
+第一版支持 `P1D_CLEAN`、`P1D_NOISY`、`P1D_MISSING`、`P1D_DELAYED`、`P1D_MIXED` 五种 T4 观测情景。噪声只影响观测副本的排队人数、拥挤比例和道路耗时，使用有种子高斯抽样并把排队/耗时限制为非负、比例限制在 `[0,1]`。缺失用 `null`，`missing_mask` 中 `true` 始终表示缺失；同一 POI 的排队人数和排队时间一起缺失，不把 0 当缺失。普通字段的延迟默认 5 分钟：捕获后进入 observation buffer，只有 `available_at≤current_time` 才可用于模型和 C 合法动作；在此之前沿用上一份已可用的普通观测，尚无上一份时显示 `null`。
+
+**AUTHORITATIVE_SAFETY_FIELD**：`roads[*].is_open`、`pois[*].is_open`、已公布事件的当前取消/状态，以及系统已知的游客当前位置与剩余时间均零延迟、无噪声、无缺失。它们从当前捕获覆盖到已可用视图，防止真实封路被错误显示为开放。道路的普通耗时可以延迟或缺失，但关闭位不可以。此例外在代码中与普通传感器字段分开标记为 `is_open_available_at=observed_at`；观测顶层的 `safety_observed_at` 指明安全快照时间。
+
+`legal-action-adapter` 现在只接受 buffer 返回的当前已可用 observation，再映射到现有 `buildLivePlannerScenario → getLegalActions` 接口。若排队时间缺失，B 使用显式注册的 30 分钟 T4 规划回退；若拥挤比例缺失，使用 T4 的 0.5；若道路耗时缺失，使用 A 图中原有的示意 `base_travel_time_min`。这些替代值记录在 `planner_view_fallbacks`，不从当前 latent queue 或 latent road speed 偷补。B 内部群体移动仍借用 C `findPath` 和权威道路开闭状态决定真实环境转移，不等同于对外提供给模型/规划器的观测视图。P1-D 不改变人口、POI 驻留、空间移动或返程动力学，也不生成 reward、episode 或训练数据。
+
+### P1-D API 边界审查
+
+| 接口 | 分类 | 可读取内容 | 当前调用方 |
+| --- | --- | --- | --- |
+| `getState()` | `INTERNAL_LATENT_API` | 全部仿真真值；只用于内部、测试、审计和未来监督目标 | 当前仅 simulator 测试和本地审计脚本 |
+| `getObservation()` | `AGENT_FACING_OBSERVATION_API` | 当前已可用观测；不含人口账本、未来事件、在途群组、RNG 状态 | 当前仅 simulator 测试；未来 agent/model 应只接此接口 |
+| `getLegalActions()` | `DECISION_API` | 基于已可用观测和明确 T4 回退的 C 合法动作 | 当前仅 simulator 测试 |
+| `step()` / `runSteps()` | `INTERNAL_ONLY` | 真实人口、队列、移动审计流水，以及单列的已可用 `observation` | 当前仅 simulator 测试和本地审计；不能把完整结果交给 agent/model |
+| `dynamics` / `mobility` | `INTERNAL_ENVIRONMENT_TRANSITION` | 为模拟真实环境转移可读取 latent；C `findPath` 在这里仅作为 B 内部路由函数 | B 模拟器内部 |
+
+仓库当前没有将 `createSimulator()` 连接到 `server/index.js` 的 HTTP 路由；`server/index.js` 中同名的 `provider.getState()` 是 A 的现有服务状态接口，不是 B 的模拟器 `getState()`。面向未来 agent/model 的输入边界是 `getObservation()` 和 `getLegalActions().observation`，不能传入完整模拟器对象、`getState()` 或完整 `step()` 结果。普通缺失字段的规划回退只来自参数注册或 A 的公开示意图；权威安全字段按 `AUTHORITATIVE_SAFETY_FIELD` 路径零延迟提供。B 内部移动构造给 C `findPath` 的场景仍源自 latent 状态，仅供环境转移使用，不得作为 agent/model 规划视图复用。
