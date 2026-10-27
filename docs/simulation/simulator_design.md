@@ -107,3 +107,21 @@ P1-A 保留一个 planner-facing 决策游客，另以 `population_ledger` 记�
 每个 POI 同时记录 `queue_count` 与 `inside_count`；旧 `queue` 字段只是与 `queue_count` 同步的 P0 读取兼容别名。`capacity` 现在表示 **同时在 POI 内的最大人数**，`admission_rate` 限制排队者进入 POI 的速度，`service_rate` 限制已经在内的游客完成游览并离开的速度，三者均为 T4 假设。各区间按如下次序转移：外部抽样入园→walking；仅从 walking 抽样离园→`exited_total`；仅从 walking 向开放 POI 分配到达者→`queue_count`；`admitted=min(queue_count, capacity-inside_count, floor(admission_rate×Δt))`；`completed=min(inside_count+admitted, floor(service_rate×Δt))`；完成者回到 walking。每个变化都同时更新 ledger 与 POI 分账，任何阶段都不能凭空增减在园人数。为避免同区间重复使用刚腾出的空间，入场人数在完成结算前按原有可用容量确定。
 
 关闭 POI 后，新的 walking→queue 为 0、queue→inside 为 0，原队列保留；已经在内的游客可按 `service_rate` 完成并回到 walking。重新开放后恢复到达与入场。道路开闭仍由 P0 事件控制，P1-A 不引入边上人数、拥堵速度或真实道路容量。`resting` 和 `attending_event` 只预留结构字段。随机分配使用同一有种子 RNG；参数版本升为 `p1a.1`，新增初始队列/在内比例、POI 到达比例和入场率，全部标 `T4 / ASSUMPTION`。仍不输出 reward、episode 或训练数据，不修改 C 的合法动作接口。
+
+## 10. P1-B 节点和道路上的聚合人群（2026-10-27）
+
+`mobility_ledger.node_walkers[node_id]` 记录在节点上、尚未排队的人数；`transit_groups` 是聚合 cohort，含人数、起点、目标 `poi_id/node_id`、节点与边序列、当前边或节点、路径索引及剩余边耗时。强制保持 `population_ledger.walking = sum(node_walkers) + sum(transit_groups.count)`，并继续保持 P1-A 的园区、POI 队列与在内人数守恒。原单个决策游客仍只供 C 规划，不代表群体位置。
+
+图、边、POI 映射只读来自 A 的 `scenic_graph.json`：节点内嵌 `poi_id` 给出 DEMO 到达代理点；带 `PARK_ENTRANCE/PARK_EXIT` 角色的四个园门用于入园与离园。初始 walking 统一放在当前演示游客所在的合法入口；若该节点不是入口，使用 A 图内第一个入口。新入园者先进入该入口的 node bucket。离园只从带 `PARK_EXIT` 角色的 node bucket 扣除，处于 transit 的 cohort 不会直接离园。这些都是 DEMO 群体流动规则，不证明实际园门和 POI 游客入口已核验。
+
+出发时从 node bucket 转入 transit，walking 总数不变，queueing 不增加。路径调用现有 C `findPath`，以当前道路开放状态排除关闭边；无路可走便留在起点。每条边的模拟耗时使用图中示意 `base_travel_time_min`，乘 T4 `travel_time_multiplier`，按内部 5 分钟网格向上取整并受 `minimum_edge_travel_min=5` 限制。**图上的距离和基础耗时也是示意估算；上述路程时间均为 T4/DEMO 假设，不代表真实景区测量值。** 新 cohort 在创建的区间不移动，下一时间区间才进入第一条边；多边路径逐段扣除剩余耗时。完全到达开放 POI 节点后才从 walking 转入 queueing。
+
+道路在出发前关闭时，C 的 A* 选择开放边绕行；无可达路线便不创建 cohort。已进入当前边的 cohort 允许完成该边；到下一节点后检查下一边，若关闭则从当前节点调用 C 寻路重新规划，仍无路则回到该节点 bucket，且当步不再次派发。不得进入关闭边。若目标 POI 在途中关闭，cohort 可以走到其节点，但不进入 queue，转回该节点 walking bucket；之后可重新分配。POI 完成游览后进入对应 POI node bucket。`resting` 和 `attending_event` 仍为 0，不建立逐游客 agent、边容量或拥堵模型。空间群组选择完全使用 SeededRNG；参数版本为 `p1b.2`。
+
+### P1-B 驻留语义修正
+
+P1-A 的 `advanceQueues` 是历史单元测试使用的即时服务辅助函数；当前仿真步使用 `advancePoiService`，按 `walking → queue → inside → dwell → walking` 转移。每个 POI 的 `inside_groups` 记录聚合人数、POI ID、进入时间和最早离开时间。初始在内人数按 T4 假设视为刚在仿真起点进入。新入场群组在本区间结束时进入，至少等待自己的 `visit_duration_min`；到期后仍受 `service_rate × 区间分钟数` 的离开吞吐限制，不会在入场区间立即回到 walking。
+
+`visit_duration_min` 借用 C live adapter 的 DEMO 分类默认语义：`view=15 min`、`show=30 min`、其他 `=22 min`；这些数值在 B 参数注册中集中定义，`unit=min`、`source_tier=T4`、`parameter_basis=ASSUMPTION`，不是现场实测游览时长。`capacity` 是同时在内的人数上限；`admission_rate` 控制 queue 入内吞吐；`service_rate` 控制已达到最早离开时间的在内群组离开吞吐；驻留时长单独由 `visit_duration_min` 决定。入场受区间开始时的空余容量、队列人数和入场吞吐共同限制，本区间完成者腾出的空间不立即重复使用。
+
+POI 关闭后不接收新的 walking→queue，原队列保留并暂停入场；关闭前已在内的群组继续计时，到期可正常离开并回到对应 POI 的 DEMO 节点。重新开放后，队列才恢复入场。每步校验 `inside_poi=sum(POI.inside_count)=sum(inside_groups.count)`、`queueing=sum(POI.queue_count)`，以及 `park_population=node_walkers+transit+queueing+inside_poi+resting+attending_event`。`resting` 与 `attending_event` 当前仍为 0。

@@ -1,6 +1,7 @@
 'use strict';
 
 const { parseTime } = require('../state/scenarioEngine');
+const { addMinutes } = require('../planner/time');
 const { VERSION } = require('./parameter-registry');
 
 const GRAPH_VERSION = '1.0';
@@ -68,6 +69,15 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
   const edgeIds = new Set(graph.edges.map(edge => edge.edge_id));
   if (nodeIds.size !== graph.nodes.length || edgeIds.size !== graph.edges.length) throw new Error('A graph has duplicate IDs');
   if (!nodeIds.has(initial.visitor.current_node_id)) throw new Error('visitor node is absent from A graph');
+  const entranceNodes = graph.nodes.filter(node => (node.access_roles || []).includes('PARK_ENTRANCE')).map(node => node.node_id);
+  const exitNodes = graph.nodes.filter(node => (node.access_roles || []).includes('PARK_EXIT')).map(node => node.node_id);
+  if (!entranceNodes.length || !exitNodes.length) throw new Error('A graph lacks a DEMO entrance or exit node');
+  const entryNodeId = entranceNodes.includes(initial.visitor.current_node_id) ? initial.visitor.current_node_id : entranceNodes[0];
+  const poiNodeMap = {};
+  for (const node of graph.nodes.filter(node => node.poi_id)) {
+    if (poiNodeMap[node.poi_id]) throw new Error(`duplicate POI node mapping: ${node.poi_id}`);
+    poiNodeMap[node.poi_id] = node.node_id;
+  }
   const pois = {};
   for (const node of graph.nodes.filter(node => node.poi_id)) {
     if (!initial.poi_states?.[node.poi_id]) throw new Error(`missing A POI state: ${node.poi_id}`);
@@ -79,6 +89,10 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
       capacity: nonnegative(parameters.default_poi_capacity, 'default_poi_capacity'),
       service_rate: serviceRate,
       admission_rate: nonnegative(parameters.default_admission_rate, 'default_admission_rate'),
+      visit_duration_min: nonnegative(node.type === 'view' ? parameters.view_visit_duration_min
+        : node.type === 'show' ? parameters.show_visit_duration_min : parameters.default_visit_duration_min,
+      `visit_duration_min ${node.poi_id}`),
+      inside_groups: [],
       is_open: current.open !== false,
       crowd_ratio: Number(current.crowd_ratio || 0)
     };
@@ -89,7 +103,8 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
     roads[edge.edge_id] = {
       is_open: initial.road_states[edge.edge_id].available !== false,
       base_travel_time_min: nonnegative(Number(edge.base_travel_time_min), `base travel time ${edge.edge_id}`),
-      speed_factor: 1
+      speed_factor: 1,
+      closed_at: initial.road_states[edge.edge_id].available === false ? initial.timestamp : null
     };
   }
   const events = Object.fromEntries(Object.entries(initial.event_states || {}).map(([id, event]) => [id, {
@@ -109,8 +124,14 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
   // weights to a T4 population budget so the initial snapshot is conserved.
   allocateQueueBudget(pois, Math.floor(initialPopulation * queueFraction));
   allocateInsideBudget(pois, Math.floor(initialPopulation * insideFraction));
+  for (const [poiId, poi] of Object.entries(pois)) {
+    if (poi.inside_count) poi.inside_groups.push({ count: poi.inside_count, poi_id: poiId,
+      entered_at: initial.timestamp, leave_at: addMinutes(initial.timestamp, poi.visit_duration_min) });
+  }
   const queueing = Object.values(pois).reduce((sum, poi) => sum + poi.queue_count, 0);
   const insidePoi = Object.values(pois).reduce((sum, poi) => sum + poi.inside_count, 0);
+  for (const poiId of Object.keys(pois)) if (!nodeIds.has(poiNodeMap[poiId])) throw new Error(`POI has no valid graph node: ${poiId}`);
+  const initialWalking = initialPopulation - queueing - insidePoi;
   const state = {
     graph_version: GRAPH_VERSION,
     schema_version: initial.schema_version || graph.schema_version || '0.1',
@@ -124,8 +145,15 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
       arrivals_total: 0, departures_total: 0, weather: clone(initial.weather || {})
     },
     population_ledger: {
-      outside: 0, walking: initialPopulation - queueing - insidePoi,
+      outside: 0, walking: initialWalking,
       queueing, inside_poi: insidePoi, resting: 0, attending_event: 0, exited_total: 0
+    },
+    mobility_ledger: {
+      entry_node_id: entryNodeId,
+      exit_node_ids: exitNodes,
+      poi_node_map: poiNodeMap,
+      node_walkers: Object.fromEntries(graph.nodes.map(node => [node.node_id, node.node_id === entryNodeId ? initialWalking : 0])),
+      transit_groups: [], next_group_id: 1
     },
     pois, roads, events,
     visitor: {

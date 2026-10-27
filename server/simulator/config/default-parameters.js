@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = 'p1a.1';
+const VERSION = 'p1b.2';
 
 // Every number below is a broad T4 engineering assumption, not measured park data.
 const definitions = {
@@ -11,9 +11,15 @@ const definitions = {
   default_poi_capacity: { value: 80, unit: 'persons simultaneous inside POI' },
   default_service_rate: { range: [0.6, 1.4], unit: 'visitors/min' },
   default_admission_rate: { range: [1.2, 3.0], unit: 'visitors/min' },
+  default_visit_duration_min: { value: 22, unit: 'min; DEMO other POI' },
+  view_visit_duration_min: { value: 15, unit: 'min; DEMO view POI' },
+  show_visit_duration_min: { value: 30, unit: 'min; DEMO show POI' },
   initial_queue_fraction: { value: 0.32, unit: 'fraction of initial park population' },
   initial_inside_fraction: { value: 0.18, unit: 'fraction of initial park population' },
   poi_arrival_fraction: { range: [0.04, 0.14], unit: 'fraction of walking pool per 5 min' },
+  minimum_edge_travel_min: { value: 5, unit: 'min/edge; DEMO minimum' },
+  travel_time_multiplier: { value: 1, unit: 'ratio; DEMO schematic edge time' },
+  max_dispatch_groups_per_node: { value: 3, unit: 'aggregate cohorts/node/interval' },
   visitor_speed_range: { range: [0.7, 1.5], unit: 'm/s' },
   queue_arrival_range: { range: [0, 0.45], unit: 'visitors/min/poi' },
   arrival_multiplier: { value: 1, unit: 'ratio' },

@@ -1,5 +1,7 @@
 'use strict';
 
+const { addMinutes, toMillis } = require('../planner/time');
+
 function stochasticCount(ratePerMin, durationMin, rng) {
   if (!Number.isFinite(ratePerMin) || ratePerMin < 0 || !Number.isFinite(durationMin) || durationMin < 0) {
     throw new RangeError('rate and duration must be nonnegative finite numbers');
@@ -9,7 +11,7 @@ function stochasticCount(ratePerMin, durationMin, rng) {
   return whole + Number(rng.next() < expected - whole);
 }
 
-function advancePopulation(environment, durationMin, parameters, rng, ledger = null) {
+function advancePopulation(environment, durationMin, parameters, rng, ledger = null, mobility = null) {
   const population_before = environment.park_population;
   const arrivals = stochasticCount(parameters.arrival_rate * parameters.arrival_multiplier, durationMin, rng);
   const requestedDepartures = stochasticCount(parameters.departure_rate * parameters.departure_multiplier, durationMin, rng);
@@ -18,16 +20,63 @@ function advancePopulation(environment, durationMin, parameters, rng, ledger = n
     ledger.outside += arrivals;
     ledger.outside -= arrivals;
     ledger.walking += arrivals;
+    if (mobility) mobility.node_walkers[mobility.entry_node_id] += arrivals;
   }
-  const departures = Math.min(requestedDepartures, ledger ? ledger.walking : population_before + arrivals);
+  const exitAvailable = mobility
+    ? mobility.exit_node_ids.reduce((sum, id) => sum + mobility.node_walkers[id], 0) : null;
+  const departures = Math.min(requestedDepartures, mobility ? exitAvailable : ledger ? ledger.walking : population_before + arrivals);
   if (ledger) {
     ledger.walking -= departures;
     ledger.exited_total += departures;
+    if (mobility) {
+      let remaining = departures;
+      for (const id of mobility.exit_node_ids) {
+        const leaving = Math.min(remaining, mobility.node_walkers[id]);
+        mobility.node_walkers[id] -= leaving;
+        remaining -= leaving;
+      }
+      if (remaining) throw new Error('exit node departure allocation failed');
+    }
   }
   environment.park_population = population_before + arrivals - departures;
   environment.arrivals_total += arrivals;
   environment.departures_total += departures;
   return { population_before, arrivals, departures, population_after: environment.park_population };
+}
+
+function advancePoiService(pois, ledger, mobility, durationMin, segmentStartTime) {
+  const segmentEnd = addMinutes(segmentStartTime, durationMin);
+  const flows = {};
+  for (const [poiId, poi] of Object.entries(pois)) {
+    const queue_before = poi.queue_count, inside_before = poi.inside_count;
+    const admitted = poi.is_open
+      ? Math.min(poi.queue_count, Math.max(0, Math.floor(poi.capacity - poi.inside_count)), Math.floor(poi.admission_rate * durationMin)) : 0;
+    // Only groups admitted before this interval can complete. A due group may
+    // wait for service throughput, but nobody leaves before its own leave_at.
+    let remainingService = Math.floor(poi.service_rate * durationMin);
+    let completed = 0;
+    const retained = [];
+    for (const group of poi.inside_groups) {
+      const leaving = toMillis(group.leave_at) <= toMillis(segmentEnd)
+        ? Math.min(group.count, remainingService) : 0;
+      completed += leaving;
+      remainingService -= leaving;
+      if (group.count > leaving) retained.push({ ...group, count: group.count - leaving });
+    }
+    poi.inside_groups = retained;
+    if (admitted) poi.inside_groups.push({ count: admitted, poi_id: poiId,
+      entered_at: segmentEnd, leave_at: addMinutes(segmentEnd, poi.visit_duration_min) });
+    poi.queue_count -= admitted;
+    poi.inside_count += admitted - completed;
+    ledger.queueing -= admitted;
+    ledger.inside_poi += admitted - completed;
+    ledger.walking += completed;
+    mobility.node_walkers[mobility.poi_node_map[poiId]] += completed;
+    poi.queue = poi.queue_count;
+    flows[poiId] = { queue_before, inside_before, arrivals: 0, admitted, completed,
+      served: admitted, queue_after: poi.queue_count, inside_after: poi.inside_count };
+  }
+  return flows;
 }
 
 function advanceQueues(pois, ledger, durationMin, parameters, rng) {
@@ -64,4 +113,4 @@ function advanceQueues(pois, ledger, durationMin, parameters, rng) {
   return flows;
 }
 
-module.exports = { stochasticCount, advancePopulation, advanceQueues };
+module.exports = { stochasticCount, advancePopulation, advanceQueues, advancePoiService };

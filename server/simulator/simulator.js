@@ -5,8 +5,10 @@ const { SeededRNG } = require('./seeded-rng');
 const { resolveScenario, resolveParameters, VERSION } = require('./parameter-registry');
 const { EventClock } = require('./event-clock');
 const { createSimulationState, clone, GRAPH_VERSION } = require('./simulation-state');
-const { advancePopulation, advanceQueues } = require('./dynamics');
+const { advancePopulation, advancePoiService } = require('./dynamics');
 const { evaluateLegalActions } = require('./legal-action-adapter');
+const { dispatchNodeWalkers, advanceTransit } = require('./mobility');
+const { toMillis } = require('../planner/time');
 
 function validateEvents(events, graph) {
   const edgeIds = new Set(graph.edges.map(edge => edge.edge_id));
@@ -19,12 +21,15 @@ function validateEvents(events, graph) {
 
 function applyEvent(state, event) {
   const close = event.event_type.endsWith('CLOSE');
-  if (event.event_type.startsWith('ROAD_')) state.roads[event.target_id].is_open = !close;
+  if (event.event_type.startsWith('ROAD_')) {
+    state.roads[event.target_id].is_open = !close;
+    state.roads[event.target_id].closed_at = close ? state.simulation_time : null;
+  }
   else state.pois[event.target_id].is_open = !close;
   return { timestamp: state.simulation_time, event_id: event.event_id, event_type: event.event_type, target_id: event.target_id, is_open: !close };
 }
 
-function validateInvariants(state, previousTime = null, populationLedger = null, legal = null) {
+function validateInvariants(state, previousTime = null, populationLedger = null, legal = null, graph = null) {
   if (state.graph_version !== GRAPH_VERSION) throw new Error('graph_version invariant failed');
   if (!Number.isSafeInteger(state.environment.park_population) || state.environment.park_population < 0) throw new Error('park population invariant failed');
   const ledger = state.population_ledger;
@@ -39,6 +44,46 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
     throw new Error('cumulative park population conservation failed');
   }
   if (ledger.exited_total !== state.environment.departures_total) throw new Error('exited total differs from cumulative departures');
+  const mobility = state.mobility_ledger;
+  const nodeIds = graph ? new Set(graph.nodes.map(node => node.node_id)) : new Set(Object.keys(mobility.node_walkers));
+  const edgeById = graph ? new Map(graph.edges.map(edge => [edge.edge_id, edge])) : null;
+  if (!nodeIds.has(mobility.entry_node_id) || !mobility.exit_node_ids.length
+    || mobility.exit_node_ids.some(id => !nodeIds.has(id))) throw new Error('invalid mobility entrance or exit');
+  let nodeTotal = 0, transitTotal = 0;
+  for (const [id, count] of Object.entries(mobility.node_walkers)) {
+    if (!nodeIds.has(id) || !Number.isSafeInteger(count) || count < 0) throw new Error(`invalid node walkers: ${id}`);
+    nodeTotal += count;
+  }
+  for (const [poiId, nodeId] of Object.entries(mobility.poi_node_map)) {
+    if (!state.pois[poiId] || !nodeIds.has(nodeId)) throw new Error(`invalid POI node mapping: ${poiId}`);
+  }
+  for (const group of mobility.transit_groups) {
+    const { node_sequence: nodes, edge_sequence: edges } = group.path;
+    if (!Number.isSafeInteger(group.count) || group.count <= 0 || !nodeIds.has(group.current_node_id)
+      || !nodeIds.has(group.destination_node_id) || !state.pois[group.destination_poi_id]
+      || !Array.isArray(nodes) || !Array.isArray(edges) || nodes.length !== edges.length + 1
+      || nodes.at(-1) !== group.destination_node_id || !Number.isInteger(group.path_index)
+      || group.path_index < 0 || group.path_index >= edges.length
+      || nodes[group.path_index] !== group.current_node_id) throw new Error(`invalid transit group: ${group.group_id}`);
+    for (let i = 0; i < edges.length; i += 1) {
+      const edge = edgeById?.get(edges[i]);
+      if (!state.roads[edges[i]] || !nodeIds.has(nodes[i]) || !nodeIds.has(nodes[i + 1])
+        || (edge && !((edge.from_node_id === nodes[i] && edge.to_node_id === nodes[i + 1])
+          || (edge.direction === 'BIDIRECTIONAL' && edge.to_node_id === nodes[i] && edge.from_node_id === nodes[i + 1])))) {
+        throw new Error(`invalid transit path: ${group.group_id}`);
+      }
+    }
+    if (group.current_edge_id) {
+      const road = state.roads[group.current_edge_id];
+      if (group.current_edge_id !== edges[group.path_index] || !(group.remaining_edge_min > 0)
+        || !group.edge_entered_at || (!road.is_open && (!road.closed_at
+          || Date.parse(group.edge_entered_at.replace(' ', 'T') + 'Z') >= Date.parse(road.closed_at.replace(' ', 'T') + 'Z')))) {
+        throw new Error(`closed or invalid edge entry: ${group.group_id}`);
+      }
+    } else if (group.remaining_edge_min !== 0) throw new Error(`invalid transit edge clock: ${group.group_id}`);
+    transitTotal += group.count;
+  }
+  if (nodeTotal + transitTotal !== ledger.walking) throw new Error('spatial walking ledger differs from population ledger');
   if (previousTime !== null && Date.parse(state.simulation_time.replace(' ', 'T') + 'Z') <= Date.parse(previousTime.replace(' ', 'T') + 'Z')) {
     throw new Error('simulation time did not advance');
   }
@@ -51,7 +96,14 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
       || !Number.isSafeInteger(poi.inside_count) || poi.inside_count < 0
       || !Number.isFinite(poi.capacity) || poi.capacity < 0 || poi.inside_count > poi.capacity
       || !Number.isFinite(poi.service_rate) || poi.service_rate < 0
-      || !Number.isFinite(poi.admission_rate) || poi.admission_rate < 0) {
+      || !Number.isFinite(poi.admission_rate) || poi.admission_rate < 0
+      || !Number.isFinite(poi.visit_duration_min) || poi.visit_duration_min <= 0
+      || !Array.isArray(poi.inside_groups)
+      || poi.inside_groups.reduce((sum, group) => sum + group.count, 0) !== poi.inside_count
+      || poi.inside_groups.some(group => !Number.isSafeInteger(group.count) || group.count <= 0
+        || group.poi_id !== id || !Number.isFinite(toMillis(group.entered_at))
+        || !Number.isFinite(toMillis(group.leave_at))
+        || toMillis(group.leave_at) <= toMillis(group.entered_at))) {
       throw new Error(`POI invariant failed: ${id}`);
     }
     queueSum += poi.queue_count;
@@ -68,7 +120,7 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
       if (!state.roads[edgeId]?.is_open) throw new Error(`closed road in legal route: ${edgeId}`);
     }
   }
-  return { population: 'PASS', queue: 'PASS', ledger: 'PASS', inside_capacity: 'PASS',
+  return { population: 'PASS', queue: 'PASS', ledger: 'PASS', mobility: 'PASS', inside_capacity: 'PASS',
     cumulative_population: 'PASS', closed_road: 'PASS', graph_version: 'PASS', time: 'PASS' };
 }
 
@@ -82,11 +134,11 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
   const { graph, state } = createSimulationState(sourceGraph, sourceState, selectedScenario, parameters);
   const clock = new EventClock(state.simulation_time, parameters.simulation_step_min, sourceEvents);
   validateEvents(sourceEvents, graph);
-  validateInvariants(state);
+  validateInvariants(state, null, null, null, graph);
 
   function getLegalActionsSnapshot() {
     const result = evaluateLegalActions(graph, state, rules);
-    validateInvariants(state, null, null, result);
+    validateInvariants(state, null, null, result, graph);
     return clone(result);
   }
 
@@ -96,6 +148,8 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     const walkingBefore = state.population_ledger.walking;
     const queueBefore = state.population_ledger.queueing;
     const insideBefore = state.population_ledger.inside_poi;
+    const nodeBefore = Object.values(state.mobility_ledger.node_walkers).reduce((sum, count) => sum + count, 0);
+    const transitBefore = state.mobility_ledger.transit_groups.reduce((sum, group) => sum + group.count, 0);
     const poiFlows = Object.fromEntries(Object.entries(state.pois).map(([id, poi]) => [id, {
       queue_before: poi.queue_count, inside_before: poi.inside_count, arrivals: 0,
       admitted: 0, completed: 0, served: 0
@@ -104,16 +158,20 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     let cursor = schedule.startMs;
     let arrivals = 0, departures = 0, queueArrivals = 0, admitted = 0, completed = 0;
     const applied = [];
+    const mobilityEvents = { dispatched: [], edge_entries: [], reroutes: [], blocked: [],
+      arrived_total: 0, closed_poi_returns: 0, closed_poi_nodes: [] };
 
     for (const checkpoint of schedule.checkpoints) {
       const durationMin = (checkpoint.timeMs - cursor) / 60000;
       if (durationMin > 0) {
-        const population = advancePopulation(state.environment, durationMin, parameters, rng, state.population_ledger);
-        const queueLedger = advanceQueues(state.pois, state.population_ledger, durationMin, parameters, rng);
+        const population = advancePopulation(state.environment, durationMin, parameters, rng,
+          state.population_ledger, state.mobility_ledger);
+        const queueLedger = advancePoiService(state.pois, state.population_ledger,
+          state.mobility_ledger, durationMin, state.simulation_time);
+        const transit = advanceTransit(graph, state, durationMin, parameters);
         arrivals += population.arrivals;
         departures += population.departures;
         for (const [id, row] of Object.entries(queueLedger)) {
-          queueArrivals += row.arrivals;
           admitted += row.admitted;
           completed += row.completed;
           poiFlows[id].arrivals += row.arrivals;
@@ -121,11 +179,27 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
           poiFlows[id].completed += row.completed;
           poiFlows[id].served += row.admitted;
         }
+        for (const [id, count] of Object.entries(transit.arrivals)) {
+          queueArrivals += count;
+          poiFlows[id].arrivals += count;
+        }
+        mobilityEvents.arrived_total += transit.arrived_total;
+        mobilityEvents.closed_poi_returns += transit.closed_poi_returns;
+        mobilityEvents.closed_poi_nodes.push(...transit.closed_poi_nodes);
+        mobilityEvents.edge_entries.push(...transit.edge_entries);
+        mobilityEvents.reroutes.push(...transit.reroutes);
+        mobilityEvents.blocked.push(...transit.blocked);
         state.visitor.remaining_time_min = Math.max(0, Math.round((state.visitor.remaining_time_min - durationMin) * 1000) / 1000);
         cursor = checkpoint.timeMs;
       }
       state.simulation_time = checkpoint.timestamp;
       for (const event of checkpoint.events) applied.push(applyEvent(state, event));
+      if (durationMin > 0) {
+        const blockedNodes = new Set([...mobilityEvents.blocked.map(item => item.node_id),
+          ...mobilityEvents.closed_poi_nodes]);
+        mobilityEvents.dispatched.push(...dispatchNodeWalkers(graph, state, durationMin, parameters,
+          rng, checkpoint.timestamp, blockedNodes));
+      }
     }
     state.step_count += 1;
     const population = { population_before: populationBefore, arrivals, departures, population_after: state.environment.park_population };
@@ -144,7 +218,9 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
       }
     }
     const legal = evaluateLegalActions(graph, state, rules);
-    const invariant_summary = validateInvariants(state, beforeTime, population, legal);
+    const invariant_summary = validateInvariants(state, beforeTime, population, legal, graph);
+    const nodeAfter = Object.values(state.mobility_ledger.node_walkers).reduce((sum, count) => sum + count, 0);
+    const transitAfter = state.mobility_ledger.transit_groups.reduce((sum, group) => sum + group.count, 0);
     return clone({
       timestamp: state.simulation_time,
       population,
@@ -152,6 +228,8 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
         admitted, completed, queue_after: queueAfter, inside_before: insideBefore, inside_after: insideAfter },
       population_flow: { walking_before: walkingBefore, walking_after: walkingAfter,
         walking_to_queue: queueArrivals, queue_to_inside: admitted, inside_to_walking: completed },
+      mobility_flow: { node_before: nodeBefore, transit_before: transitBefore,
+        node_after: nodeAfter, transit_after: transitAfter, ...mobilityEvents },
       poi_flows: poiFlows,
       road_status_changes: applied.filter(event => event.event_type.startsWith('ROAD_')),
       poi_status_changes: applied.filter(event => event.event_type.startsWith('POI_')),
