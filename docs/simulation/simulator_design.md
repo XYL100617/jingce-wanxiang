@@ -91,3 +91,11 @@ A graph/state 快照（只读） + B scenario/parameter registry + seed
 校验：ID/图版本一致；人口、队列、演出容量与占用守恒；非负流量及有界疲劳；封闭边无新进入；动作属于当时合法集；事件时间顺序与 `[start,end)`；同 seed/版本重放同结果；观察延迟/缺失按配置；episode 元数据完整；输出始终 `synthetic=true/T4`。现有测试覆盖 DEMO 预测、事件、路径、重规划等，但未覆盖上述工厂不变量。
 
 训练输入只允许当前及历史已交付 `observation` 和由此生成的预测；禁止未来真实队列、事件结果、下一 latent 状态、未来 chosen action、全日场景隐藏日程直接进入输入。`latent_state` 可作监督目标、不可作模型输入。划分训练/验证/测试时按场景族、日期、seed 和拓扑扰动分组，先隔离测试组再采样，不能逐行随机切同一 episode；图版本与参数版本也记录在切分清单。对相同脚本仅换 seed 的近重复轨迹进行去重或同组隔离。仿真内部随机转移可读取完整场景日程，但暴露给 planner/observation 的事件仅限当时已公开或已发生者。
+
+## 8. P0 已实现的具体约定（2026-10-27）
+
+`server/simulator/` 已提供独立状态、`p0.1` 参数注册、`P0_BASELINE/P0_LOW/P0_HIGH`、种子 RNG、5 分钟步长与精确时间事件。每步内部可分割为多个事件前后区间，事件按时间、固定优先级和 ID 排序；同一时刻先 OPEN/REOPEN 后 CLOSE，因此关闭最终生效。事件类型仅为 `ROAD_CLOSE/ROAD_REOPEN/POI_CLOSE/POI_OPEN`。所有流量和容量值是 T4 假设；初始等待分钟按假设服务率转换为等候人数，`default_poi_capacity` 暂作每区间服务数上限代理，并非场馆真实占用容量。
+
+P0 关闭 POI 的规则是：**从关闭时刻起新排队到达数为 0、服务数为 0、既有队列人数原样保留**；开放后再按参数恢复到达与服务。`Q_next=Q_before+arrivals-served` 每步强制校验。道路关闭只切换 `is_open`，不做拥堵速度模型或在途游客清退。环境人数由 `N_next=N_before+arrivals-departures` 计算，离园数截断到 `N_before+arrivals`。当前只有一个决策游客与聚合人数，没有为每个入园者建 agent；POI 到达流未与具体游客位置逐个绑定，因此 P0 保证各自账本守恒，完整空间人数守恒留待 P1。
+
+合法动作适配从当前仿真状态投影出无噪声的可见队列分钟、开放状态、道路可用性及单游客信息，调用 `buildLivePlannerScenario` 后直接调用 C 的 `getLegalActions`。不传未来事件、RNG 状态、园区人数或队列人数真值；适配器的营业时间、停留时长等仍是原有 DEMO/T4 默认。P0 不使用 A 的 `forecastSimulator` 作为环境转移，也不输出 episode、reward、缺测或训练数据。新增测试直接检查 C 的拒绝与路线，不以 B 的重复规则替代。

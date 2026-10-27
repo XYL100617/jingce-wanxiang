@@ -1,0 +1,31 @@
+'use strict';
+
+const VERSION = 'p0.1';
+
+// Every number below is a broad T4 engineering assumption, not measured park data.
+const definitions = {
+  simulation_step_min: { value: 5, unit: 'min' },
+  initial_park_population: { range: [120, 280], unit: 'visitors' },
+  arrival_rate: { range: [0.5, 2.5], unit: 'visitors/min' },
+  departure_rate: { range: [0.3, 1.8], unit: 'visitors/min' },
+  default_poi_capacity: { value: 80, unit: 'visitors/step service cap proxy' },
+  default_service_rate: { range: [0.6, 1.4], unit: 'visitors/min' },
+  visitor_speed_range: { range: [0.7, 1.5], unit: 'm/s' },
+  queue_arrival_range: { range: [0, 0.45], unit: 'visitors/min/poi' },
+  arrival_multiplier: { value: 1, unit: 'ratio' },
+  departure_multiplier: { value: 1, unit: 'ratio' },
+  queue_multiplier: { value: 1, unit: 'ratio' },
+  low_arrival_multiplier: { value: 0.55, unit: 'ratio' },
+  low_departure_multiplier: { value: 0.85, unit: 'ratio' },
+  low_queue_multiplier: { value: 0.6, unit: 'ratio' },
+  high_arrival_multiplier: { value: 1.65, unit: 'ratio' },
+  high_departure_multiplier: { value: 1.15, unit: 'ratio' },
+  high_queue_multiplier: { value: 1.6, unit: 'ratio' }
+};
+
+module.exports = {
+  VERSION,
+  PARAMETERS: Object.freeze(Object.fromEntries(Object.entries(definitions).map(([name, definition]) => [name, Object.freeze({
+    name, ...definition, source_tier: 'T4', parameter_basis: 'ASSUMPTION', version: VERSION
+  })])))
+};
