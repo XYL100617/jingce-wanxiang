@@ -10,3 +10,4 @@ server/data/.account-test-*/
 server/data/.http-test-*/
 .DS_Store
 Thumbs.db
+docs/data-sources/snapshots/*.txt

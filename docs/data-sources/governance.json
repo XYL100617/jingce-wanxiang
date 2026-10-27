@@ -1,0 +1,51 @@
+{
+  "graph_version": "1.0",
+  "operation_mode": "DEMO",
+  "real_mode_enabled": false,
+  "site_verification": {
+    "enabled": false,
+    "source_tier": "T3",
+    "status": "CURRENT_STAGE_NOT_PLANNED"
+  },
+  "operator_data": {
+    "available": false,
+    "source_tier": "T1",
+    "status": "CURRENTLY_UNAVAILABLE"
+  },
+  "gates": {
+    "gate": {
+      "entry_allowed": true,
+      "exit_allowed": true,
+      "evidence": "DEMO_RULE"
+    },
+    "southgate": {
+      "entry_allowed": true,
+      "exit_allowed": true,
+      "evidence": "DEMO_RULE"
+    },
+    "westgate": {
+      "entry_allowed": true,
+      "exit_allowed": true,
+      "evidence": "DEMO_RULE"
+    },
+    "eastgate": {
+      "entry_allowed": true,
+      "exit_allowed": true,
+      "evidence": "DEMO_RULE"
+    }
+  },
+  "poi_arrival_policy": {
+    "demo_target_field": "node_id",
+    "real_entrance_verified": false,
+    "entrance_node_id_enabled": false
+  },
+  "navigation_policy": {
+    "demo_allowed": true,
+    "real_allowed": false,
+    "real_safety_review_passed": false,
+    "real_minimum_evidence": [
+      "operator_confirmed",
+      "verified_on_site"
+    ]
+  }
+}
