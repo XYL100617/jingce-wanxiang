@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = 'p0.1';
+const VERSION = 'p1a.1';
 
 // Every number below is a broad T4 engineering assumption, not measured park data.
 const definitions = {
@@ -8,8 +8,12 @@ const definitions = {
   initial_park_population: { range: [120, 280], unit: 'visitors' },
   arrival_rate: { range: [0.5, 2.5], unit: 'visitors/min' },
   departure_rate: { range: [0.3, 1.8], unit: 'visitors/min' },
-  default_poi_capacity: { value: 80, unit: 'visitors/step service cap proxy' },
+  default_poi_capacity: { value: 80, unit: 'persons simultaneous inside POI' },
   default_service_rate: { range: [0.6, 1.4], unit: 'visitors/min' },
+  default_admission_rate: { range: [1.2, 3.0], unit: 'visitors/min' },
+  initial_queue_fraction: { value: 0.32, unit: 'fraction of initial park population' },
+  initial_inside_fraction: { value: 0.18, unit: 'fraction of initial park population' },
+  poi_arrival_fraction: { range: [0.04, 0.14], unit: 'fraction of walking pool per 5 min' },
   visitor_speed_range: { range: [0.7, 1.5], unit: 'm/s' },
   queue_arrival_range: { range: [0, 0.45], unit: 'visitors/min/poi' },
   arrival_multiplier: { value: 1, unit: 'ratio' },

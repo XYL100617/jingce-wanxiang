@@ -11,6 +11,52 @@ function nonnegative(value, label) {
   return value;
 }
 
+function allocateQueueBudget(pois, budget) {
+  const entries = Object.entries(pois);
+  const rawTotal = entries.reduce((sum, [, poi]) => sum + poi.queue_count, 0);
+  const target = Math.min(rawTotal, budget);
+  if (!rawTotal) {
+    for (const poi of Object.values(pois)) poi.queue = 0;
+    return;
+  }
+  const ratio = target / rawTotal;
+  const remainders = [];
+  let assigned = 0;
+  for (const [id, poi] of entries) {
+    const exact = poi.queue_count * ratio;
+    const base = Math.floor(exact);
+    remainders.push({ id, fraction: exact - base, original: poi.queue_count });
+    poi.queue_count = base;
+    assigned += base;
+  }
+  remainders.sort((a, b) => b.fraction - a.fraction || (a.id < b.id ? -1 : 1));
+  for (const item of remainders) {
+    if (assigned >= target) break;
+    if (pois[item.id].queue_count < item.original) {
+      pois[item.id].queue_count += 1;
+      assigned += 1;
+    }
+  }
+  for (const poi of Object.values(pois)) poi.queue = poi.queue_count; // P0 read compatibility.
+}
+
+function allocateInsideBudget(pois, budget) {
+  const ordered = Object.keys(pois).sort((a, b) => pois[b].crowd_ratio - pois[a].crowd_ratio || (a < b ? -1 : 1));
+  let remaining = budget;
+  while (remaining > 0) {
+    let assigned = 0;
+    for (const id of ordered) {
+      if (!remaining) break;
+      if (pois[id].inside_count < pois[id].capacity) {
+        pois[id].inside_count += 1;
+        remaining -= 1;
+        assigned += 1;
+      }
+    }
+    if (!assigned) break;
+  }
+}
+
 function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
   const graph = clone(sourceGraph);
   const initial = clone(sourceState);
@@ -28,9 +74,11 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
     const current = initial.poi_states[node.poi_id];
     const serviceRate = nonnegative(parameters.default_service_rate, 'default_service_rate');
     pois[node.poi_id] = {
-      queue: Math.max(0, Math.round(nonnegative(current.queue_min, `queue_min ${node.poi_id}`) * serviceRate)),
+      queue_count: Math.max(0, Math.round(nonnegative(current.queue_min, `queue_min ${node.poi_id}`) * serviceRate)),
+      inside_count: 0,
       capacity: nonnegative(parameters.default_poi_capacity, 'default_poi_capacity'),
       service_rate: serviceRate,
+      admission_rate: nonnegative(parameters.default_admission_rate, 'default_admission_rate'),
       is_open: current.open !== false,
       crowd_ratio: Number(current.crowd_ratio || 0)
     };
@@ -53,6 +101,16 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
     status: event.status || 'UNKNOWN',
     cancelled: event.cancelled === true
   }]));
+  const initialPopulation = Math.round(nonnegative(parameters.initial_park_population, 'initial_park_population'));
+  const queueFraction = nonnegative(parameters.initial_queue_fraction, 'initial_queue_fraction');
+  const insideFraction = nonnegative(parameters.initial_inside_fraction, 'initial_inside_fraction');
+  if (queueFraction + insideFraction > 1) throw new RangeError('initial POI fractions exceed park population');
+  // A provides DEMO queue minutes, not measured people counts. Scale their relative
+  // weights to a T4 population budget so the initial snapshot is conserved.
+  allocateQueueBudget(pois, Math.floor(initialPopulation * queueFraction));
+  allocateInsideBudget(pois, Math.floor(initialPopulation * insideFraction));
+  const queueing = Object.values(pois).reduce((sum, poi) => sum + poi.queue_count, 0);
+  const insidePoi = Object.values(pois).reduce((sum, poi) => sum + poi.inside_count, 0);
   const state = {
     graph_version: GRAPH_VERSION,
     schema_version: initial.schema_version || graph.schema_version || '0.1',
@@ -61,8 +119,13 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
     simulation_time: initial.timestamp,
     step_count: 0,
     environment: {
-      park_population: Math.round(nonnegative(parameters.initial_park_population, 'initial_park_population')),
+      park_population: initialPopulation,
+      initial_population: initialPopulation,
       arrivals_total: 0, departures_total: 0, weather: clone(initial.weather || {})
+    },
+    population_ledger: {
+      outside: 0, walking: initialPopulation - queueing - insidePoi,
+      queueing, inside_poi: insidePoi, resting: 0, attending_event: 0, exited_total: 0
     },
     pois, roads, events,
     visitor: {

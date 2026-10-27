@@ -94,8 +94,16 @@ A graph/state 快照（只读） + B scenario/parameter registry + seed
 
 ## 8. P0 已实现的具体约定（2026-10-27）
 
-`server/simulator/` 已提供独立状态、`p0.1` 参数注册、`P0_BASELINE/P0_LOW/P0_HIGH`、种子 RNG、5 分钟步长与精确时间事件。每步内部可分割为多个事件前后区间，事件按时间、固定优先级和 ID 排序；同一时刻先 OPEN/REOPEN 后 CLOSE，因此关闭最终生效。事件类型仅为 `ROAD_CLOSE/ROAD_REOPEN/POI_CLOSE/POI_OPEN`。所有流量和容量值是 T4 假设；初始等待分钟按假设服务率转换为等候人数，`default_poi_capacity` 暂作每区间服务数上限代理，并非场馆真实占用容量。
+P0 提交 `6fecaac` 提供独立状态、当时的 `p0.1` 参数注册、`P0_BASELINE/P0_LOW/P0_HIGH`、种子 RNG、5 分钟步长与精确时间事件。每步内部可分割为多个事件前后区间，事件按时间、固定优先级和 ID 排序；同一时刻先 OPEN/REOPEN 后 CLOSE，因此关闭最终生效。事件类型仅为 `ROAD_CLOSE/ROAD_REOPEN/POI_CLOSE/POI_OPEN`。P0 的容量曾暂作每区间服务数上限代理；以下 P1-A 规则取代该代理语义。
 
 P0 关闭 POI 的规则是：**从关闭时刻起新排队到达数为 0、服务数为 0、既有队列人数原样保留**；开放后再按参数恢复到达与服务。`Q_next=Q_before+arrivals-served` 每步强制校验。道路关闭只切换 `is_open`，不做拥堵速度模型或在途游客清退。环境人数由 `N_next=N_before+arrivals-departures` 计算，离园数截断到 `N_before+arrivals`。当前只有一个决策游客与聚合人数，没有为每个入园者建 agent；POI 到达流未与具体游客位置逐个绑定，因此 P0 保证各自账本守恒，完整空间人数守恒留待 P1。
 
 合法动作适配从当前仿真状态投影出无噪声的可见队列分钟、开放状态、道路可用性及单游客信息，调用 `buildLivePlannerScenario` 后直接调用 C 的 `getLegalActions`。不传未来事件、RNG 状态、园区人数或队列人数真值；适配器的营业时间、停留时长等仍是原有 DEMO/T4 默认。P0 不使用 A 的 `forecastSimulator` 作为环境转移，也不输出 episode、reward、缺测或训练数据。新增测试直接检查 C 的拒绝与路线，不以 B 的重复规则替代。
+
+## 9. P1-A 聚合游客流量账本（2026-10-27）
+
+P1-A 保留一个 planner-facing 决策游客，另以 `population_ledger` 记录聚合群体：`outside`（本阶段不建有限外部人群池，步末为 0）、`walking`（园内移动及未进入其他设施的人数）、`queueing`、`inside_poi`、`resting=0`、`attending_event=0`、`exited_total`（累计离园，不算在园）。`park_population = walking + queueing + inside_poi + resting + attending_event`；累计守恒为 `initial_population + arrivals_total - departures_total = park_population`。A 的演示 `queue_min` 不是人数；初始化按 T4 服务率换算后，按 `initial_queue_fraction` 限定队列总预算、按 `initial_inside_fraction` 分配在内人数，剩余人数给 walking，避免初值中各 POI 队列总数超过在园人数。这是合成初值校准，不是实测反推。
+
+每个 POI 同时记录 `queue_count` 与 `inside_count`；旧 `queue` 字段只是与 `queue_count` 同步的 P0 读取兼容别名。`capacity` 现在表示 **同时在 POI 内的最大人数**，`admission_rate` 限制排队者进入 POI 的速度，`service_rate` 限制已经在内的游客完成游览并离开的速度，三者均为 T4 假设。各区间按如下次序转移：外部抽样入园→walking；仅从 walking 抽样离园→`exited_total`；仅从 walking 向开放 POI 分配到达者→`queue_count`；`admitted=min(queue_count, capacity-inside_count, floor(admission_rate×Δt))`；`completed=min(inside_count+admitted, floor(service_rate×Δt))`；完成者回到 walking。每个变化都同时更新 ledger 与 POI 分账，任何阶段都不能凭空增减在园人数。为避免同区间重复使用刚腾出的空间，入场人数在完成结算前按原有可用容量确定。
+
+关闭 POI 后，新的 walking→queue 为 0、queue→inside 为 0，原队列保留；已经在内的游客可按 `service_rate` 完成并回到 walking。重新开放后恢复到达与入场。道路开闭仍由 P0 事件控制，P1-A 不引入边上人数、拥堵速度或真实道路容量。`resting` 和 `attending_event` 只预留结构字段。随机分配使用同一有种子 RNG；参数版本升为 `p1a.1`，新增初始队列/在内比例、POI 到达比例和入场率，全部标 `T4 / ASSUMPTION`。仍不输出 reward、episode 或训练数据，不修改 C 的合法动作接口。

@@ -27,17 +27,37 @@ function applyEvent(state, event) {
 function validateInvariants(state, previousTime = null, populationLedger = null, legal = null) {
   if (state.graph_version !== GRAPH_VERSION) throw new Error('graph_version invariant failed');
   if (!Number.isSafeInteger(state.environment.park_population) || state.environment.park_population < 0) throw new Error('park population invariant failed');
+  const ledger = state.population_ledger;
+  const inPark = ['walking', 'queueing', 'inside_poi', 'resting', 'attending_event'];
+  for (const key of [...inPark, 'outside', 'exited_total']) {
+    if (!Number.isSafeInteger(ledger[key]) || ledger[key] < 0) throw new Error(`population ledger invalid: ${key}`);
+  }
+  if (inPark.reduce((sum, key) => sum + ledger[key], 0) !== state.environment.park_population) {
+    throw new Error('park population differs from in-park ledger');
+  }
+  if (state.environment.initial_population + state.environment.arrivals_total - state.environment.departures_total !== state.environment.park_population) {
+    throw new Error('cumulative park population conservation failed');
+  }
+  if (ledger.exited_total !== state.environment.departures_total) throw new Error('exited total differs from cumulative departures');
   if (previousTime !== null && Date.parse(state.simulation_time.replace(' ', 'T') + 'Z') <= Date.parse(previousTime.replace(' ', 'T') + 'Z')) {
     throw new Error('simulation time did not advance');
   }
   if (populationLedger && populationLedger.population_after !== populationLedger.population_before + populationLedger.arrivals - populationLedger.departures) {
     throw new Error('population conservation failed');
   }
+  let queueSum = 0, insideSum = 0;
   for (const [id, poi] of Object.entries(state.pois)) {
-    if (!Number.isSafeInteger(poi.queue) || poi.queue < 0 || !Number.isFinite(poi.capacity) || poi.capacity < 0 || !Number.isFinite(poi.service_rate) || poi.service_rate < 0) {
+    if (!Number.isSafeInteger(poi.queue_count) || poi.queue_count < 0 || poi.queue !== poi.queue_count
+      || !Number.isSafeInteger(poi.inside_count) || poi.inside_count < 0
+      || !Number.isFinite(poi.capacity) || poi.capacity < 0 || poi.inside_count > poi.capacity
+      || !Number.isFinite(poi.service_rate) || poi.service_rate < 0
+      || !Number.isFinite(poi.admission_rate) || poi.admission_rate < 0) {
       throw new Error(`POI invariant failed: ${id}`);
     }
+    queueSum += poi.queue_count;
+    insideSum += poi.inside_count;
   }
+  if (queueSum !== ledger.queueing || insideSum !== ledger.inside_poi) throw new Error('POI totals differ from population ledger');
   for (const [id, road] of Object.entries(state.roads)) {
     if (!Number.isFinite(road.base_travel_time_min) || road.base_travel_time_min < 0 || !Number.isFinite(road.speed_factor) || road.speed_factor <= 0) {
       throw new Error(`road invariant failed: ${id}`);
@@ -48,7 +68,8 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
       if (!state.roads[edgeId]?.is_open) throw new Error(`closed road in legal route: ${edgeId}`);
     }
   }
-  return { population: 'PASS', queue: 'PASS', closed_road: 'PASS', graph_version: 'PASS', time: 'PASS' };
+  return { population: 'PASS', queue: 'PASS', ledger: 'PASS', inside_capacity: 'PASS',
+    cumulative_population: 'PASS', closed_road: 'PASS', graph_version: 'PASS', time: 'PASS' };
 }
 
 function createSimulator({ initialGraph = provider.getScenicGraph(), initialState = provider.getState(), scenario = 'P0_BASELINE', seed = 42, events = [], rules = {} } = {}) {
@@ -72,21 +93,34 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
   function step() {
     const beforeTime = state.simulation_time;
     const populationBefore = state.environment.park_population;
-    const queueBefore = Object.values(state.pois).reduce((sum, poi) => sum + poi.queue, 0);
+    const walkingBefore = state.population_ledger.walking;
+    const queueBefore = state.population_ledger.queueing;
+    const insideBefore = state.population_ledger.inside_poi;
+    const poiFlows = Object.fromEntries(Object.entries(state.pois).map(([id, poi]) => [id, {
+      queue_before: poi.queue_count, inside_before: poi.inside_count, arrivals: 0,
+      admitted: 0, completed: 0, served: 0
+    }]));
     const schedule = clock.nextStep();
     let cursor = schedule.startMs;
-    let arrivals = 0, departures = 0, queueArrivals = 0, queueServed = 0;
+    let arrivals = 0, departures = 0, queueArrivals = 0, admitted = 0, completed = 0;
     const applied = [];
 
     for (const checkpoint of schedule.checkpoints) {
       const durationMin = (checkpoint.timeMs - cursor) / 60000;
       if (durationMin > 0) {
-        const population = advancePopulation(state.environment, durationMin, parameters, rng);
-        const queueLedger = advanceQueues(state.pois, durationMin, parameters, rng);
+        const population = advancePopulation(state.environment, durationMin, parameters, rng, state.population_ledger);
+        const queueLedger = advanceQueues(state.pois, state.population_ledger, durationMin, parameters, rng);
         arrivals += population.arrivals;
         departures += population.departures;
-        queueArrivals += Object.values(queueLedger).reduce((sum, row) => sum + row.arrivals, 0);
-        queueServed += Object.values(queueLedger).reduce((sum, row) => sum + row.served, 0);
+        for (const [id, row] of Object.entries(queueLedger)) {
+          queueArrivals += row.arrivals;
+          admitted += row.admitted;
+          completed += row.completed;
+          poiFlows[id].arrivals += row.arrivals;
+          poiFlows[id].admitted += row.admitted;
+          poiFlows[id].completed += row.completed;
+          poiFlows[id].served += row.admitted;
+        }
         state.visitor.remaining_time_min = Math.max(0, Math.round((state.visitor.remaining_time_min - durationMin) * 1000) / 1000);
         cursor = checkpoint.timeMs;
       }
@@ -95,14 +129,30 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     }
     state.step_count += 1;
     const population = { population_before: populationBefore, arrivals, departures, population_after: state.environment.park_population };
-    const queueAfter = Object.values(state.pois).reduce((sum, poi) => sum + poi.queue, 0);
-    if (queueAfter !== queueBefore + queueArrivals - queueServed) throw new Error('POI queue conservation failed');
+    const queueAfter = state.population_ledger.queueing;
+    const insideAfter = state.population_ledger.inside_poi;
+    const walkingAfter = state.population_ledger.walking;
+    if (queueAfter !== queueBefore + queueArrivals - admitted) throw new Error('POI queue conservation failed');
+    if (insideAfter !== insideBefore + admitted - completed) throw new Error('POI inside conservation failed');
+    if (walkingAfter !== walkingBefore + arrivals - departures - queueArrivals + completed) throw new Error('walking pool conservation failed');
+    for (const [id, row] of Object.entries(poiFlows)) {
+      row.queue_after = state.pois[id].queue_count;
+      row.inside_after = state.pois[id].inside_count;
+      if (row.queue_after !== row.queue_before + row.arrivals - row.admitted
+        || row.inside_after !== row.inside_before + row.admitted - row.completed) {
+        throw new Error(`POI flow conservation failed: ${id}`);
+      }
+    }
     const legal = evaluateLegalActions(graph, state, rules);
     const invariant_summary = validateInvariants(state, beforeTime, population, legal);
     return clone({
       timestamp: state.simulation_time,
       population,
-      poi_queue_summary: { queue_before: queueBefore, arrivals: queueArrivals, served: queueServed, queue_after: queueAfter },
+      poi_queue_summary: { queue_before: queueBefore, arrivals: queueArrivals, served: admitted,
+        admitted, completed, queue_after: queueAfter, inside_before: insideBefore, inside_after: insideAfter },
+      population_flow: { walking_before: walkingBefore, walking_after: walkingAfter,
+        walking_to_queue: queueArrivals, queue_to_inside: admitted, inside_to_walking: completed },
+      poi_flows: poiFlows,
       road_status_changes: applied.filter(event => event.event_type.startsWith('ROAD_')),
       poi_status_changes: applied.filter(event => event.event_type.startsWith('POI_')),
       legal_actions: legal.legal,
