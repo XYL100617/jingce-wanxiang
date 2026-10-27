@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = 'p1b.2';
+const VERSION = 'p1c.1';
 
 // Every number below is a broad T4 engineering assumption, not measured park data.
 const definitions = {
@@ -20,6 +20,7 @@ const definitions = {
   minimum_edge_travel_min: { value: 5, unit: 'min/edge; DEMO minimum' },
   travel_time_multiplier: { value: 1, unit: 'ratio; DEMO schematic edge time' },
   max_dispatch_groups_per_node: { value: 3, unit: 'aggregate cohorts/node/interval' },
+  exit_intent_rate: { range: [0.03, 0.08], unit: 'fraction of eligible node walkers per 5 min' },
   visitor_speed_range: { range: [0.7, 1.5], unit: 'm/s' },
   queue_arrival_range: { range: [0, 0.45], unit: 'visitors/min/poi' },
   arrival_multiplier: { value: 1, unit: 'ratio' },

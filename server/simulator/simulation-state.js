@@ -153,7 +153,11 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
       exit_node_ids: exitNodes,
       poi_node_map: poiNodeMap,
       node_walkers: Object.fromEntries(graph.nodes.map(node => [node.node_id, node.node_id === entryNodeId ? initialWalking : 0])),
-      transit_groups: [], next_group_id: 1
+      pending_exit_intent: Object.fromEntries(graph.nodes.map(node => [node.node_id, 0])),
+      blocked_exit_intent: Object.fromEntries(graph.nodes.map(node => [node.node_id, 0])),
+      transit_groups: [], next_group_id: 1,
+      exit_intent_created_total: 0, exit_completed_total: 0,
+      exit_arrivals_completed_total: 0, exit_blocked_attempts_total: 0
     },
     pois, roads, events,
     visitor: {

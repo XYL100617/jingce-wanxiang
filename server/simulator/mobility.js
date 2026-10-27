@@ -15,6 +15,107 @@ function routeToNode(planner, startNodeId, goalNodeId, departureTime) {
     startNodeId, goalNodeId, departureTime });
 }
 
+function chooseReachableExit(planner, mobility, originNodeId, departureTime) {
+  let best = null;
+  for (const exitNodeId of mobility.exit_node_ids) {
+    const route = routeToNode(planner, originNodeId, exitNodeId, departureTime);
+    if (!route.reachable) continue;
+    if (!best || route.travel_time_min < best.route.travel_time_min) {
+      best = { exit_node_id: exitNodeId, route };
+    }
+  }
+  return best;
+}
+
+function summarizeExitLedger(state) {
+  const mobility = state.mobility_ledger;
+  return {
+    exit_intent_created: mobility.exit_intent_created_total,
+    exit_completed: mobility.exit_completed_total,
+    exit_in_transit: mobility.transit_groups
+      .filter(group => group.purpose === 'EXIT_TRAVEL').reduce((sum, group) => sum + group.count, 0),
+    exit_pending_at_node: Object.values(mobility.pending_exit_intent).reduce((sum, count) => sum + count, 0),
+    exit_blocked: Object.values(mobility.blocked_exit_intent).reduce((sum, count) => sum + count, 0)
+  };
+}
+
+function completeExit(state, count, exitNodeId, fromTransit = false) {
+  const mobility = state.mobility_ledger;
+  if (!mobility.exit_node_ids.includes(exitNodeId)) throw new Error(`invalid exit node: ${exitNodeId}`);
+  if (!Number.isSafeInteger(count) || count <= 0) throw new RangeError('exit count must be positive');
+  if (!fromTransit) {
+    if (mobility.pending_exit_intent[exitNodeId] < count || mobility.node_walkers[exitNodeId] < count) {
+      throw new Error('exit exceeds pending node walkers');
+    }
+    mobility.pending_exit_intent[exitNodeId] -= count;
+    mobility.blocked_exit_intent[exitNodeId] = 0;
+    mobility.node_walkers[exitNodeId] -= count;
+  } else mobility.exit_arrivals_completed_total += count;
+  mobility.exit_completed_total += count;
+  state.population_ledger.walking -= count;
+  state.population_ledger.exited_total += count;
+  state.environment.park_population -= count;
+  state.environment.departures_total += count;
+}
+
+function advanceExitIntents(graph, state, durationMin, parameters, rng, departureTime,
+  blockedNodes = new Set()) {
+  const mobility = state.mobility_ledger;
+  const planner = plannerSnapshot(graph, state);
+  const events = { exit_intent_created: 0, exit_departures_at_gate: 0,
+    exit_blocked: 0, exit_blocked_nodes: [], exit_dispatches: [], exit_completions: [] };
+  for (const originNodeId of Object.keys(mobility.node_walkers)) {
+    if (blockedNodes.has(originNodeId)) continue;
+    const eligible = mobility.node_walkers[originNodeId] - mobility.pending_exit_intent[originNodeId];
+    if (eligible < 0) throw new Error(`pending exit exceeds node walkers: ${originNodeId}`);
+    if (eligible) {
+      const created = Math.min(eligible, stochasticCount(
+        eligible * parameters.exit_intent_rate / parameters.simulation_step_min, durationMin, rng));
+      mobility.pending_exit_intent[originNodeId] += created;
+      mobility.exit_intent_created_total += created;
+      events.exit_intent_created += created;
+    }
+    const pending = mobility.pending_exit_intent[originNodeId];
+    if (!pending) continue;
+    const chosen = chooseReachableExit(planner, mobility, originNodeId, departureTime);
+    if (!chosen) {
+      events.exit_blocked += pending;
+      events.exit_blocked_nodes.push(originNodeId);
+      mobility.blocked_exit_intent[originNodeId] = pending;
+      mobility.exit_blocked_attempts_total += pending;
+      continue;
+    }
+    mobility.blocked_exit_intent[originNodeId] = 0;
+    if (originNodeId === chosen.exit_node_id) {
+      completeExit(state, pending, originNodeId);
+      events.exit_departures_at_gate += pending;
+      events.exit_completions.push({ count: pending, origin_node_id: originNodeId,
+        exit_node_id: originNodeId, from_transit: false });
+      continue;
+    }
+    const route = chosen.route;
+    if (!route.edge_sequence.length || route.edge_sequence.some(id => !state.roads[id]?.is_open)) {
+      throw new Error('C exit route is empty or enters a closed edge');
+    }
+    const group = {
+      group_id: `cohort_${String(mobility.next_group_id++).padStart(6, '0')}`,
+      purpose: 'EXIT_TRAVEL', count: pending, origin_node_id: originNodeId,
+      target_exit_id: chosen.exit_node_id, destination_node_id: chosen.exit_node_id,
+      path: { node_sequence: route.node_sequence, edge_sequence: route.edge_sequence },
+      path_index: 0, current_node_id: originNodeId,
+      current_edge_id: null, edge_entered_at: null, remaining_edge_min: 0,
+      departed_at: departureTime
+    };
+    mobility.pending_exit_intent[originNodeId] = 0;
+    mobility.node_walkers[originNodeId] -= pending;
+    mobility.transit_groups.push(group);
+    events.exit_dispatches.push({ group_id: group.group_id, count: pending,
+      origin_node_id: originNodeId, target_exit_id: chosen.exit_node_id,
+      path: group.path, departed_at: departureTime });
+  }
+  return events;
+}
+
 function dispatchToPoi({ graph, state, originNodeId, poiId, count, departureTime = state.simulation_time, planner = null }) {
   const mobility = state.mobility_ledger;
   if (!Number.isSafeInteger(count) || count < 0) throw new RangeError('dispatch count must be a nonnegative integer');
@@ -30,7 +131,7 @@ function dispatchToPoi({ graph, state, originNodeId, poiId, count, departureTime
   for (const edgeId of route.edge_sequence) if (!state.roads[edgeId]?.is_open) throw new Error(`C route uses closed edge: ${edgeId}`);
   const group = {
     group_id: `cohort_${String(mobility.next_group_id++).padStart(6, '0')}`,
-    count, origin_node_id: originNodeId, destination_poi_id: poiId,
+    purpose: 'POI_TRAVEL', count, origin_node_id: originNodeId, destination_poi_id: poiId,
     destination_node_id: destinationNodeId,
     path: { node_sequence: route.node_sequence, edge_sequence: route.edge_sequence },
     path_index: 0, current_node_id: originNodeId,
@@ -49,7 +150,7 @@ function dispatchNodeWalkers(graph, state, durationMin, parameters, rng, departu
   const dispatched = [];
   for (const originNodeId of Object.keys(mobility.node_walkers)) {
     if (blockedNodes.has(originNodeId)) continue;
-    const available = mobility.node_walkers[originNodeId];
+    const available = mobility.node_walkers[originNodeId] - mobility.pending_exit_intent[originNodeId];
     const targets = openPois.filter(id => mobility.poi_node_map[id] !== originNodeId);
     if (!available || !targets.length) continue;
     const desired = Math.min(available, stochasticCount(
@@ -82,7 +183,8 @@ function advanceTransit(graph, state, durationMin, parameters) {
   const planner = plannerSnapshot(graph, state);
   const segmentStartMs = parseTime(state.simulation_time, 'simulation time');
   const events = { arrivals: {}, arrived_total: 0, closed_poi_returns: 0, closed_poi_nodes: [],
-    edge_entries: [], reroutes: [], blocked: [] };
+    edge_entries: [], reroutes: [], blocked: [], exit_arrivals_completed: 0,
+    exit_blocked: 0, exit_blocked_nodes: [], exit_completions: [] };
   const survivors = [];
   for (const group of mobility.transit_groups) {
     let remaining = durationMin;
@@ -93,9 +195,33 @@ function advanceTransit(graph, state, durationMin, parameters) {
         if (!nextEdgeId) throw new Error(`transit group has no next edge: ${group.group_id}`);
         if (!state.roads[nextEdgeId]?.is_open) {
           const now = stamp(segmentStartMs + (durationMin - remaining) * 60000);
-          const alternative = routeToNode(planner, group.current_node_id, group.destination_node_id, now);
+          let alternative = routeToNode(planner, group.current_node_id, group.destination_node_id, now);
+          if (group.purpose === 'EXIT_TRAVEL' && !alternative.reachable) {
+            const replacement = chooseReachableExit(planner, mobility, group.current_node_id, now);
+            if (replacement) {
+              group.target_exit_id = replacement.exit_node_id;
+              group.destination_node_id = replacement.exit_node_id;
+              alternative = replacement.route;
+            }
+          }
+          if (group.purpose === 'EXIT_TRAVEL' && alternative.reachable && !alternative.edge_sequence.length) {
+            completeExit(state, group.count, group.current_node_id, true);
+            events.exit_arrivals_completed += group.count;
+            events.exit_completions.push({ group_id: group.group_id, count: group.count,
+              origin_node_id: group.origin_node_id, exit_node_id: group.current_node_id,
+              from_transit: true });
+            finished = true;
+            break;
+          }
           if (!alternative.reachable || !alternative.edge_sequence.length) {
             mobility.node_walkers[group.current_node_id] += group.count;
+            if (group.purpose === 'EXIT_TRAVEL') {
+              mobility.pending_exit_intent[group.current_node_id] += group.count;
+              mobility.blocked_exit_intent[group.current_node_id] += group.count;
+              mobility.exit_blocked_attempts_total += group.count;
+              events.exit_blocked += group.count;
+              events.exit_blocked_nodes.push(group.current_node_id);
+            }
             events.blocked.push({ group_id: group.group_id, count: group.count, node_id: group.current_node_id });
             finished = true;
             break;
@@ -121,8 +247,14 @@ function advanceTransit(graph, state, durationMin, parameters) {
       group.current_edge_id = null;
       group.edge_entered_at = null;
       if (group.current_node_id === group.destination_node_id) {
-        const poi = state.pois[group.destination_poi_id];
-        if (poi.is_open) {
+        const poi = group.purpose === 'POI_TRAVEL' ? state.pois[group.destination_poi_id] : null;
+        if (group.purpose === 'EXIT_TRAVEL') {
+          completeExit(state, group.count, group.current_node_id, true);
+          events.exit_arrivals_completed += group.count;
+          events.exit_completions.push({ group_id: group.group_id, count: group.count,
+            origin_node_id: group.origin_node_id, exit_node_id: group.current_node_id,
+            from_transit: true });
+        } else if (poi.is_open) {
           poi.queue_count += group.count;
           poi.queue = poi.queue_count;
           state.population_ledger.walking -= group.count;
@@ -143,4 +275,6 @@ function advanceTransit(graph, state, durationMin, parameters) {
   return events;
 }
 
-module.exports = { plannerSnapshot, routeToNode, dispatchToPoi, dispatchNodeWalkers, edgeTravelMin, advanceTransit };
+module.exports = { plannerSnapshot, routeToNode, chooseReachableExit, summarizeExitLedger,
+  completeExit, advanceExitIntents,
+  dispatchToPoi, dispatchNodeWalkers, edgeTravelMin, advanceTransit };

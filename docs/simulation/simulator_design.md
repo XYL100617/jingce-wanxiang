@@ -125,3 +125,13 @@ P1-A 的 `advanceQueues` 是历史单元测试使用的即时服务辅助函数�
 `visit_duration_min` 借用 C live adapter 的 DEMO 分类默认语义：`view=15 min`、`show=30 min`、其他 `=22 min`；这些数值在 B 参数注册中集中定义，`unit=min`、`source_tier=T4`、`parameter_basis=ASSUMPTION`，不是现场实测游览时长。`capacity` 是同时在内的人数上限；`admission_rate` 控制 queue 入内吞吐；`service_rate` 控制已达到最早离开时间的在内群组离开吞吐；驻留时长单独由 `visit_duration_min` 决定。入场受区间开始时的空余容量、队列人数和入场吞吐共同限制，本区间完成者腾出的空间不立即重复使用。
 
 POI 关闭后不接收新的 walking→queue，原队列保留并暂停入场；关闭前已在内的群组继续计时，到期可正常离开并回到对应 POI 的 DEMO 节点。重新开放后，队列才恢复入场。每步校验 `inside_poi=sum(POI.inside_count)=sum(inside_groups.count)`、`queueing=sum(POI.queue_count)`，以及 `park_population=node_walkers+transit+queueing+inside_poi+resting+attending_event`。`resting` 与 `attending_event` 当前仍为 0。
+
+## 11. P1-C 主动返程闭环（2026-10-27）
+
+只允许 `node_walkers` 中尚无离园意图的人按有种子 RNG 与 `exit_intent_rate` 产生聚合意图；该参数为 `T4 / ASSUMPTION`，单位是每 5 分钟合格节点人数比例，参数版本为 `p1c.1`。`pending_exit_intent[node_id]` 是节点行走人数的子集，不能重复计算在园人口；queue、inside 和 transit 群组不会瞬间离园。正在 POI 内的游客须到期离开并回到节点后，才有机会产生离园意图。P1-C 仿真调度将原本从园门人数桶按外生 `departure_rate` 扣人的步骤设为 0，所有离园统一由意图驱动。
+
+每个有意图的节点群组对 A 图中带 `PARK_EXIT` 角色的园门逐一调用 C `findPath`，排除不可达者，选择 C 返回的 `travel_time_min` 最低者；同成本按 A 图中的园门顺序稳定选择。四个园门在当前 DEMO 图中为 `gate / southgate / westgate / eastgate`，均可进出，但不代表现场规则。若身处出口节点，产生意图后直接离园；若在非出口节点，则进入 `purpose=EXIT_TRAVEL` 的聚合在途群组，沿实际 C 路径逐段移动，进入与移动都不改变在园人口。只有真正到达出口节点时，才增加 `departures_total/exited_total` 并减少 `park_population/walking`。
+
+已进入的道路关闭后仍可走完该段；在下一节点遇到后续封路时，先向原出口重新调用 C 寻路，原出口不可达则重评所有出口并可改选。全部出口不可达时，群组留在当前节点并转为 `pending_exit_intent`；初次选路失败亦如此，下个仿真步重试，不允许瞬移或强制离园。
+
+主动离园意图为持久状态，本版不取消。每步从真实节点待离园人数和 `EXIT_TRAVEL` 在途群组派生互斥账本：`exit_intent_created = exit_completed + exit_in_transit + exit_pending_at_node`。`exit_completed` 同时包含园门节点直接离园与返程群组抵达园门后的离园；`exit_arrivals_completed_total` 仅统计后者，因此不能单独用它解释全部已完成意图。`blocked_exit_intent[node_id]` 是当前不可达出口的待离园人数，逐节点不超过 `pending_exit_intent[node_id]`，故 `exit_blocked ≤ exit_pending_at_node`，不得重复加进闭合等式。`exit_blocked_attempts_total` 另累计受阻尝试次数，可能对同一群组重复计数。节点待离园人数本身是 `node_walkers` 子集，不在园区人口中重复加和。`mobility_flow.exit_ledger` 给出每步闭合快照；仍使用示意道路时间与 DEMO POI 节点，不增加逐人 agent、拥堵、疲劳离园或天气离园。

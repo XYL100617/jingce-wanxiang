@@ -7,7 +7,7 @@ const { EventClock } = require('./event-clock');
 const { createSimulationState, clone, GRAPH_VERSION } = require('./simulation-state');
 const { advancePopulation, advancePoiService } = require('./dynamics');
 const { evaluateLegalActions } = require('./legal-action-adapter');
-const { dispatchNodeWalkers, advanceTransit } = require('./mobility');
+const { dispatchNodeWalkers, advanceTransit, advanceExitIntents, summarizeExitLedger } = require('./mobility');
 const { toMillis } = require('../planner/time');
 
 function validateEvents(events, graph) {
@@ -52,15 +52,31 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
   let nodeTotal = 0, transitTotal = 0;
   for (const [id, count] of Object.entries(mobility.node_walkers)) {
     if (!nodeIds.has(id) || !Number.isSafeInteger(count) || count < 0) throw new Error(`invalid node walkers: ${id}`);
+    if (!Number.isSafeInteger(mobility.pending_exit_intent[id]) || mobility.pending_exit_intent[id] < 0
+      || mobility.pending_exit_intent[id] > count
+      || !Number.isSafeInteger(mobility.blocked_exit_intent[id]) || mobility.blocked_exit_intent[id] < 0
+      || mobility.blocked_exit_intent[id] > mobility.pending_exit_intent[id]) {
+      throw new Error(`invalid pending or blocked exit intent: ${id}`);
+    }
     nodeTotal += count;
   }
+  if (Object.keys(mobility.pending_exit_intent).length !== Object.keys(mobility.node_walkers).length
+    || Object.keys(mobility.blocked_exit_intent).length !== Object.keys(mobility.node_walkers).length
+    || !['exit_intent_created_total', 'exit_completed_total', 'exit_arrivals_completed_total',
+      'exit_blocked_attempts_total']
+      .every(key => Number.isSafeInteger(mobility[key]) && mobility[key] >= 0)
+    || mobility.exit_arrivals_completed_total > mobility.exit_completed_total
+    || mobility.exit_completed_total !== ledger.exited_total) throw new Error('exit intent ledger invalid');
   for (const [poiId, nodeId] of Object.entries(mobility.poi_node_map)) {
     if (!state.pois[poiId] || !nodeIds.has(nodeId)) throw new Error(`invalid POI node mapping: ${poiId}`);
   }
   for (const group of mobility.transit_groups) {
     const { node_sequence: nodes, edge_sequence: edges } = group.path;
+    const validDestination = group.purpose === 'EXIT_TRAVEL'
+      ? mobility.exit_node_ids.includes(group.target_exit_id) && group.target_exit_id === group.destination_node_id
+      : group.purpose === 'POI_TRAVEL' && !!state.pois[group.destination_poi_id];
     if (!Number.isSafeInteger(group.count) || group.count <= 0 || !nodeIds.has(group.current_node_id)
-      || !nodeIds.has(group.destination_node_id) || !state.pois[group.destination_poi_id]
+      || !nodeIds.has(group.destination_node_id) || !validDestination
       || !Array.isArray(nodes) || !Array.isArray(edges) || nodes.length !== edges.length + 1
       || nodes.at(-1) !== group.destination_node_id || !Number.isInteger(group.path_index)
       || group.path_index < 0 || group.path_index >= edges.length
@@ -84,6 +100,10 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
     transitTotal += group.count;
   }
   if (nodeTotal + transitTotal !== ledger.walking) throw new Error('spatial walking ledger differs from population ledger');
+  const exitLedger = summarizeExitLedger(state);
+  if (exitLedger.exit_intent_created !== exitLedger.exit_completed + exitLedger.exit_in_transit
+      + exitLedger.exit_pending_at_node
+    || exitLedger.exit_blocked > exitLedger.exit_pending_at_node) throw new Error('exit intent conservation failed');
   if (previousTime !== null && Date.parse(state.simulation_time.replace(' ', 'T') + 'Z') <= Date.parse(previousTime.replace(' ', 'T') + 'Z')) {
     throw new Error('simulation time did not advance');
   }
@@ -131,6 +151,7 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
   const rng = new SeededRNG(seed);
   const selectedScenario = resolveScenario(scenario);
   const parameters = resolveParameters(selectedScenario, rng);
+  const arrivalOnlyParameters = Object.freeze({ ...parameters, departure_rate: 0 });
   const { graph, state } = createSimulationState(sourceGraph, sourceState, selectedScenario, parameters);
   const clock = new EventClock(state.simulation_time, parameters.simulation_step_min, sourceEvents);
   validateEvents(sourceEvents, graph);
@@ -159,18 +180,21 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     let arrivals = 0, departures = 0, queueArrivals = 0, admitted = 0, completed = 0;
     const applied = [];
     const mobilityEvents = { dispatched: [], edge_entries: [], reroutes: [], blocked: [],
-      arrived_total: 0, closed_poi_returns: 0, closed_poi_nodes: [] };
+      arrived_total: 0, closed_poi_returns: 0, closed_poi_nodes: [],
+      exit_intent_created: 0, exit_arrivals_completed: 0, exit_departures_at_gate: 0,
+      exit_blocked: 0, exit_dispatches: [], exit_completions: [] };
+    const blockedExitNodes = new Set();
 
     for (const checkpoint of schedule.checkpoints) {
       const durationMin = (checkpoint.timeMs - cursor) / 60000;
       if (durationMin > 0) {
-        const population = advancePopulation(state.environment, durationMin, parameters, rng,
+        const population = advancePopulation(state.environment, durationMin, arrivalOnlyParameters, rng,
           state.population_ledger, state.mobility_ledger);
         const queueLedger = advancePoiService(state.pois, state.population_ledger,
           state.mobility_ledger, durationMin, state.simulation_time);
         const transit = advanceTransit(graph, state, durationMin, parameters);
         arrivals += population.arrivals;
-        departures += population.departures;
+        departures += population.departures + transit.exit_arrivals_completed;
         for (const [id, row] of Object.entries(queueLedger)) {
           admitted += row.admitted;
           completed += row.completed;
@@ -189,12 +213,25 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
         mobilityEvents.edge_entries.push(...transit.edge_entries);
         mobilityEvents.reroutes.push(...transit.reroutes);
         mobilityEvents.blocked.push(...transit.blocked);
+        mobilityEvents.exit_arrivals_completed += transit.exit_arrivals_completed;
+        mobilityEvents.exit_blocked += transit.exit_blocked;
+        mobilityEvents.exit_completions.push(...transit.exit_completions);
+        for (const id of transit.exit_blocked_nodes) blockedExitNodes.add(id);
         state.visitor.remaining_time_min = Math.max(0, Math.round((state.visitor.remaining_time_min - durationMin) * 1000) / 1000);
         cursor = checkpoint.timeMs;
       }
       state.simulation_time = checkpoint.timestamp;
       for (const event of checkpoint.events) applied.push(applyEvent(state, event));
       if (durationMin > 0) {
+        const exitFlow = advanceExitIntents(graph, state, durationMin, parameters,
+          rng, checkpoint.timestamp, blockedExitNodes);
+        departures += exitFlow.exit_departures_at_gate;
+        mobilityEvents.exit_intent_created += exitFlow.exit_intent_created;
+        mobilityEvents.exit_departures_at_gate += exitFlow.exit_departures_at_gate;
+        mobilityEvents.exit_blocked += exitFlow.exit_blocked;
+        mobilityEvents.exit_dispatches.push(...exitFlow.exit_dispatches);
+        mobilityEvents.exit_completions.push(...exitFlow.exit_completions);
+        for (const id of exitFlow.exit_blocked_nodes) blockedExitNodes.add(id);
         const blockedNodes = new Set([...mobilityEvents.blocked.map(item => item.node_id),
           ...mobilityEvents.closed_poi_nodes]);
         mobilityEvents.dispatched.push(...dispatchNodeWalkers(graph, state, durationMin, parameters,
@@ -229,7 +266,8 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
       population_flow: { walking_before: walkingBefore, walking_after: walkingAfter,
         walking_to_queue: queueArrivals, queue_to_inside: admitted, inside_to_walking: completed },
       mobility_flow: { node_before: nodeBefore, transit_before: transitBefore,
-        node_after: nodeAfter, transit_after: transitAfter, ...mobilityEvents },
+        node_after: nodeAfter, transit_after: transitAfter, ...mobilityEvents,
+        exit_ledger: summarizeExitLedger(state) },
       poi_flows: poiFlows,
       road_status_changes: applied.filter(event => event.event_type.startsWith('ROAD_')),
       poi_status_changes: applied.filter(event => event.event_type.startsWith('POI_')),
@@ -247,6 +285,7 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
   return {
     step, runSteps,
     getState: () => clone(state),
+    getExitLedger: () => clone(summarizeExitLedger(state)),
     getGraph: () => clone(graph),
     getLegalActions: getLegalActionsSnapshot,
     getMetadata: () => ({ graph_version: GRAPH_VERSION, scenario_id: scenario, seed, parameter_version: VERSION, synthetic: true, source_tier: 'T4' }),
