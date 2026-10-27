@@ -1,0 +1,93 @@
+# B 任务三：仿真数据工厂设计（仅设计，未实现）
+
+状态：设计草案；2026-10-27；`graph_version=1.0`，`operation_mode=DEMO`。本文所有未取得现场或运营证据的动力学、参数和访客特征均为 `T4 / synthetic / ASSUMPTION`。本轮不生成 episode，不训练模型。A 维护权威图、状态和预测接口；C 维护合法动作、路径和规划约束；B 只维护隔离的仿真状态、环境动力学、游客行为与合成数据质量。T1 暂无，T2 为 7 个独立网页的 24 条字段证据，T3 当前不开展；不能用 T2/T4 推断真实排队和真实步行安全。
+
+## 1. 目标、边界和第一版结构
+
+数据工厂应对同一 `scenario + seed + graph_version + parameter_version` 生成可复核的合成轨迹，保留每一步的环境真值、游客真值、可观测数据、C 的合法动作和转移结果。输出只用于 DEMO、测试、算法研究和后续训练，不能解释为景区实测准确率。
+
+```text
+A graph/state 快照（只读） + B scenario/parameter registry + seed
+  → B isolated simulation state / event priority queue
+  → B population + POI queue + road + show + visitor transitions
+  → B observation generator（噪声、缺失、延迟）
+  → C read-only legal-actions adapter（基于可观测状态及合法预测）
+  → B visitor policy / C planner proposal → chosen action
+  → B reward + invariant checks + episode writer（未来模块）
+  → B→A 合成轨迹、质量报告、可选训练样本
+```
+
+仿真副本不得调用 `stateProvider.setState`、`setLegacyState` 或 `/api/v1/scenario-event` 写回服务运行状态。A 的 `getScenicGraph()`、`getState()` 可作为只读起点，但原始图是 45 node / 68 edge 的 DEMO 图；68 条道路为 `visual_only / REFERENCE_ONLY` 且 `verified_walkable=UNKNOWN`。POI `node_id` 仅为 DEMO 到达代理点；四园门可进出仅是 DEMO 规则。节点 `capacity`、道路距离与耗时不可当作实测量。
+
+## 2. 时间与状态模型
+
+内部网格 `internal_step=5 min`，统一记录带时区的绝对时间与对应本地营业日；现有接口的 `YYYY-MM-DD HH:mm:ss` 由现有 `parseTime` 按 UTC 解释，未来适配必须显式转换，禁止无说明地混用北京时间。事件队列按 `(timestamp, priority, event_id)` 稳定排序；每步推进到 `min(下一个5分钟边界, 下一个事件时间, 结束时间)`，先结算上一段的流量，再应用该时刻事件，再生成观测与决策。例：10:10→10:12 演出开始→10:15。边界约定 `[start,end)`；同一时刻的封闭与入边冲突优先执行封闭，已在边上的访客按单列的安全处理规则处理。对外可聚合为 10 分钟，但不能丢掉精确事件及守恒流水。
+
+`EnvironmentLatentState`（完整真值，仅工厂内部和监督目标可见）：
+
+| 字段 | 含义与约束 | 当前依据 |
+| --- | --- | --- |
+| `simulation_time`, `graph_version`, `scenario_id` | 时间、图和场景身份；快照版本不可在单步暗变 | A 快照 + 设计 |
+| `weather` | 天气类别及模拟影响因子；`current_state.weather` 是演示初值，`rain` 单位未核实 | T4 |
+| `park_population`, `arrival_count`, `departure_count` | 在园人数及本区间入离园人数，非负整数 | T4，现有状态没有 |
+| `poi_state[poi_id]` | 开放、服务率、容量、停留人数、到达/完成计数 | ID 来自 A，数值 T4 |
+| `queue_state[poi_id]` | 等候人数及守恒流水；`queue_min` 由人数/服务能力派生 | T4；A 当前只有演示等待分钟 |
+| `road_state[edge_id]` | 封闭、恢复、边上人数、基速和有效速度 | ID/演示基时来自 A，其余 T4 |
+| `event_state[event_id]` | 预到场、入场、运行、结束、散场及容量 | A 有部分演示事件；过程 T4 |
+| `visitors[visitor_id]` | 多访客状态与位置、行为 | T4；A 当前仅一个共享访客 |
+
+`VisitorLatentState` 至少含 `visitor_id`、`current_node_id`、`edge_progress`（在途时）、`walking_speed`、`preference`、`remaining_time`、`fatigue`、`rest_state`、`plan_acceptance`、`deviation_probability`、`early_exit_probability`、`visited_poi_ids`、`attended_event_ids`、`current_action`、`entry_time` 与 `exit_time`。除 ID 命名空间和 A 的演示初值外，这些人群属性均标为 T4；不把账号 UUID 当成仿真 `visitor_id`。多游客同时在园，决策可按个体推进，环境流量统一结算。
+
+## 3. 环境转移设计
+
+**园区守恒**：令 `N_t` 为在园人数，`A_t` 为有效入园人数，`D_t` 为有效离园人数：`N_(t+Δ)=N_t+A_t-D_t`，其中 `0≤D_t≤N_t+A_t`。内部位置分布之和须等于 `N`，在边上的人计入一次；演出入场和散场只是园内位置迁移，不改变 `N`。出入口 DEMO 允许进出，真实门禁容量未知。
+
+**POI 排队守恒**：`Q_(i,t+Δ)=Q_(i,t)+A_(i,t)-S_(i,t)-L_(i,t)≥0`；`L` 是明示的弃排/转移人数，不得隐式丢失。`S≤Q+A`，`S≤floor(service_rate_i × Δ)`，同时受 `open_i`、`capacity_i - occupancy_i`、演出入场窗限制；关闭时新到达者被拒绝或改道，`S=0`（若需清场，另记离开流水）。提供给 A/C 的 `queue_min` 是 `Q/service_rate` 的有界估计，服务率为 0 时返回 UNKNOWN/不可服务，不能返回伪造的 0。
+
+**路网与速度**：边有效速度可取 `v=max(v_min, min(v_visitor,v_base) × f_crowd(density) × f_weather(weather))`，`travel_time=length/v`；封闭边禁止新进入并通知 C 的 `road_states[edge_id].available=false`，恢复事件之后才可再次进入。拥挤、天气和个体速度因子应有宽范围且可追踪；图中 `distance_m/base_travel_time_min` 是示意估计，不可用于现实安全结论。若游客已在封闭边，需单独定义可完成通过、原路撤回或强制中止的事件策略与计数。
+
+**演出**：`UPCOMING → ENTRY_OPEN → RUNNING → ENDED → RELEASING`；预到场按游客行为流进入候场区，入场数受窗口及容量约束。取消与改时作为精确时间事件。结束时把参与者按出口/后续目标分配到相邻节点和道路，造成短时散场波峰；人数从演出占用转移，不能凭空增加。`show-1` 是演示事件 ID，不等同任何未经证据绑定的公开演出名称。
+
+**游客转移**：每次决策先以可观测状态构造 C 输入，取得 `legal` / `rejected`；游客策略只从 `legal` 中选择，记录计划建议、接受/偏离、行动耗时、在途进度与结果。C 的 `stepByRules` 可作单游客约束与账本参考，但它仅推进一个游客副本、使用预测排队且不会守恒全园流量；环境真实转移须由 B 的统一流水结算。突发事件后重取合法动作并触发 C `replan`，不能继续执行已失效动作。`WAIT` 和 `EXIT` 也是动作；当前无独立 `WALK` 动作，步行包含在到目标动作的 route 中。
+
+## 4. 参数注册、场景与随机性
+
+未来 registry 以 `parameter_version` 锁定，字段含 `name/unit/value_or_range/source_tier/parameter_basis/evidence_id/applicability/validity/owner`。没有证据时用 **宽范围** 而非貌似精确的单值，例如人流强度、每 POI 服务率、到达分布、速度和天气影响统一由配置范围采样，`source_tier=T4`、`parameter_basis=ASSUMPTION`。图节点 `capacity` 仅可作为带假设标签的 DEMO 初值，不声称现场容量。
+
+场景维度：客流 `LOW/MEDIUM/HIGH/PEAK`；日期 `WEEKDAY/WEEKEND/HOLIDAY`；天气 `CLEAR/RAIN/HOT`；游客速度 `SLOW/NORMAL/FAST`；游览时长 `SHORT/MEDIUM/LONG`；异常 `ROAD_CLOSURE/ROAD_SLOWDOWN/POI_CLOSURE/SHOW_CHANGE/QUEUE_SPIKE/SENSOR_MISSING/POSITION_NOISE`。组合必须先过容量、时间窗和可达性校验。`QUEUE_SPIKE` 在未来应由到达/服务流产生或明确记录外生流量，不得只在 `queue_min` 上凭空加分钟。
+
+每次运行至少记录 `scenario_id, seed, graph_version, simulator_version, parameter_version, start_time, end_time`，再记录图/参数内容哈希、代码修订、RNG 算法版本、子流分配。用有种子的伪随机数及固定抽样顺序；按 `population/weather/visitor/observation` 分离子流，避免新增一个传感器改变客流轨迹。相同输入版本应生成相同结果，输出可用哈希回归验证。当前 `scenarioEngine`、`forecastSimulator`、`stateProvider`、`planner` 均无 seed API；`forecastSimulator` 对同样输入是确定性规则预测，但不是种子仿真。
+
+## 5. 观测与预测分离
+
+`Observation_t` 只由在 `t` 已可获取的真值生成，包含 `observed_queue`、`observed_crowd`、`observed_road_state`、`observed_weather`、`observed_position`，每字段带 `observed_at`、`available_at`、`source_tier`、`quality`、`missing_mask`。噪声、缺失、延迟各用独立随机子流；缺失保持 `null/UNKNOWN`，不可填入 latent 真值。延迟值按 `available_at≤decision_time` 的队列交付。C 收到的 `ScenicState`/`EnvironmentForecast` 是从当前及历史观测映射的规划视图；A 的未来预测也只可基于决策时已知信息。为离线监督保留 `latent_state_t` 与 `next_latent_state` 在隔离的目标通道，不进入策略或预测输入。
+
+## 6. Episode 草案、奖励与终止
+
+以下只是未来输出草案，不是现有 `b-planner.schema.json` 的正式契约：
+
+```json
+{
+  "episode_id": "synthetic:<scenario>:<seed>:<visitor>",
+  "scenario_id": "...", "graph_version": "1.0",
+  "simulator_version": "...", "parameter_version": "...", "seed": 0,
+  "timestamp": "ISO-8601 with timezone", "source_tier": "T4", "synthetic": true,
+  "latent_state": {}, "observation": {}, "missing_mask": {},
+  "visitor_state": {}, "legal_actions": [], "chosen_action": {},
+  "next_latent_state": {}, "next_observation": {},
+  "reward": {"efficiency": 0, "experience": 0, "safety": 0,
+    "completion": 0, "queue_penalty": 0, "fatigue_penalty": 0,
+    "deviation_penalty": 0, "total": 0},
+  "done": false, "termination_reason": null
+}
+```
+
+建议另存 `graph_hash`、`parameter_hash`、`observation_available_at`、动作候选及拒绝原因、`plan_id`、状态质量、事件流水和生成器修订，便于审计。`total` 由版本化权重组合各维，当前不定权重。奖励用于仿真评估、规划/世界模型后续学习与解释，安全维应作为硬约束优先；不把“预测排队短”自动等于真实体验好。
+
+终止原因：`VISITOR_EXITED`（正常）、`DAY_ENDED`（按是否已妥善离园另标）、`TIME_EXHAUSTED`、`FORCED_EVACUATION`、`INVALID_STATE`。异常结束必须单列，不能混作正常成功；每次终止仍输出最终观测和守恒审计。
+
+## 7. 质量验证与防泄漏
+
+校验：ID/图版本一致；人口、队列、演出容量与占用守恒；非负流量及有界疲劳；封闭边无新进入；动作属于当时合法集；事件时间顺序与 `[start,end)`；同 seed/版本重放同结果；观察延迟/缺失按配置；episode 元数据完整；输出始终 `synthetic=true/T4`。现有测试覆盖 DEMO 预测、事件、路径、重规划等，但未覆盖上述工厂不变量。
+
+训练输入只允许当前及历史已交付 `observation` 和由此生成的预测；禁止未来真实队列、事件结果、下一 latent 状态、未来 chosen action、全日场景隐藏日程直接进入输入。`latent_state` 可作监督目标、不可作模型输入。划分训练/验证/测试时按场景族、日期、seed 和拓扑扰动分组，先隔离测试组再采样，不能逐行随机切同一 episode；图版本与参数版本也记录在切分清单。对相同脚本仅换 seed 的近重复轨迹进行去重或同组隔离。仿真内部随机转移可读取完整场景日程，但暴露给 planner/observation 的事件仅限当时已公开或已发生者。
