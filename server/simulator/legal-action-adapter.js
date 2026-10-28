@@ -14,7 +14,7 @@ function toVisibleState(simulationState) {
   }]));
   const road_states = Object.fromEntries(Object.entries(simulationState.roads).map(([id, road]) => [id, {
     available: road.is_open,
-    travel_time_min: Math.round(road.base_travel_time_min / road.speed_factor * 100) / 100
+    travel_time_min: Math.round(road.effective_travel_time_min * 100) / 100
   }]));
   const event_states = Object.fromEntries(Object.entries(simulationState.events).map(([id, event]) => [id, { ...event }]));
   return {

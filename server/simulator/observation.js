@@ -42,7 +42,7 @@ function generateObservation(state, rng, parameters, scenarioId = 'P1D_CLEAN') {
   }
   for (const [id, road] of Object.entries(state.roads)) {
     const missing = scenario.missing && rng.next() < parameters.travel_time_missing_rate;
-    const base = road.base_travel_time_min / road.speed_factor;
+    const base = road.effective_travel_time_min;
     const travelTime = missing ? null : Math.max(0, round(base *
       (1 + (scenario.noise ? gaussian(rng) * parameters.travel_time_noise_ratio : 0)), 2));
     roads[id] = { is_open: road.is_open, travel_time_min: travelTime,

@@ -44,7 +44,7 @@ A graph/state 快照（只读） + B scenario/parameter registry + seed
 
 **POI 排队守恒**：`Q_(i,t+Δ)=Q_(i,t)+A_(i,t)-S_(i,t)-L_(i,t)≥0`；`L` 是明示的弃排/转移人数，不得隐式丢失。`S≤Q+A`，`S≤floor(service_rate_i × Δ)`，同时受 `open_i`、`capacity_i - occupancy_i`、演出入场窗限制；关闭时新到达者被拒绝或改道，`S=0`（若需清场，另记离开流水）。提供给 A/C 的 `queue_min` 是 `Q/service_rate` 的有界估计，服务率为 0 时返回 UNKNOWN/不可服务，不能返回伪造的 0。
 
-**路网与速度**：边有效速度可取 `v=max(v_min, min(v_visitor,v_base) × f_crowd(density) × f_weather(weather))`，`travel_time=length/v`；封闭边禁止新进入并通知 C 的 `road_states[edge_id].available=false`，恢复事件之后才可再次进入。拥挤、天气和个体速度因子应有宽范围且可追踪；图中 `distance_m/base_travel_time_min` 是示意估计，不可用于现实安全结论。若游客已在封闭边，需单独定义可完成通过、原路撤回或强制中止的事件策略与计数。
+**路网与速度**：P1-G 已采用下文第 15 节的路段人数、线性拥堵系数和天气系数，在进入路段时锁定该群组的通行时间。当前没有逐游客速度积分或真实道路容量；图中 `distance_m/base_travel_time_min` 是示意估计，不可用于现实安全结论。封闭边禁止新进入；已进入当前路段的群组完成该路段后，在下一节点按现有 P1-B/P1-C 规则重新规划。
 
 **演出**：`UPCOMING → ENTRY_OPEN → RUNNING → ENDED → RELEASING`；预到场按游客行为流进入候场区，入场数受窗口及容量约束。取消与改时作为精确时间事件。结束时把参与者按出口/后续目标分配到相邻节点和道路，造成短时散场波峰；人数从演出占用转移，不能凭空增加。`show-1` 是演示事件 ID，不等同任何未经证据绑定的公开演出名称。
 
@@ -198,3 +198,21 @@ C 的 `ATTEND_EVENT` 对预计到达 **晚于** `latest_entry_time` 明确拒绝
 `rest_started_total` 与 `rest_completed_total` 的单位是**人次（person-events）**，同一批聚合游客恢复后再次疲劳、再次休息时会重复计入；它们不能解释为去重游客数。`resting_current` 的单位是当前**人数**。本版没有其他休息状态，所以任意时刻必须满足 `resting_current = rest_started_total - rest_completed_total`。
 
 `getObservation()` 仅继续显示系统已知的单个决策游客 `fatigue`，不暴露 `node_fatigue`、`rest_groups`、聚合疲劳直方图或未来恢复。独立休息随机子流使观测噪声场景不改变真实休息轨迹。该版本不修改 C 的 Schema 或规则，不计算奖励、道路拥堵或天气速度。
+
+## 15. P1-G 道路占用、拥堵和天气通行时间（2026-10-28）
+
+`roads[edge_id].occupancy` 是唯一的路段占用人数，按当前 `mobility_ledger.transit_groups` 中 `current_edge_id` 相同的群组人数求和。处于节点、等待进入路段或等待重新规划的群组不计入。当前 DEMO 图的 68 条边全部标为 `BIDIRECTIONAL`：图适配器把每条边转换为同一个双向 `edge_id`，寻路器在两个方向使用同一个边对象。因此 occupancy 是**示意实体 edge 级占用**，不是方向 lane 级占用；这不意味着现场已核验为单条实体道路。若将来图改为两条不同 ID 的有向边，则自然分别计数，无须现在预先重构。不新增第二份占用表。每次进入、离开后即时更新，`advanceTransit` 开头及末尾又从群组核对；`road_occupancy` 不变量核对非负、总和及每条边一致。
+
+图中没有经过现场核验的宽度或承载量。参数版本 `p1g.1` 暂为每条示意边统一设 `road_reference_capacity=8` 人、`free_flow_threshold=0.25`、`congestion_alpha=1.5`、`max_congestion_multiplier=3`，均在参数注册表标记 `T4 / ASSUMPTION`。`occupancy_ratio=occupancy/reference_capacity`，允许超过 1；`congestion_multiplier=min(3, 1+1.5×max(0, occupancy_ratio−0.25))`，因此随人数单调不减。这里的 8 人只是 synthetic reference capacity / mechanism parameter，用于让「occupancy → congestion → travel time」反馈在合成环境中产生可观察变化，不是景区道路工程容量或现场最多通行人数。将来取得道路宽度、客流计数和实测速度后才可校准。
+
+天气仅在模拟器内部把 `weather.category` 或当前业务 `weather.label` 归一为 `CLEAR / RAIN / HOT`，对应系数 `1 / 1.25 / 1.12`，仍为 `T4 / ASSUMPTION`。不改业务天气 Schema，也不把天气作用到 P1-F 疲劳。道路对**新进入者**的当前估计为 `effective_travel_time_min=(base_travel_time_min/speed_factor)×travel_time_multiplier×congestion_multiplier×weather_multiplier`；基时来自 DEMO/T4 示意图，不表示实测步行时间。进入前计算 `projected_occupancy=当前占用+本群组人数`，以进入后的占用算本群组时间，所以大群组自己也能产生拥堵。实际群组 `locked_segment_travel_time_min` 在进入时将估计值四舍五入到 0.001 分钟后锁定，随经过时间递减；途中天气或占用变化不重写本段剩余时间，到下一边才重新计算。旧的 `minimum_edge_travel_min=5` 只保留给直接调用旧移动 helper 的兼容路径；完整 P1-G 模拟使用进入时连续分钟锁定。这比逐时积分简单、可复现，且避免中途反复改写 ETA。
+
+每条路在内部状态保留 `edge_id`、人数、参考容量、比率、拥堵及天气系数、当前新进入者估计通行时间。`step().road_metrics_summary` 审计在边人数、占用边数、最大占用、最大比率、最大有效时间与平均拥堵系数；`edge_entries` 记录每次进入时的投影人数、两类系数及锁定时间。路级当前估计可能与已在途群组各自的锁定时间不同。封路位先判定：关闭边不接受新群组，也不能用一个极大通行时间代替关闭；在途群组可走完当前边，下一节点才重新规划。
+
+内部环境转移使用真实占用算出的潜在时间；内部群组路径调用 C 的 `findPath`，通过 B 的 `toVisibleState` 和现有 `buildLivePlannerScenario` 输入当前动态道路时间。每个 `advanceTransit` 区间开始构造路径快照，同一区间后续群组进入造成的拥堵会在下一次路径快照反映。对 agent/model 的 `getLegalActions()` 则通过 `buildPlannerView(available observation)` 输入 C：普通道路耗时先经 P1-D 观测生成器处理噪声、缺失与延迟，缺失时使用登记的图基时回退；当前道路开闭位始终零延迟且权威。原始精确 `occupancy` 不进入 observation 或 planner-facing 视图。C 的 `findPath` 现有接口读取规划状态的 `road_states[*].travel_time_min`，无需修改 C 代码。
+
+区间顺序沿用现有精确事件时钟：先推进已在途群组并让已完成路段者回到节点，进入新路段时即时按投影占用锁定时间，然后处理当前时间点的封路、演出和新意图；新意图形成的 transit 群组下一段推进时才进入边。区间末重核占用并生成观测。演出散场和 POI/离园流量均走同一套移动机制，没有专用拥堵特例。
+
+固定 `P0_HIGH, seed=42` 的真实仿真轨迹：第 20 步（11:58）散场 20 人时，剧场附近 `edge_033` 新进入记录为占用 1、容量 8、比率 0.125、拥堵系数 1、晴天系数 1、有效时间 1.87 分钟。第 22 步（12:08）散场又释放 20 人，剧场节点 walking 已到 49；同边的一次新进入记录为投影占用 6、比率 0.75、拥堵系数 1.75、有效时间 3.2725 分钟，锁定为 3.273 分钟。这是普通移动接收演出散场人数后自然出现的变化。相同 `edge_033`、占用 6、种子条件下改为 `RAIN`，基时仍为 1.87、拥堵系数仍为 1.75、天气系数为 1.25，有效时间为 4.090625 分钟；天气系数计算前后在园人口均为 379。
+
+固定 `P0_HIGH, seed=42` 的第 50 步：在园 466、节点 walking 148、transit 100、排队 27、POI 内 142、演出中 0、休息 49；其中在边 65 人、占用边 21 条、单边最大 10 人、最大比率 1.25、最大有效时间 17.658125 分钟、平均拥堵系数约 1.090993。第 100 步：在园 538、节点 walking 179、transit 89、排队 37、POI 内 157、演出中 0、休息 76；其中在边 57 人、占用边 21 条、单边最大 8 人、最大比率 1、最大有效时间 26.0225 分钟、平均拥堵系数约 1.063419。两次人口与路段占用守恒均通过；transit 总人数包含尚在节点等待进入边的群组，因此可大于在边人数。这些数字仅是固定种子 T4 合成轨迹，不是真实客流。

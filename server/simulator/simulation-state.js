@@ -105,6 +105,10 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
     roads[edge.edge_id] = {
       is_open: initial.road_states[edge.edge_id].available !== false,
       base_travel_time_min: nonnegative(Number(edge.base_travel_time_min), `base travel time ${edge.edge_id}`),
+      reference_capacity: nonnegative(parameters.road_reference_capacity, 'road_reference_capacity'),
+      occupancy: 0, occupancy_ratio: 0,
+      congestion_multiplier: 1, weather_multiplier: 1,
+      effective_travel_time_min: Number(edge.base_travel_time_min),
       speed_factor: 1,
       closed_at: initial.road_states[edge.edge_id].available === false ? initial.timestamp : null
     };

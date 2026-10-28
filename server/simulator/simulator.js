@@ -13,6 +13,7 @@ const { dispatchNodeWalkers, advanceTransit, advanceExitIntents, summarizeExitLe
 const { showMilestones, advanceEventService, applyShowMilestone, dispatchEventIntents } = require('./event-flow');
 const { validateFatigueParameters, ageFatigue, completeRest, dispatchRestIntents,
   summarizeFatigue, validateFatigue } = require('./fatigue-rest');
+const { syncRoadOccupancy, summarizeRoads, validateRoadDynamics } = require('./road-dynamics');
 const { toMillis } = require('../planner/time');
 
 function validateEvents(events, graph) {
@@ -36,7 +37,8 @@ function applyEvent(state, event) {
   return { timestamp: state.simulation_time, event_id: event.event_id, event_type: event.event_type, target_id: event.target_id, is_open: !close };
 }
 
-function validateInvariants(state, previousTime = null, populationLedger = null, legal = null, graph = null) {
+function validateInvariants(state, previousTime = null, populationLedger = null, legal = null,
+  graph = null, parameters = null) {
   if (state.graph_version !== GRAPH_VERSION) throw new Error('graph_version invariant failed');
   if (!Number.isSafeInteger(state.environment.park_population) || state.environment.park_population < 0) throw new Error('park population invariant failed');
   const ledger = state.population_ledger;
@@ -163,17 +165,18 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
     || attendingSum !== ledger.attending_event) throw new Error('POI or event totals differ from population ledger');
   validateFatigue(state, nodeIds);
   for (const [id, road] of Object.entries(state.roads)) {
-    if (!Number.isFinite(road.base_travel_time_min) || road.base_travel_time_min < 0 || !Number.isFinite(road.speed_factor) || road.speed_factor <= 0) {
+    if (!Number.isFinite(road.base_travel_time_min) || road.base_travel_time_min <= 0 || !Number.isFinite(road.speed_factor) || road.speed_factor <= 0) {
       throw new Error(`road invariant failed: ${id}`);
     }
   }
+  validateRoadDynamics(state, parameters);
   if (legal) for (const item of legal.legal) {
     for (const edgeId of [...(item.route?.edge_sequence || []), ...(item.return_route?.edge_sequence || [])]) {
       if (!state.roads[edgeId]?.is_open) throw new Error(`closed road in legal route: ${edgeId}`);
     }
   }
   return { population: 'PASS', queue: 'PASS', ledger: 'PASS', mobility: 'PASS', inside_capacity: 'PASS', event: 'PASS',
-    fatigue: 'PASS', rest: 'PASS',
+    fatigue: 'PASS', rest: 'PASS', road_occupancy: 'PASS',
     cumulative_population: 'PASS', closed_road: 'PASS', graph_version: 'PASS', time: 'PASS' };
 }
 
@@ -194,10 +197,11 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
   const observationRng = new SeededRNG((seed ^ 0x9e3779b9) >>> 0);
   const arrivalOnlyParameters = Object.freeze({ ...parameters, departure_rate: 0 });
   const { graph, state } = createSimulationState(sourceGraph, sourceState, selectedScenario, parameters);
+  syncRoadOccupancy(state, parameters);
   validateEvents(sourceEvents, graph);
   const clock = new EventClock(state.simulation_time, parameters.simulation_step_min,
     [...sourceEvents, ...showMilestones(state.events, state.simulation_time)]);
-  validateInvariants(state, null, null, null, graph);
+  validateInvariants(state, null, null, null, graph, parameters);
   const observationBuffer = createObservationBuffer();
   observationBuffer.capture(generateObservation(state, observationRng,
     observationParameters, observationScenario));
@@ -205,7 +209,7 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
   function getLegalActionsSnapshot() {
     const result = evaluateLegalActions(graph,
       observationBuffer.latestAvailable(state.simulation_time), rules, observationParameters);
-    validateInvariants(state, null, null, result, graph);
+    validateInvariants(state, null, null, result, graph, parameters);
     return clone(result);
   }
 
@@ -385,7 +389,7 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
       observationParameters, observationScenario));
     const availableObservation = observationBuffer.latestAvailable(state.simulation_time);
     const legal = evaluateLegalActions(graph, availableObservation, rules, observationParameters);
-    const invariant_summary = validateInvariants(state, beforeTime, population, legal, graph);
+    const invariant_summary = validateInvariants(state, beforeTime, population, legal, graph, parameters);
     const nodeAfter = Object.values(state.mobility_ledger.node_walkers).reduce((sum, count) => sum + count, 0);
     const transitAfter = state.mobility_ledger.transit_groups.reduce((sum, group) => sum + group.count, 0);
     return clone({
@@ -401,6 +405,7 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
       mobility_flow: { node_before: nodeBefore, transit_before: transitBefore,
         node_after: nodeAfter, transit_after: transitAfter, ...mobilityEvents,
         exit_ledger: summarizeExitLedger(state) },
+      road_metrics_summary: summarizeRoads(state),
       poi_flows: poiFlows,
       event_flow_summary: {
         event_intent_created: eventIntentCreated,

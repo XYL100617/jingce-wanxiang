@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = 'p1f.1';
+const VERSION = 'p1g.1';
 
 // Every number below is a broad T4 engineering assumption, not measured park data.
 const definitions = {
@@ -17,8 +17,15 @@ const definitions = {
   initial_queue_fraction: { value: 0.32, unit: 'fraction of initial park population' },
   initial_inside_fraction: { value: 0.18, unit: 'fraction of initial park population' },
   poi_arrival_fraction: { range: [0.04, 0.14], unit: 'fraction of walking pool per 5 min' },
-  minimum_edge_travel_min: { value: 5, unit: 'min/edge; DEMO minimum' },
+  minimum_edge_travel_min: { value: 5, unit: 'min/edge; legacy direct mobility helper only' },
   travel_time_multiplier: { value: 1, unit: 'ratio; DEMO schematic edge time' },
+  road_reference_capacity: { value: 8, unit: 'persons on one schematic edge; T4 reference only' },
+  free_flow_threshold: { value: 0.25, unit: 'occupancy/reference capacity ratio' },
+  congestion_alpha: { value: 1.5, unit: 'linear multiplier slope above threshold' },
+  max_congestion_multiplier: { value: 3, unit: 'upper bound on congestion multiplier' },
+  weather_clear_multiplier: { value: 1, unit: 'travel time ratio; CLEAR' },
+  weather_rain_multiplier: { value: 1.25, unit: 'travel time ratio; RAIN' },
+  weather_hot_multiplier: { value: 1.12, unit: 'travel time ratio; HOT' },
   max_dispatch_groups_per_node: { value: 3, unit: 'aggregate cohorts/node/interval' },
   exit_intent_rate: { range: [0.03, 0.08], unit: 'fraction of eligible node walkers per 5 min' },
   event_interest_rate: { value: 0.14, unit: 'fraction of eligible node walkers per 5 min' },

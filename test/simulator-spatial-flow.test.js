@@ -218,7 +218,11 @@ test('15b a cohort returned from a closed POI waits at that node until a later i
     { event_type: 'POI_CLOSE', target_id: 'market', timestamp: addMin(initialTime, 6) }
   ] });
   simulator.step(); // Dispatch from gate at minute 5.
-  const result = simulator.step(); // Close at minute 6 before edge_002 completes.
+  let result;
+  for (let i = 0; i < 20; i += 1) {
+    result = simulator.step(); // Closure precedes the eventual arrival.
+    if (result.mobility_flow.closed_poi_returns > 0) break;
+  }
   assert.ok(result.mobility_flow.closed_poi_returns > 0);
   assert.equal(result.mobility_flow.dispatched.filter(group => group.origin_node_id === 'market'
     && group.departed_at === result.timestamp).length, 0);
@@ -232,12 +236,20 @@ test('15c event-clock road closure allows a cohort already on the edge to finish
     { event_type: 'ROAD_CLOSE', target_id: 'edge_002', timestamp: addMin(initialTime, 6) }
   ] });
   simulator.step(); // Dispatch at minute 5.
-  const result = simulator.step(); // Enter edge at minute 5; close at minute 6.
-  assert.equal(result.road_status_changes[0].timestamp, addMin(initialTime, 6));
-  assert.ok(result.mobility_flow.edge_entries.some(entry => entry.edge_id === 'edge_002'
-    && entry.timestamp < result.road_status_changes[0].timestamp));
-  assert.ok(result.mobility_flow.arrived_total > 0);
-  assert.ok(result.mobility_flow.edge_entries.every(entry => entry.timestamp < result.road_status_changes[0].timestamp));
+  const closureStep = simulator.step(); // Enter edge at minute 5; close at minute 6.
+  const closureTime = closureStep.road_status_changes[0].timestamp;
+  assert.equal(closureTime, addMin(initialTime, 6));
+  assert.ok(closureStep.mobility_flow.edge_entries.some(entry => entry.edge_id === 'edge_002'
+    && entry.timestamp < closureTime));
+  let arrivals = closureStep.mobility_flow.arrived_total;
+  const laterEntries = [];
+  for (let i = 0; i < 20 && arrivals === 0; i += 1) {
+    const result = simulator.step();
+    arrivals += result.mobility_flow.arrived_total;
+    laterEntries.push(...result.mobility_flow.edge_entries);
+  }
+  assert.ok(arrivals > 0);
+  assert.ok(laterEntries.every(entry => entry.edge_id !== 'edge_002'));
 });
 
 test('16 aggregate departures cannot remove people in transit', () => {

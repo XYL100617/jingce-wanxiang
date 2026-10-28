@@ -7,6 +7,8 @@ const { toVisibleState } = require('./legal-action-adapter');
 const { stochasticCount } = require('./dynamics');
 const { addMinutes, toMillis } = require('../planner/time');
 const { addNodeFatigue, addPoiQueueFatigue, addEventQueueFatigue } = require('./fatigue-rest');
+const { estimateRoad, lockedTravelMin, syncRoadOccupancy,
+  enterEdge, leaveEdge } = require('./road-dynamics');
 
 function returnToNode(mobility, group) {
   addNodeFatigue(mobility, group.current_node_id, group.count, group.fatigue_level);
@@ -185,13 +187,12 @@ function dispatchNodeWalkers(graph, state, durationMin, parameters, rng, departu
 function edgeTravelMin(state, edgeId, parameters) {
   const road = state.roads[edgeId];
   if (!road) throw new Error(`unknown transit edge: ${edgeId}`);
-  const raw = road.base_travel_time_min / road.speed_factor * parameters.travel_time_multiplier;
-  const step = parameters.simulation_step_min;
-  return Math.max(parameters.minimum_edge_travel_min, Math.ceil(raw / step) * step);
+  return lockedTravelMin(estimateRoad(state, edgeId, parameters).effective_travel_time_min, parameters);
 }
 
 function advanceTransit(graph, state, durationMin, parameters) {
   const mobility = state.mobility_ledger;
+  syncRoadOccupancy(state, parameters);
   const planner = plannerSnapshot(graph, state);
   const segmentStartMs = parseTime(state.simulation_time, 'simulation time');
   const events = { arrivals: {}, arrived_total: 0, closed_poi_returns: 0, closed_poi_nodes: [],
@@ -283,13 +284,21 @@ function advanceTransit(graph, state, durationMin, parameters) {
         if (!state.roads[edgeId]?.is_open) throw new Error(`attempt to enter closed edge: ${edgeId}`);
         group.current_edge_id = edgeId;
         group.edge_entered_at = stamp(segmentStartMs + (durationMin - remaining) * 60000);
-        group.remaining_edge_min = edgeTravelMin(state, edgeId, parameters);
-        events.edge_entries.push({ group_id: group.group_id, edge_id: edgeId, timestamp: group.edge_entered_at });
+        const entry = enterEdge(state, group, edgeId, parameters);
+        events.edge_entries.push({ group_id: group.group_id, edge_id: edgeId,
+          timestamp: group.edge_entered_at, count: group.count,
+          projected_occupancy: entry.occupancy,
+          congestion_multiplier: entry.congestion_multiplier,
+          weather_multiplier: entry.weather_multiplier,
+          effective_travel_time_min: entry.effective_travel_time_min,
+          locked_segment_travel_time_min: entry.locked_segment_travel_time_min });
       }
       const elapsed = Math.min(remaining, group.remaining_edge_min);
       group.remaining_edge_min = Math.round((group.remaining_edge_min - elapsed) * 1000) / 1000;
       remaining = Math.round((remaining - elapsed) * 1000) / 1000;
       if (group.remaining_edge_min > 0) break;
+      const completedEdgeId = group.current_edge_id;
+      leaveEdge(state, group, completedEdgeId, parameters);
       group.path_index += 1;
       group.current_node_id = group.path.node_sequence[group.path_index];
       group.current_edge_id = null;
@@ -344,6 +353,7 @@ function advanceTransit(graph, state, durationMin, parameters) {
     if (!finished) survivors.push(group);
   }
   mobility.transit_groups = survivors;
+  syncRoadOccupancy(state, parameters);
   return events;
 }
 
