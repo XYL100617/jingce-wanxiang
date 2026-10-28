@@ -247,4 +247,26 @@ shadow 道路执行调用现有 C 路径接口，以当时潜在 `roads[*].effec
 
 `VISIT_POI` 必须先抵达目标，经过镜像队列、进入 POI、完成当前 `visit_duration_min` 的驻留才产出 `POI_VISIT_COMPLETED`；仅到达或入队不算完成。`ATTEND_EVENT` 抵达后按入场开始、最晚入场、容量和服务率排队；已入场者到演出结束才得 `EVENT_ATTENDANCE_COMPLETED`，未赶上最晚入场则得与该游客/事件匹配的 `EVENT_MISSED`。`REST` 抵达设施后至少休息 `minimum_rest_duration_min` 且疲劳低于释放阈值才完成。`WAIT` 按 C 当前合法动作给定的等待时长累计真实仿真分钟。`EXIT` 到达选定出口并使 shadow 在园标志变为 false 才完成；开始 EXIT、拿到路线或仍在途中都不算完成。状态更新使用 P1-F 现有活动速率：移动、排队、POI 内、观演、休息和等待分别结算疲劳；原先对决策游客每区间的通用 walking 疲劳在动作活跃时由阶段疲劳取代，不改聚合疲劳规则。
 
-安全审计由动作开始时的合法集合匹配和执行时的路段开放检查产生，记录受阻边尝试、是否进入关闭边、关闭 POI 访问、事件时间违规等；正常关闭边触发改道，不伪造一次违规穿越。`reward_t` 只在终态自动生成并保存在内部转移结果；仍不进入观察或动作选择。当前版本保留 Reward Engine 的独立手工输入 API，用于公式检查；未来若要把 decision visitor 真正计入聚合人口、排队和道路，必须先重做其账本归属与守恒，而不能把 shadow 轨迹当成实测个人轨迹。本轮不创建 Episode Writer、Dataset Builder、划分文件或训练模块。
+安全审计由动作开始时的合法集合匹配和执行时的路段开放检查产生，记录受阻边尝试、是否进入关闭边、关闭 POI 访问、事件时间违规等；正常关闭边触发改道，不伪造一次违规穿越。`reward_t` 只在终态自动生成并保存在内部转移结果；仍不进入观察或动作选择。当前版本保留 Reward Engine 的独立手工输入 API，用于公式检查；未来若要把 decision visitor 真正计入聚合人口、排队和道路，必须先重做其账本归属与守恒，而不能把 shadow 轨迹当成实测个人轨迹。Transition Audit 独立提交阶段不创建 Episode Writer、Dataset Builder、划分文件或训练模块。
+
+## 18. Episode Schema 与 Episode Writer（review 阶段，2026-10-28）
+
+`episode_schema_version=episode-p1.1`。一个 Episode 是一名 `SHADOW_VISITOR` 的多次决策游览，`steps` 按高层 decision action 编号 0、1、2……，内部 5 分钟仿真步仅用于执行动作。Writer 只读取模拟器状态，不选择或执行动作，不计算 Reward，也不修改聚合环境。调用顺序：`createEpisode(sim)` → 每次动作前 `captureDecisionInput(sim)` → 调用方从捕获的 `legal_actions` 选动作并调用 `startDecisionTransition` → 逐步运行到终态 → `appendTransition(episode,{input,chosen_action,terminal,terminal_step_timestamp,simulator})` → 有实际结束条件时 `finalizeEpisode`。`IN_PROGRESS` 不写高层记录。
+
+顶层保存 `episode_id, episode_schema_version, provenance, visitor_mode, started_at, ended_at, steps, done, termination_reason`。ID 根据 scenario、seed、runIndex 确定，无 UUID 或墙钟；例如 `ep_P0_BASELINE_seed42_000001`。provenance 包括 graph、scenario、seed、source tier、synthetic、simulator、parameter、observation、reward 和 episode schema 版本。轨迹始终标记 `T4/synthetic=true`，即使参数引用了公开资料也不升级成 T2。
+
+每个 step 保存动作前 `timestamp, observation, visitor_state, legal_actions, chosen_action`，动作后的原始 `transition_audit, reward, next_observation, next_visitor_state, latent_target`，以及 `done, termination_reason, provenance`。`observation` 与 `next_observation` 均直接取 Observation Layer 的 `getObservation()`；`legal_actions` 直接取同一时刻 `getLegalActions().legal` 的完整合法项；`chosen_action` 对应其中一项的 `action`。`chosen_action` 必须逐字段属于该集合，不包含未来结果。`reward` 直接取终态 Transition Audit 自动产生的结果，不另算。`visitor_state` 独立保存 shadow 游客节点、疲劳、剩余时间、园内标志和已完成目标；它不计入环境的聚合人口、排队、道路占用。
+
+`latent_target` 仅供未来训练监督，取终态仿真步后的内部真实环境快照：各 POI 的队列人数、拥挤比例和开放状态；各道路的有效耗时、拥堵倍率和开放状态；可模拟演出的阶段、状态、排队和入场人数；环境汇总的人口与天气。它不进入动作前观察或合法动作输入，不复制整份 SimulationState、人口/移动账本、缓存或 RNG 内部状态。终态审计 `ended_at` 可以落在当前仿真步之内；`latent_target.timestamp` 和 `next_observation.timestamp` 对齐仿真步末端。Writer 要求传入的 `terminal_step_timestamp` 等于当前模拟器时间，防止在后续仿真推进后才把旧终态和新环境错配。
+
+校验要求：动作前观测时间不晚于审计开始，审计开始不晚于结束，审计结束不晚于动作后观测时间；有延迟观测时仅要求 `available_at` 不晚于当时可用时间，不要求 `observed_at` 等于仿真时间。两次连续动作的游客节点、疲劳、剩余时间、园内标志和时间必须衔接；受噪声、缺失、延迟影响，连续两次 observation 的字段值无需完全相等。检查 observation 中不存在潜在目标、内部账本、Reward、审计结果和未来实际完成事件。校验失败不写入半条 step。
+
+当前实际终止触发为 `EXIT` 完成时 `EXITED`，或剩余时间耗尽时 `TIME_EXHAUSTED`。普通完成、误场或可恢复失败通常 `done=false`，仍可继续决策。当前 simulator 没有独立的 simulation-day-end 或不可恢复错误终态信号，因此 Writer 不制造 `DAY_END`/`FAILED`；待底层提供真实信号后再扩展 schema 语义。`finalizeEpisode` 只接受已经真实结束的 Episode。本阶段仅构建内存对象与 JSON 序列化，不构建 Dataset Builder、数据切分、批量生成或训练流程。
+
+## 19. Episode action 时间、游客白名单与字段角色（review 收尾，2026-10-28）
+
+Episode 的相邻高层 decision step **不是固定 5 分钟间隔**。每条终态 step 显式保存 `delta_t_min = (transition_audit.ended_at - transition_audit.started_at) / 60000`，单位为实际仿真分钟，保留六位小数；要求正常终态严格大于零，且与审计时间差一致。它不使用计划耗时或观测预计耗时。`delta_t_min` 可在事后 action-conditioned transition 模型中作为时间跨度输入；在动作选择时尚未知，不能喂给当前决策策略。未来 Dataset Builder 必须按训练任务区分这两个时点。
+
+`visitor_state` 和 `next_visitor_state` 共用显式白名单：`timestamp, visitor_id, current_node_id, fatigue, remaining_time_min, shadow_in_park, visited_poi_ids, attended_event_ids, visited_facility_ids`。前者从动作开始前真实 shadow visitor 投影，后者从终态后投影；不复制整个内部 visitor 对象。两者都不得含未来路线结果、实际耗时、终态、奖励、完成或误场证据、`fatigue_after`、下一节点。连续决策的节点、园内标志、剩余时间保持一致，疲劳允许 1e-6 浮点容差，时间非递减。
+
+字段角色由 `EPISODE_FIELD_ROLES` 明确标记。`MODEL_INPUT`：`observation, visitor_state, legal_actions, chosen_action, delta_t_min`；其中 `delta_t_min` 只可用于动作执行后的转移预测，不能用于执行前的 action selector。`TRAINING_TARGET`：`reward, next_observation, next_visitor_state, latent_target, done, termination_reason`。`AUDIT_ONLY`：`transition_audit`，其实际移动、排队、完成、疲劳与安全明细绝不默认进入当前模型输入。`METADATA`：`episode_id, step_index, timestamp, provenance, episode_schema_version`。`latent_target` 仅在终态后采集，始终属于目标侧内部真值。具体训练任务可取这些组的子集，但不能将结果或审计信息泄漏到动作决策输入。
