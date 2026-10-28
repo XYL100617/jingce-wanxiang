@@ -197,7 +197,7 @@ test('DR24 Episode provenance retains scenario and visitor profile versions', ()
   const provenance = createEpisode(sim).provenance;
   assert.equal(provenance.scenario_instance_id, instance.scenario_instance_id);
   assert.equal(provenance.scenario_parameter_version, 'dr-p1.1');
-  assert.equal(provenance.visitor_profile_version, 'visitor-p1.1');
+  assert.equal(provenance.visitor_profile_version, 'visitor-p1.2');
   assert.equal(provenance.source_tier, 'T4');
 });
 test('DR25 baseline Episode and Transition Audit contracts remain available', () => {

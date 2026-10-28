@@ -3,7 +3,11 @@
 const { SeededRNG } = require('./seeded-rng');
 const { validateScenarioInstance } = require('./scenario-sampler');
 
-const VISITOR_PROFILE_VERSION = 'visitor-p1.1';
+const VISITOR_PROFILE_VERSION = 'visitor-p1.2';
+// T4/ASSUMPTION calibration: reduce compounding exit pressure observed in
+// validation episodes; keep fatigue, time, weather and completed visits active.
+const EARLY_EXIT_CONTRIBUTIONS = Object.freeze({ fatigue: 0.12,
+  remaining_time: 0.12, adverse_weather: 0.04, completed_visit: 0.01 });
 const PROFILE_BOUNDS = Object.freeze({
   walking_speed_factor: [0.7, 1.3], dwell_time_factor: [0.7, 1.3],
   preference_weight: [0.5, 1.5], plan_acceptance_rate: [0.5, 0.95],
@@ -133,11 +137,15 @@ function earlyExitPropensity(profile, { fatigue, remaining_time_min, weather,
   }
   const label = String(weather?.category || weather?.label || weather || '').toUpperCase();
   const adverseWeather = label === 'RAIN' || label === 'HOT' || label.includes('雨') || label.includes('高温');
-  return round(Math.min(1, profile.early_exit_base + 0.35 * fatigue
-    + 0.35 * (1 - Math.min(remaining_time_min, 240) / 240)
-    + (adverseWeather ? 0.08 : 0) + Math.min(completed_visit_count, 5) * 0.025));
+  return round(Math.min(1, profile.early_exit_base
+    + EARLY_EXIT_CONTRIBUTIONS.fatigue * fatigue
+    + EARLY_EXIT_CONTRIBUTIONS.remaining_time
+      * (1 - Math.min(remaining_time_min, 240) / 240)
+    + (adverseWeather ? EARLY_EXIT_CONTRIBUTIONS.adverse_weather : 0)
+    + Math.min(completed_visit_count, 5) * EARLY_EXIT_CONTRIBUTIONS.completed_visit));
 }
 
 module.exports = { VISITOR_PROFILE_VERSION, PROFILE_BOUNDS, PREFERENCE_TYPES,
+  EARLY_EXIT_CONTRIBUTIONS,
   createVisitorProfile, validateVisitorProfile, samplePlanAcceptance,
   sampleDeviation, earlyExitPropensity };

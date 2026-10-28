@@ -104,7 +104,9 @@ function createEpisode(simulator, { runIndex = 1 } = {}) {
     assert(provenance[key] !== null && provenance[key] !== undefined, `missing ${key}`);
   }
   const scenario = String(metadata.scenario_id).replace(/[^A-Za-z0-9_-]/g, '_');
-  return { episode_id: `ep_${scenario}_seed${metadata.seed}_${String(runIndex).padStart(6, '0')}`,
+  const variant = metadata.scenario_instance_id
+    ? `_${metadata.scenario_instance_id.split('_').at(-1)}` : '';
+  return { episode_id: `ep_${scenario}_seed${metadata.seed}_${String(runIndex).padStart(6, '0')}${variant}`,
     episode_schema_version: EPISODE_SCHEMA_VERSION, provenance,
     visitor_mode: 'SHADOW_VISITOR', started_at: state.simulation_time, ended_at: null,
     steps: [], done: false, termination_reason: null };

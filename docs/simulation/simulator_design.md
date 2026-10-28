@@ -285,3 +285,21 @@ T4 有界范围：客流基础倍率 LOW `[0.50,0.65]`、MEDIUM `[0.95,1.05]`、
 新增 T4 有界倍率：`poi_capacity_scale=[0.9,1.1]`、`poi_service_scale=[0.8,1.2]`、`road_capacity_scale=[0.9,1.1]`、`event_admission_scale=[0.9,1.1]`、`event_release_scale=[0.8,1.2]`。有效参数为原有 base 值乘采样倍率；POI 服务倍率同时作用于服务率和入队接纳率，容量倍率作用于 POI 容量和道路参考容量，演出两倍率作用于入场/散场速率。原参数注册表与业务快照不改；每个倍率记录 `T4/ASSUMPTION`、分布和边界。对照测试证明慢服务留存更多队列、低道路容量在同占用下更拥堵、低散场速率释放更久。
 
 数据来源分类保持：T1 为运营方实测、T2 为有来源的公开资料、T3 为现场核验、T4 为假设/纯构造/仿真参数。当前 scenario/profile 分布皆是 T4，不因它们引用既有图或公开资料而升格。DR 独立提交阶段只提供单实例采样、个人档案与现有机制接线，不实现 Dataset Builder、固定 5 分钟数据集、训练/验证/测试切分、批量生成或世界模型训练。
+## 21. Dataset Contract、Rollout Policy 与小批量 Builder（review 阶段，2026-10-28）
+
+`dataset-p1.1` 定义两类**内存**数据，均为 `T4/synthetic=true`。Decision Transition Dataset 来自真实执行并经 `validateEpisode` 的高层 action step；每条样本分为 `input / target / audit / metadata`。`input` 仅含动作前可用 `observation, visitor_state, legal_actions, chosen_action` 及动作终态后的实际 `delta_t_min`。这个实际时间跨度仅能用于**事后转移预测**，不可作为执行前 rollout policy 的决策输入。`target` 为自动 `reward, next_observation, next_visitor_state, latent_target, done, termination_reason`；`audit` 保存终态 `transition_audit`、生成策略审计和仿真不变量；`metadata` 包含 Episode/step、场景实例、游客档案、seed、来源、合成标志及各版本。Episode ID 对带场景实例的轨迹附加维度签名，避免同 seed/runIndex 的不同场景冲突。Reward、审计、未来状态和 latent target 不进入 action selection。
+
+Fixed 5-min Environment Rollout Dataset 与 shadow decision transition 无关。每个样本的 `latent_current.environment_state` 是 t 时刻的紧凑环境真值（POI 队列/拥挤、道路耗时/拥堵/占用、演出、人口账本汇总、天气），`observed_input.observation` 是同一仿真时刻的可用 P1-D 观测；未来 `future_target.target_5/15/30/60` 分别指向真实第 `t+1/+3/+6/+12` 个 5 分钟状态。尾部不足相应未来时置 `null` 和 `target_available=false`，不补造。每次环境仿真均检查人口与道路占用守恒；`audit.expected_edge_occupancy` 由在途 cohort 账本汇总，仅用于验证，不进入模型输入。固定时间数据不包含 action-level `delta_t_min`。`trajectory_summaries` 记录每条轨迹的客流层级、天气、累计到达、封路道路和是否实际观察到关闭，供小批量差异核验。
+
+`rollout-policy.js` 仅服务仿真数据生成，不是 C planner。调用方先由 C 的 `getLegalActions()` 获得真实合法集合；Builder 用当前疲劳、当前合法 REST/演出和决策序号确定一个可解释的推荐候选，再由 seeded plan acceptance、下次决策 deviation、图中现有 node type 的 preference_weights 和仅用当前状态的 early-exit propensity 确定最终合法动作。策略不读取 Reward 或未来 latent；提前离园只是提高选择 EXIT 的概率，执行仍按真实路径到园门。为了完整小规模 Episode，最后一个决策预算点可选择**合法且不同于当前节点**的 EXIT，不会瞬移或绕过 Transition Audit。`policy_audit` 记录推荐、抽样、原因与实际接受/偏离/提前退出计数，并与训练 target 隔离。
+
+`generateDecisionDataset` 输入少量场景实例、seed、游客档案规格和每场景 Episode 数；每条 action 用 `startDecisionTransition → step() 直到终态 → appendTransition` 真实运行，最后以 `finalizeEpisode` 确认终止。`generateEnvironmentRollout` 从每个场景的 t0 开始独立推进固定 5 分钟步。两者限制 review 批量上限、默认只返回内存对象，不写 JSONL 或训练文件。Builder 级校验拒绝 NaN/Inf、负队列、非法动作、输入侧未来字段、版本/来源缺失、时间错位、不连续高层决策、人口账本不守恒和道路 occupancy 与 cohort 账本不符；并检查 5/15/30/60 分钟目标索引、与已记录未来状态的一致性、尾部可用标志以及多场景轨迹差异。当前不做 Train/Val/Test Split、正式批量生成或世界模型训练。
+## 22. Dataset Validation 与数据角色（2026-10-28）
+
+`dataset-validation-p1.1` 在既有数值、合法动作、守恒、时间和来源检查之上，输出结构化分布报告：场景六维覆盖、游客速度/停留/偏好覆盖、五类动作与策略原因、Episode 长度/时长/完成数/终止原因、Reward 及各 component 的契约范围、5/15/30/60 分钟目标覆盖。缺失覆盖作为 warning 报告；无效样本和越界 Reward 作为 error 报告。报告只读，不改写 Dataset。小批量生成上限为 60 个 Episode，仍只返回内存对象。
+
+固定 5 分钟样本的角色明确为 `observed_input`、`latent_current`、`future_target`、`audit`、`metadata`。部署型世界模型默认只取 `OBSERVED_INPUT.observation`；`LATENT_CURRENT.environment_state` 仅用于 oracle baseline、监督辅助及内部分析，不能默认并入部署输入。`FUTURE_TARGET` 的四个时间跨度仍为 t+1/t+3/t+6/t+12 个真实 5 分钟步，尾部不可用目标仍为 null。动作级样本由 `projectDecisionRoles` 投影为 `POLICY_INPUT(observation, visitor_state, legal_actions)`、`ACTION_LABEL(chosen_action)`、`TRANSITION_MODEL_INPUT(observation, visitor_state, chosen_action, delta_t_min)`、`TARGET`、`AUDIT`、`METADATA`。真实 `delta_t_min` 只在动作结束后可用，禁止输入当前动作选择策略。
+
+30 个 Episode、15 条固定时间轨迹的校准前验证批次含 71 条决策样本，WAIT=0，early exit=28/30。原始 T4 倾向中疲劳和时间项各为 0.35，随决策点叠加过快。游客画像参数版本升为 `visitor-p1.2`，将疲劳/剩余时间/恶劣天气/已完成游览贡献改为 0.12/0.12/0.04/每项 0.01；`early_exit_base` 仍为原有 T4 范围，所有项仍为 `ASSUMPTION`，不宣称真实离园比例。仅在 C 合法动作中没有立即可执行的游览目标时，rollout 推荐合法 WAIT，避免任意注入等待。
+
+相同配置复核得到 128 条决策样本，VISIT_POI=62、ATTEND_EVENT=15、REST=19、WAIT=3、EXIT=29；提前离园 20/30，1 条 Episode 时间耗尽；Reward 无越界。环境轨迹延长至 24 个 5 分钟步后共有 360 条样本，5/15/30/60 分钟有效目标为 360/330/285/195，覆盖率分别为 100%/91.67%/79.17%/54.17%。这些数值仅用于合成数据覆盖检查，不是景区实际行为统计。正式训练数据量仍需后续质量报告评估。
