@@ -2,9 +2,11 @@
 
 const { parseTime, stamp } = require('../state/scenarioEngine');
 
-const TYPES = new Set(['ROAD_CLOSE', 'ROAD_REOPEN', 'POI_CLOSE', 'POI_OPEN']);
+const TYPES = new Set(['ROAD_CLOSE', 'ROAD_REOPEN', 'POI_CLOSE', 'POI_OPEN',
+  'SHOW_BOARDING', 'SHOW_START', 'SHOW_LATEST_ENTRY', 'SHOW_END']);
 // Reopen first, close last: a same-time conflict remains closed.
-const PRIORITY = { ROAD_REOPEN: 0, POI_OPEN: 0, ROAD_CLOSE: 1, POI_CLOSE: 1 };
+const PRIORITY = { ROAD_REOPEN: 0, POI_OPEN: 0, SHOW_BOARDING: 0, SHOW_START: 0,
+  ROAD_CLOSE: 1, POI_CLOSE: 1, SHOW_LATEST_ENTRY: 1, SHOW_END: 1 };
 
 class EventClock {
   constructor(startTime, stepMin, events = []) {

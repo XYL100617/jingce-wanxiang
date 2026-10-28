@@ -25,7 +25,7 @@ test('seeded RNG has stable sequence and validates its operations', () => {
 });
 
 test('registry and three scenarios keep all parameters tagged T4 assumptions', () => {
-  assert.equal(VERSION, 'p1c.1');
+  assert.equal(VERSION, 'p1e.1');
   for (const parameter of Object.values(PARAMETERS)) {
     assert.equal(parameter.source_tier, 'T4');
     assert.equal(parameter.parameter_basis, 'ASSUMPTION');

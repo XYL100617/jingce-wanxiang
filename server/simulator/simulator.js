@@ -10,18 +10,21 @@ const { advancePopulation, advancePoiService } = require('./dynamics');
 const { evaluateLegalActions } = require('./legal-action-adapter');
 const { generateObservation, createObservationBuffer } = require('./observation');
 const { dispatchNodeWalkers, advanceTransit, advanceExitIntents, summarizeExitLedger } = require('./mobility');
+const { showMilestones, advanceEventService, applyShowMilestone, dispatchEventIntents } = require('./event-flow');
 const { toMillis } = require('../planner/time');
 
 function validateEvents(events, graph) {
   const edgeIds = new Set(graph.edges.map(edge => edge.edge_id));
   const poiIds = new Set(graph.nodes.map(node => node.poi_id).filter(Boolean));
   for (const event of events) {
-    const known = event.event_type.startsWith('ROAD_') ? edgeIds.has(event.target_id) : poiIds.has(event.target_id);
+    const known = event.event_type.startsWith('ROAD_') ? edgeIds.has(event.target_id)
+      : event.event_type.startsWith('POI_') && poiIds.has(event.target_id);
     if (!known) throw new RangeError(`unknown ${event.event_type} target_id: ${event.target_id}`);
   }
 }
 
 function applyEvent(state, event) {
+  if (event.event_type.startsWith('SHOW_')) return applyShowMilestone(state, event);
   const close = event.event_type.endsWith('CLOSE');
   if (event.event_type.startsWith('ROAD_')) {
     state.roads[event.target_id].is_open = !close;
@@ -76,7 +79,10 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
     const { node_sequence: nodes, edge_sequence: edges } = group.path;
     const validDestination = group.purpose === 'EXIT_TRAVEL'
       ? mobility.exit_node_ids.includes(group.target_exit_id) && group.target_exit_id === group.destination_node_id
-      : group.purpose === 'POI_TRAVEL' && !!state.pois[group.destination_poi_id];
+      : group.purpose === 'EVENT_TRAVEL'
+        ? state.events[group.target_event_id]?.is_show_event === true
+          && state.events[group.target_event_id].node_id === group.destination_node_id
+        : group.purpose === 'POI_TRAVEL' && !!state.pois[group.destination_poi_id];
     if (!Number.isSafeInteger(group.count) || group.count <= 0 || !nodeIds.has(group.current_node_id)
       || !nodeIds.has(group.destination_node_id) || !validDestination
       || !Array.isArray(nodes) || !Array.isArray(edges) || nodes.length !== edges.length + 1
@@ -112,7 +118,7 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
   if (populationLedger && populationLedger.population_after !== populationLedger.population_before + populationLedger.arrivals - populationLedger.departures) {
     throw new Error('population conservation failed');
   }
-  let queueSum = 0, insideSum = 0;
+  let queueSum = 0, insideSum = 0, attendingSum = 0;
   for (const [id, poi] of Object.entries(state.pois)) {
     if (!Number.isSafeInteger(poi.queue_count) || poi.queue_count < 0 || poi.queue !== poi.queue_count
       || !Number.isSafeInteger(poi.inside_count) || poi.inside_count < 0
@@ -131,7 +137,28 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
     queueSum += poi.queue_count;
     insideSum += poi.inside_count;
   }
-  if (queueSum !== ledger.queueing || insideSum !== ledger.inside_poi) throw new Error('POI totals differ from population ledger');
+  for (const [id, event] of Object.entries(state.events)) {
+    if (!event.is_show_event) continue;
+    const eventInTransit = mobility.transit_groups.filter(group => group.purpose === 'EVENT_TRAVEL'
+      && group.target_event_id === id).reduce((sum, group) => sum + group.count, 0);
+    if (!nodeIds.has(event.node_id) || !['BEFORE_ENTRY', 'BOARDING', 'RUNNING', 'RELEASING', 'FINISHED'].includes(event.phase)
+      || !Number.isSafeInteger(event.event_queue_count) || event.event_queue_count < 0
+      || !Number.isSafeInteger(event.attending_count) || event.attending_count < 0
+      || !Number.isSafeInteger(event.capacity) || event.capacity < 0
+      || event.attending_count > event.capacity
+      || !['intent_created_total', 'queue_arrivals_total', 'admitted_total', 'missed_count', 'released_count']
+        .every(key => Number.isSafeInteger(event[key]) && event[key] >= 0)
+      || event.admitted_total !== event.attending_count + event.released_count
+      || event.intent_created_total !== event.event_queue_count + event.attending_count
+        + event.released_count + event.missed_count + eventInTransit
+      || (event.phase === 'FINISHED' && (event.attending_count || event.event_queue_count))) {
+      throw new Error(`show event invariant failed: ${id}`);
+    }
+    queueSum += event.event_queue_count;
+    attendingSum += event.attending_count;
+  }
+  if (queueSum !== ledger.queueing || insideSum !== ledger.inside_poi
+    || attendingSum !== ledger.attending_event) throw new Error('POI or event totals differ from population ledger');
   for (const [id, road] of Object.entries(state.roads)) {
     if (!Number.isFinite(road.base_travel_time_min) || road.base_travel_time_min < 0 || !Number.isFinite(road.speed_factor) || road.speed_factor <= 0) {
       throw new Error(`road invariant failed: ${id}`);
@@ -142,7 +169,7 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
       if (!state.roads[edgeId]?.is_open) throw new Error(`closed road in legal route: ${edgeId}`);
     }
   }
-  return { population: 'PASS', queue: 'PASS', ledger: 'PASS', mobility: 'PASS', inside_capacity: 'PASS',
+  return { population: 'PASS', queue: 'PASS', ledger: 'PASS', mobility: 'PASS', inside_capacity: 'PASS', event: 'PASS',
     cumulative_population: 'PASS', closed_road: 'PASS', graph_version: 'PASS', time: 'PASS' };
 }
 
@@ -155,13 +182,15 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
   const rng = new SeededRNG(seed);
   const selectedScenario = resolveScenario(scenario);
   const parameters = resolveParameters(selectedScenario, rng);
+  const eventRng = new SeededRNG((seed ^ 0x1f123bb5) >>> 0);
   const observationParameters = resolveObservationParameters();
   // Separate substream: sensor draws never alter environmental dynamics.
   const observationRng = new SeededRNG((seed ^ 0x9e3779b9) >>> 0);
   const arrivalOnlyParameters = Object.freeze({ ...parameters, departure_rate: 0 });
   const { graph, state } = createSimulationState(sourceGraph, sourceState, selectedScenario, parameters);
-  const clock = new EventClock(state.simulation_time, parameters.simulation_step_min, sourceEvents);
   validateEvents(sourceEvents, graph);
+  const clock = new EventClock(state.simulation_time, parameters.simulation_step_min,
+    [...sourceEvents, ...showMilestones(state.events, state.simulation_time)]);
   validateInvariants(state, null, null, null, graph);
   const observationBuffer = createObservationBuffer();
   observationBuffer.capture(generateObservation(state, observationRng,
@@ -179,22 +208,34 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     const populationBefore = state.environment.park_population;
     const walkingBefore = state.population_ledger.walking;
     const queueBefore = state.population_ledger.queueing;
+    const poiQueueBefore = Object.values(state.pois).reduce((sum, poi) => sum + poi.queue_count, 0);
     const insideBefore = state.population_ledger.inside_poi;
+    const attendingBefore = state.population_ledger.attending_event;
     const nodeBefore = Object.values(state.mobility_ledger.node_walkers).reduce((sum, count) => sum + count, 0);
     const transitBefore = state.mobility_ledger.transit_groups.reduce((sum, group) => sum + group.count, 0);
     const poiFlows = Object.fromEntries(Object.entries(state.pois).map(([id, poi]) => [id, {
       queue_before: poi.queue_count, inside_before: poi.inside_count, arrivals: 0,
       admitted: 0, completed: 0, served: 0
     }]));
+    const eventFlows = Object.fromEntries(Object.entries(state.events)
+      .filter(([, event]) => event.is_show_event).map(([id, event]) => [id, {
+        queue_before: event.event_queue_count, attending_before: event.attending_count,
+        intents: 0, arrivals: 0, admitted: 0, queue_missed: 0,
+        travel_missed: 0, released: 0
+      }]));
     const schedule = clock.nextStep();
     let cursor = schedule.startMs;
     let arrivals = 0, departures = 0, queueArrivals = 0, admitted = 0, completed = 0;
+    let eventQueueArrivals = 0, eventAdmitted = 0, eventQueueMissed = 0;
+    let eventReleased = 0, eventTravelMissed = 0, eventIntentCreated = 0;
     const applied = [];
     const mobilityEvents = { dispatched: [], edge_entries: [], reroutes: [], blocked: [],
       arrived_total: 0, closed_poi_returns: 0, closed_poi_nodes: [],
       exit_intent_created: 0, exit_arrivals_completed: 0, exit_departures_at_gate: 0,
       exit_blocked: 0, exit_dispatches: [], exit_completions: [] };
+    const eventAudit = { dispatches: [], arrivals: [] };
     const blockedExitNodes = new Set();
+    const missedEventNodes = new Set();
 
     for (const checkpoint of schedule.checkpoints) {
       const durationMin = (checkpoint.timeMs - cursor) / 60000;
@@ -203,6 +244,7 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
           state.population_ledger, state.mobility_ledger);
         const queueLedger = advancePoiService(state.pois, state.population_ledger,
           state.mobility_ledger, durationMin, state.simulation_time);
+        const eventService = advanceEventService(state, durationMin, parameters);
         const transit = advanceTransit(graph, state, durationMin, parameters);
         arrivals += population.arrivals;
         departures += population.departures + transit.exit_arrivals_completed;
@@ -218,6 +260,22 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
           queueArrivals += count;
           poiFlows[id].arrivals += count;
         }
+        for (const [id, row] of Object.entries(eventService)) {
+          eventAdmitted += row.admitted;
+          eventReleased += row.released;
+          eventFlows[id].admitted += row.admitted;
+          eventFlows[id].released += row.released;
+        }
+        for (const [id, count] of Object.entries(transit.event_queue_arrivals)) {
+          eventQueueArrivals += count;
+          eventFlows[id].arrivals += count;
+        }
+        eventTravelMissed += transit.event_missed_total;
+        for (const id of transit.event_missed_nodes) missedEventNodes.add(id);
+        for (const [id, count] of Object.entries(transit.event_missed_by_event)) {
+          eventFlows[id].travel_missed += count;
+        }
+        eventAudit.arrivals.push(...transit.event_arrivals);
         mobilityEvents.arrived_total += transit.arrived_total;
         mobilityEvents.closed_poi_returns += transit.closed_poi_returns;
         mobilityEvents.closed_poi_nodes.push(...transit.closed_poi_nodes);
@@ -232,7 +290,14 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
         cursor = checkpoint.timeMs;
       }
       state.simulation_time = checkpoint.timestamp;
-      for (const event of checkpoint.events) applied.push(applyEvent(state, event));
+      for (const event of checkpoint.events) {
+        const change = applyEvent(state, event);
+        applied.push(change);
+        if (event.event_type === 'SHOW_LATEST_ENTRY') {
+          eventQueueMissed += change.missed;
+          eventFlows[change.event_id].queue_missed += change.missed;
+        }
+      }
       if (durationMin > 0) {
         const exitFlow = advanceExitIntents(graph, state, durationMin, parameters,
           rng, checkpoint.timestamp, blockedExitNodes);
@@ -244,7 +309,19 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
         mobilityEvents.exit_completions.push(...exitFlow.exit_completions);
         for (const id of exitFlow.exit_blocked_nodes) blockedExitNodes.add(id);
         const blockedNodes = new Set([...mobilityEvents.blocked.map(item => item.node_id),
-          ...mobilityEvents.closed_poi_nodes]);
+          ...mobilityEvents.closed_poi_nodes, ...missedEventNodes]);
+        const eventIntent = dispatchEventIntents(graph, state, durationMin, parameters,
+          eventRng, checkpoint.timestamp, blockedNodes);
+        eventIntentCreated += eventIntent.event_intent_created;
+        eventAudit.dispatches.push(...eventIntent.event_dispatches);
+        for (const [id, count] of Object.entries(eventIntent.event_queue_arrivals)) {
+          eventQueueArrivals += count;
+          eventFlows[id].arrivals += count;
+        }
+        for (const item of eventIntent.event_dispatches) eventFlows[item.target_event_id].intents += item.count;
+        for (const [id, count] of Object.entries(eventIntent.event_queue_arrivals)) {
+          eventFlows[id].intents += count;
+        }
         mobilityEvents.dispatched.push(...dispatchNodeWalkers(graph, state, durationMin, parameters,
           rng, checkpoint.timestamp, blockedNodes));
       }
@@ -252,17 +329,34 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     state.step_count += 1;
     const population = { population_before: populationBefore, arrivals, departures, population_after: state.environment.park_population };
     const queueAfter = state.population_ledger.queueing;
+    const poiQueueAfter = Object.values(state.pois).reduce((sum, poi) => sum + poi.queue_count, 0);
     const insideAfter = state.population_ledger.inside_poi;
+    const attendingAfter = state.population_ledger.attending_event;
     const walkingAfter = state.population_ledger.walking;
-    if (queueAfter !== queueBefore + queueArrivals - admitted) throw new Error('POI queue conservation failed');
+    if (queueAfter !== queueBefore + queueArrivals + eventQueueArrivals
+      - admitted - eventAdmitted - eventQueueMissed) throw new Error('combined queue conservation failed');
     if (insideAfter !== insideBefore + admitted - completed) throw new Error('POI inside conservation failed');
-    if (walkingAfter !== walkingBefore + arrivals - departures - queueArrivals + completed) throw new Error('walking pool conservation failed');
+    if (attendingAfter !== attendingBefore + eventAdmitted - eventReleased) {
+      throw new Error('event attendance conservation failed');
+    }
+    if (walkingAfter !== walkingBefore + arrivals - departures - queueArrivals
+      - eventQueueArrivals + completed + eventQueueMissed + eventReleased) {
+      throw new Error('walking pool conservation failed');
+    }
     for (const [id, row] of Object.entries(poiFlows)) {
       row.queue_after = state.pois[id].queue_count;
       row.inside_after = state.pois[id].inside_count;
       if (row.queue_after !== row.queue_before + row.arrivals - row.admitted
         || row.inside_after !== row.inside_before + row.admitted - row.completed) {
         throw new Error(`POI flow conservation failed: ${id}`);
+      }
+    }
+    for (const [id, row] of Object.entries(eventFlows)) {
+      row.queue_after = state.events[id].event_queue_count;
+      row.attending_after = state.events[id].attending_count;
+      if (row.queue_after !== row.queue_before + row.arrivals - row.admitted - row.queue_missed
+        || row.attending_after !== row.attending_before + row.admitted - row.released) {
+        throw new Error(`event flow conservation failed: ${id}`);
       }
     }
     observationBuffer.capture(generateObservation(state, observationRng,
@@ -275,14 +369,31 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     return clone({
       timestamp: state.simulation_time,
       population,
-      poi_queue_summary: { queue_before: queueBefore, arrivals: queueArrivals, served: admitted,
-        admitted, completed, queue_after: queueAfter, inside_before: insideBefore, inside_after: insideAfter },
+      poi_queue_summary: { queue_before: poiQueueBefore, arrivals: queueArrivals, served: admitted,
+        admitted, completed, queue_after: poiQueueAfter, inside_before: insideBefore, inside_after: insideAfter },
       population_flow: { walking_before: walkingBefore, walking_after: walkingAfter,
-        walking_to_queue: queueArrivals, queue_to_inside: admitted, inside_to_walking: completed },
+        walking_to_queue: queueArrivals + eventQueueArrivals,
+        queue_to_inside: admitted, inside_to_walking: completed,
+        queue_to_attending: eventAdmitted, queue_to_walking: eventQueueMissed,
+        attending_to_walking: eventReleased },
       mobility_flow: { node_before: nodeBefore, transit_before: transitBefore,
         node_after: nodeAfter, transit_after: transitAfter, ...mobilityEvents,
         exit_ledger: summarizeExitLedger(state) },
       poi_flows: poiFlows,
+      event_flow_summary: {
+        event_intent_created: eventIntentCreated,
+        event_travel_count: state.mobility_ledger.transit_groups
+          .filter(group => group.purpose === 'EVENT_TRAVEL').reduce((sum, group) => sum + group.count, 0),
+        event_queue_arrivals: eventQueueArrivals,
+        event_queue_count: Object.values(state.events).filter(event => event.is_show_event)
+          .reduce((sum, event) => sum + event.event_queue_count, 0),
+        event_admitted_count: eventAdmitted, event_attending_count: attendingAfter,
+        event_missed_count: eventQueueMissed + eventTravelMissed,
+        event_released_count: eventReleased,
+        dispatches: eventAudit.dispatches, arrivals: eventAudit.arrivals
+      },
+      event_flows: eventFlows,
+      event_status_changes: applied.filter(event => event.event_type.startsWith('SHOW_')),
       road_status_changes: applied.filter(event => event.event_type.startsWith('ROAD_')),
       poi_status_changes: applied.filter(event => event.event_type.startsWith('POI_')),
       legal_actions: legal.legal,

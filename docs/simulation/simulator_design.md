@@ -159,3 +159,28 @@ POI 关闭后不接收新的 walking→queue，原队列保留并暂停入场；
 | `dynamics` / `mobility` | `INTERNAL_ENVIRONMENT_TRANSITION` | 为模拟真实环境转移可读取 latent；C `findPath` 在这里仅作为 B 内部路由函数 | B 模拟器内部 |
 
 仓库当前没有将 `createSimulator()` 连接到 `server/index.js` 的 HTTP 路由；`server/index.js` 中同名的 `provider.getState()` 是 A 的现有服务状态接口，不是 B 的模拟器 `getState()`。面向未来 agent/model 的输入边界是 `getObservation()` 和 `getLegalActions().observation`，不能传入完整模拟器对象、`getState()` 或完整 `step()` 结果。普通缺失字段的规划回退只来自参数注册或 A 的公开示意图；权威安全字段按 `AUTHORITATIVE_SAFETY_FIELD` 路径零延迟提供。B 内部移动构造给 C `findPath` 的场景仍源自 latent 状态，仅供环境转移使用，不得作为 agent/model 规划视图复用。
+
+## 13. P1-E 演出游客生命周期（2026-10-28）
+
+当前业务快照中的 `show-1` 关联 DEMO `theater` 节点，含 `start_time=2026-10-20 11:20:00`、`latest_entry_time=11:20:00`、`capacity=180`，没有 `end_time`。仿真器以注册参数 `default_event_duration_min=30` 补足结束时间（标为 `DERIVED_T4`），不改写业务 JSON。`market-peak` 是 `forecast` 状态且对应非演出节点，不进入演出流程或已公布演出观测。上述时刻、容量、节点和路段都是 DEMO/T4 机制输入，不能解释为经现场核验的节目表、真实入口或道路。
+
+| 时间概念 | `show-1` 时间 | 来源类型 | 含义 |
+| --- | --- | --- | --- |
+| `boarding_start`（状态键 `boarding_open_time`） | 10:50 | `DERIVED_T4` | `start_time - event_boarding_lead_min(30)`；模拟器生成的 DEMO 入场开始时间 |
+| `latest_entry_time` | 11:20 | `BUSINESS_DEMO` | 当前演示数据中最晚进入演出场地的截止时刻；不等同于正式开演的语义，也未经现场核验 |
+| `start_time` | 11:20 | `BUSINESS_DEMO` | 当前演示数据中正式开演时间 |
+| `end_time` | 11:50 | `DERIVED_T4` | `start_time + default_event_duration_min(30)`；原业务数据没有结束时间 |
+
+入场提前量、缺省结束时长、缺省最晚入场偏移均集中在参数注册表，标记为 `T4 / ASSUMPTION`。状态的 `time_sources` 保存四个时间的来源类型与推导参数；若未来业务快照提供 `end_time`，其来源类型改为 `BUSINESS_DEMO`。演示轨迹在 10:53 首次观测到 BOARDING，是因为固定 5 分钟采样点从 10:48 跨过了精确里程碑 10:50；RUNNING 在 11:20 精确生效，下一采样点为 11:23；RELEASING 在 11:50 精确生效，下一采样点为 11:53。
+
+`SimulationState.events[event_id]` 对可模拟演出独立保存 `BEFORE_ENTRY → BOARDING → RUNNING → RELEASING → FINISHED`。Event Clock 在 `start_time - event_boarding_lead_min`、`start_time`、`latest_entry_time`、`end_time` 设置精确里程碑；每个里程碑先结算前一区间，再应用状态变化。演出期间不按普通 POI 的 `visit_duration_min` 离场。`SHOW_LATEST_ENTRY` 释放尚未入场的演出队列到演出节点，计为 missed；在途群组到下个节点或目的地时重新核对时间和封路，迟到者回到 walking，不瞬移入场。到达时间恰等于 `latest_entry_time` 的在途群组会先到演出队列，同刻里程碑随后将其转出；从该时刻起不再生成新意图。
+
+`event_interest_rate` 从节点上尚无离园意图的 walking 人群抽样，使用由同一 seed 派生的独立 `SeededRNG` 子流。内部环境以 C 的 `findPath` 得到路线，生成 `purpose=EVENT_TRAVEL` 且携带 `target_event_id` 的聚合在途群组；既有在途、演出队列、入场人群不再参与抽样。这一聚合环境转移读取 latent 以维持真实守恒；决策游客的 `ATTEND_EVENT` 仍使用 `getLegalActions()` 和 C 的时间窗合同。封路时在下一个节点通过 C 重新寻路，不可达或赶不上截止时间则取消意图。演出节点本身在演出有效期内不作为普通 POI 目标，避免双重排队。
+
+C 的 `ATTEND_EVENT` 对预计到达 **晚于** `latest_entry_time` 明确拒绝；B 聚合流也拒绝这种到达，并在出发前额外要求预计到达 **早于** 截止时刻，使排队和按入场率处理仍有时间。恰好抵达截止时刻时，C 个人规划在时间窗检查上可通过，B 聚合流采取保守不派发；两者不会出现 C 判迟到而 B 仍派人的相反判断。途中延误达到截止时刻的 B 群组在下一节点取消意图、记 missed 并回到 walking。
+
+`BOARDING`（或尚在入场期限内的 `RUNNING`）按 `min(event_queue_count, capacity-attending_count, floor(event_admission_rate × 区间分钟))` 入场；`RUNNING` 中已入场者持续驻留到 `end_time`。结束后按 `floor(event_release_rate × 区间分钟)` 从 `attending_event` 逐步转为演出节点的 walking，随后由正常移动或离园逻辑处理，形成短时节点客流波峰。`FINISHED` 不再生成新入场意图，队列和入场人数最终均为零。
+
+总账仍用 `queueing`，并维护 `queueing = ΣPOI queue_count + Σevent_queue_count`；`attending_event = Σevent attending_count`；`walking = Σnode_walkers + Σtransit_groups`；`park_population = walking + queueing + inside_poi + attending_event + resting`。单步审计 `event_flows` 分别给出意图、到队列、入场、未入场、途中失约与散场人数，其中途中失约只在 walking 内从 transit 回到 node，不重复增减总账。`event_flow_summary` 给出跨步可追踪的 dispatch/arrival 群组 ID 和聚合计数。参数版本 `p1e.1` 下的兴趣率、入场率、散场率、入场提前量、缺省演出时长与容量均为 `T4 / ASSUMPTION`。
+
+可见层仅包含当前已公布演出的日程与当前状态（零延迟的权威状态路径），以及受 P1-D 噪声、缺失和延迟约束的排队及入场估计数；不包含未来散场人数、真实在途群组、内部累计流水或下一时刻 latent。`getState()`、完整 `step()` 与 event audit 继续限定为内部接口；`getObservation()` 与 `getLegalActions().observation` 才是未来 agent/model 的输入边界。

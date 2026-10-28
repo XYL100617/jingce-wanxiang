@@ -25,7 +25,7 @@ function generateObservation(state, rng, parameters, scenarioId = 'P1D_CLEAN') {
   if (!rng || typeof rng.next !== 'function') throw new TypeError('observation requires SeededRNG');
   const observed_at = state.simulation_time;
   const available_at = addMinutes(observed_at, scenario.delay ? parameters.observation_delay_min : 0);
-  const pois = {}, roads = {}, missing_mask = { pois: {}, roads: {} };
+  const pois = {}, roads = {}, events = {}, missing_mask = { pois: {}, roads: {}, events: {} };
   for (const [id, poi] of Object.entries(state.pois)) {
     const missing = scenario.missing && rng.next() < parameters.queue_missing_rate;
     const queueCount = missing ? null : Math.max(0, Math.round(poi.queue_count
@@ -49,11 +49,24 @@ function generateObservation(state, rng, parameters, scenarioId = 'P1D_CLEAN') {
       observed_at, available_at, is_open_available_at: observed_at };
     missing_mask.roads[id] = { is_open: false, travel_time_min: travelTime === null };
   }
-  const events = Object.fromEntries(Object.entries(state.events).map(([id, event]) => [id, {
-    event_id: event.event_id, node_id: event.node_id,
-    start_time: event.start_time, latest_entry_time: event.latest_entry_time,
-    end_time: event.end_time, status: event.status, cancelled: event.cancelled
-  }]));
+  for (const [id, event] of Object.entries(state.events)) {
+    if (!event.is_show_event) continue; // A forecast marker is not a published show.
+    const missing = scenario.missing && rng.next() < parameters.queue_missing_rate;
+    events[id] = {
+      event_id: event.event_id, node_id: event.node_id,
+      start_time: event.start_time, latest_entry_time: event.latest_entry_time,
+      end_time: event.end_time, end_time_basis: event.end_time_basis,
+      boarding_open_time: event.boarding_open_time, time_sources: clone(event.time_sources),
+      phase: event.phase, status: event.status, cancelled: event.cancelled,
+      event_queue_count: missing ? null : Math.max(0, Math.round(event.event_queue_count
+        + (scenario.noise ? gaussian(rng) * parameters.queue_noise_std : 0))),
+      attending_count: missing ? null : Math.max(0, Math.round(event.attending_count
+        + (scenario.noise ? gaussian(rng) * parameters.queue_noise_std : 0))),
+      observed_at, available_at, status_available_at: observed_at
+    };
+    missing_mask.events[id] = { event_queue_count: missing, attending_count: missing,
+      phase: false, status: false, cancelled: false };
+  }
   const visitor = state.visitor;
   return {
     synthetic: true, source_tier: 'T4', observation_version: OBSERVATION_VERSION,
@@ -86,7 +99,7 @@ function createObservationBuffer() {
       const safety = captures.findLast(item => toMillis(item.observed_at) <= now);
       if (!safety) return null;
       const ordinary = captures.findLast(item => toMillis(item.available_at) <= now);
-      const pois = {}, roads = {}, missing_mask = { pois: {}, roads: {} };
+      const pois = {}, roads = {}, events = {}, missing_mask = { pois: {}, roads: {}, events: {} };
       for (const [id, current] of Object.entries(safety.pois)) {
         const old = ordinary?.pois[id];
         pois[id] = { is_open: current.is_open,
@@ -106,6 +119,21 @@ function createObservationBuffer() {
           is_open_available_at: safety.observed_at };
         missing_mask.roads[id] = { is_open: false, travel_time_min: roads[id].travel_time_min === null };
       }
+      for (const [id, current] of Object.entries(safety.events)) {
+        const old = ordinary?.events[id];
+        events[id] = { event_id: current.event_id, node_id: current.node_id,
+          start_time: current.start_time, latest_entry_time: current.latest_entry_time,
+          end_time: current.end_time, end_time_basis: current.end_time_basis,
+          boarding_open_time: current.boarding_open_time, time_sources: clone(current.time_sources),
+          phase: current.phase, status: current.status, cancelled: current.cancelled,
+          event_queue_count: old?.event_queue_count ?? null,
+          attending_count: old?.attending_count ?? null,
+          observed_at: old?.observed_at ?? null, available_at: old?.available_at ?? null,
+          status_available_at: safety.observed_at };
+        missing_mask.events[id] = { event_queue_count: events[id].event_queue_count === null,
+          attending_count: events[id].attending_count === null,
+          phase: false, status: false, cancelled: false };
+      }
       return {
         synthetic: true, source_tier: 'T4', observation_version: safety.observation_version,
         parameter_version: safety.parameter_version,
@@ -115,7 +143,7 @@ function createObservationBuffer() {
         available_at: ordinary?.available_at ?? null,
         safety_observed_at: safety.observed_at,
         weather: ordinary ? clone(ordinary.weather) : null,
-        pois, roads, visitor: clone(safety.visitor), events: clone(safety.events), missing_mask
+        pois, roads, visitor: clone(safety.visitor), events, missing_mask
       };
     }
   };

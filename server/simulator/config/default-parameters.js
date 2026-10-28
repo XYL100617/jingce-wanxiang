@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = 'p1c.1';
+const VERSION = 'p1e.1';
 
 // Every number below is a broad T4 engineering assumption, not measured park data.
 const definitions = {
@@ -21,6 +21,13 @@ const definitions = {
   travel_time_multiplier: { value: 1, unit: 'ratio; DEMO schematic edge time' },
   max_dispatch_groups_per_node: { value: 3, unit: 'aggregate cohorts/node/interval' },
   exit_intent_rate: { range: [0.03, 0.08], unit: 'fraction of eligible node walkers per 5 min' },
+  event_interest_rate: { value: 0.14, unit: 'fraction of eligible node walkers per 5 min' },
+  event_admission_rate: { value: 4, unit: 'visitors/min during boarding' },
+  event_release_rate: { value: 4, unit: 'visitors/min after show end' },
+  event_boarding_lead_min: { value: 30, unit: 'min before DEMO show start' },
+  default_latest_entry_offset_min: { value: 0, unit: 'min before DEMO show start when latest entry is absent' },
+  default_event_duration_min: { value: 30, unit: 'min; DEMO event fallback' },
+  default_event_capacity: { value: 180, unit: 'visitors; DEMO event fallback' },
   visitor_speed_range: { range: [0.7, 1.5], unit: 'm/s' },
   queue_arrival_range: { range: [0, 0.45], unit: 'visitors/min/poi' },
   arrival_multiplier: { value: 1, unit: 'ratio' },

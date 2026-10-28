@@ -107,15 +107,45 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
       closed_at: initial.road_states[edge.edge_id].available === false ? initial.timestamp : null
     };
   }
-  const events = Object.fromEntries(Object.entries(initial.event_states || {}).map(([id, event]) => [id, {
-    event_id: event.event_id || id,
-    node_id: event.node_id,
-    start_time: event.start_time || null,
-    latest_entry_time: event.latest_entry_time || null,
-    end_time: event.end_time || null,
-    status: event.status || 'UNKNOWN',
-    cancelled: event.cancelled === true
-  }]));
+  const showNodeIds = new Set(graph.nodes.filter(node => node.type === 'show').map(node => node.node_id));
+  const events = Object.fromEntries(Object.entries(initial.event_states || {}).map(([id, event]) => {
+    const isShow = showNodeIds.has(event.node_id) && event.status !== 'forecast'
+      && event.cancelled !== true && !!event.start_time;
+    const start = event.start_time || null;
+    const latest = event.latest_entry_time || (isShow
+      ? addMinutes(start, -parameters.default_latest_entry_offset_min) : start);
+    const end = event.end_time || (isShow ? addMinutes(start, parameters.default_event_duration_min) : null);
+    if (isShow && (parseTime(latest, `latest entry ${id}`) > parseTime(end, `show end ${id}`)
+      || parseTime(start, `show start ${id}`) >= parseTime(end, `show end ${id}`))) {
+      throw new RangeError(`invalid DEMO show time window: ${id}`);
+    }
+    const boardingOpen = isShow ? addMinutes(start, -parameters.event_boarding_lead_min) : null;
+    const now = parseTime(initial.timestamp, 'initial timestamp');
+    const phase = !isShow ? null : now >= parseTime(end, 'show end') ? 'FINISHED'
+      : now >= parseTime(start, 'show start') ? 'RUNNING'
+        : now >= parseTime(boardingOpen, 'boarding open') ? 'BOARDING' : 'BEFORE_ENTRY';
+    return [id, {
+      event_id: event.event_id || id, node_id: event.node_id,
+      start_time: start, latest_entry_time: latest, end_time: end,
+      end_time_basis: event.end_time ? 'BUSINESS_DEMO' : isShow ? 'DERIVED_T4' : null,
+      boarding_open_time: boardingOpen,
+      time_sources: isShow ? {
+        boarding_start: { type: 'DERIVED_T4', parameter: 'event_boarding_lead_min' },
+        latest_entry_time: event.latest_entry_time
+          ? { type: 'BUSINESS_DEMO' }
+          : { type: 'DERIVED_T4', parameter: 'default_latest_entry_offset_min' },
+        start_time: { type: 'BUSINESS_DEMO' },
+        end_time: event.end_time ? { type: 'BUSINESS_DEMO' }
+          : { type: 'DERIVED_T4', parameter: 'default_event_duration_min' }
+      } : null,
+      status: event.status || 'UNKNOWN', cancelled: event.cancelled === true,
+      is_show_event: isShow, phase,
+      capacity: isShow ? nonnegative(Number(event.capacity ?? parameters.default_event_capacity), `event capacity ${id}`) : null,
+      event_queue_count: isShow ? 0 : null, attending_count: isShow ? 0 : null,
+      intent_created_total: 0, queue_arrivals_total: 0, admitted_total: 0,
+      missed_count: 0, released_count: 0
+    }];
+  }));
   const initialPopulation = Math.round(nonnegative(parameters.initial_park_population, 'initial_park_population'));
   const queueFraction = nonnegative(parameters.initial_queue_fraction, 'initial_queue_fraction');
   const insideFraction = nonnegative(parameters.initial_inside_fraction, 'initial_inside_fraction');

@@ -87,11 +87,14 @@ test('F2: departures cannot remove people who are queueing or inside', () => {
   assert.equal(ledger.exited_total, 0);
 });
 
-test('G: sum of POI queues equals ledger.queueing', () => {
+test('G: sum of POI and event queues equals ledger.queueing', () => {
   const simulator = createSimulator({ seed: 42 });
   simulator.runSteps(8);
   const state = simulator.getState();
-  assert.equal(Object.values(state.pois).reduce((sum, poi) => sum + poi.queue_count, 0), state.population_ledger.queueing);
+  const poiQueues = Object.values(state.pois).reduce((sum, poi) => sum + poi.queue_count, 0);
+  const eventQueues = Object.values(state.events).filter(event => event.is_show_event)
+    .reduce((sum, event) => sum + event.event_queue_count, 0);
+  assert.equal(poiQueues + eventQueues, state.population_ledger.queueing);
 });
 
 test('H: sum of inside counts equals ledger.inside_poi', () => {
