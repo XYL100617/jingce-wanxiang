@@ -65,6 +65,7 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
     throw new TypeError('A graph and current state snapshot are required');
   }
   parseTime(initial.timestamp, 'initial state timestamp');
+  const initialFatigue = nonnegative(parameters.initial_fatigue_level, 'initial_fatigue_level');
   const nodeIds = new Set(graph.nodes.map(node => node.node_id));
   const edgeIds = new Set(graph.edges.map(edge => edge.edge_id));
   if (nodeIds.size !== graph.nodes.length || edgeIds.size !== graph.edges.length) throw new Error('A graph has duplicate IDs');
@@ -85,6 +86,7 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
     const serviceRate = nonnegative(parameters.default_service_rate, 'default_service_rate');
     pois[node.poi_id] = {
       queue_count: Math.max(0, Math.round(nonnegative(current.queue_min, `queue_min ${node.poi_id}`) * serviceRate)),
+      queue_fatigue: initialFatigue,
       inside_count: 0,
       capacity: nonnegative(parameters.default_poi_capacity, 'default_poi_capacity'),
       service_rate: serviceRate,
@@ -142,6 +144,8 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
       is_show_event: isShow, phase,
       capacity: isShow ? nonnegative(Number(event.capacity ?? parameters.default_event_capacity), `event capacity ${id}`) : null,
       event_queue_count: isShow ? 0 : null, attending_count: isShow ? 0 : null,
+      queue_fatigue: isShow ? initialFatigue : null,
+      attending_fatigue: isShow ? initialFatigue : null,
       intent_created_total: 0, queue_arrivals_total: 0, admitted_total: 0,
       missed_count: 0, released_count: 0
     }];
@@ -156,7 +160,8 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
   allocateInsideBudget(pois, Math.floor(initialPopulation * insideFraction));
   for (const [poiId, poi] of Object.entries(pois)) {
     if (poi.inside_count) poi.inside_groups.push({ count: poi.inside_count, poi_id: poiId,
-      entered_at: initial.timestamp, leave_at: addMinutes(initial.timestamp, poi.visit_duration_min) });
+      entered_at: initial.timestamp, leave_at: addMinutes(initial.timestamp, poi.visit_duration_min),
+      fatigue_level: initialFatigue });
   }
   const queueing = Object.values(pois).reduce((sum, poi) => sum + poi.queue_count, 0);
   const insidePoi = Object.values(pois).reduce((sum, poi) => sum + poi.inside_count, 0);
@@ -183,6 +188,7 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
       exit_node_ids: exitNodes,
       poi_node_map: poiNodeMap,
       node_walkers: Object.fromEntries(graph.nodes.map(node => [node.node_id, node.node_id === entryNodeId ? initialWalking : 0])),
+      node_fatigue: Object.fromEntries(graph.nodes.map(node => [node.node_id, initialFatigue])),
       pending_exit_intent: Object.fromEntries(graph.nodes.map(node => [node.node_id, 0])),
       blocked_exit_intent: Object.fromEntries(graph.nodes.map(node => [node.node_id, 0])),
       transit_groups: [], next_group_id: 1,
@@ -190,6 +196,7 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
       exit_arrivals_completed_total: 0, exit_blocked_attempts_total: 0
     },
     pois, roads, events,
+    rest_groups: [], next_rest_id: 1, rest_started_total: 0, rest_completed_total: 0,
     visitor: {
       visitor_id: initial.visitor.visitor_id,
       current_node_id: initial.visitor.current_node_id,

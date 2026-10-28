@@ -1,6 +1,6 @@
 'use strict';
 
-const VERSION = 'p1e.1';
+const VERSION = 'p1f.1';
 
 // Every number below is a broad T4 engineering assumption, not measured park data.
 const definitions = {
@@ -28,6 +28,16 @@ const definitions = {
   default_latest_entry_offset_min: { value: 0, unit: 'min before DEMO show start when latest entry is absent' },
   default_event_duration_min: { value: 30, unit: 'min; DEMO event fallback' },
   default_event_capacity: { value: 180, unit: 'visitors; DEMO event fallback' },
+  initial_fatigue_level: { value: 0.1, unit: 'normalized fatigue 0..1 for synthetic arrivals and initial cohorts' },
+  fatigue_walk_rate: { value: 0.012, unit: 'normalized fatigue/min; node walking and transit' },
+  fatigue_queue_rate: { value: 0.005, unit: 'normalized fatigue/min; POI and event queues' },
+  fatigue_visit_rate: { value: 0.003, unit: 'normalized fatigue/min; inside POI' },
+  fatigue_event_rate: { value: 0.002, unit: 'normalized fatigue/min; attending event' },
+  fatigue_recovery_rate: { value: 0.04, unit: 'normalized fatigue/min; resting' },
+  rest_trigger_threshold: { value: 0.7, unit: 'normalized fatigue 0..1' },
+  rest_release_threshold: { value: 0.3, unit: 'normalized fatigue 0..1' },
+  rest_accept_rate: { value: 0.35, unit: 'fraction of eligible high-fatigue node walkers per 5 min' },
+  minimum_rest_duration_min: { value: 15, unit: 'min; abstract node rest' },
   visitor_speed_range: { range: [0.7, 1.5], unit: 'm/s' },
   queue_arrival_range: { range: [0, 0.45], unit: 'visitors/min/poi' },
   arrival_multiplier: { value: 1, unit: 'ratio' },

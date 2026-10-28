@@ -184,3 +184,17 @@ C 的 `ATTEND_EVENT` 对预计到达 **晚于** `latest_entry_time` 明确拒绝
 总账仍用 `queueing`，并维护 `queueing = ΣPOI queue_count + Σevent_queue_count`；`attending_event = Σevent attending_count`；`walking = Σnode_walkers + Σtransit_groups`；`park_population = walking + queueing + inside_poi + attending_event + resting`。单步审计 `event_flows` 分别给出意图、到队列、入场、未入场、途中失约与散场人数，其中途中失约只在 walking 内从 transit 回到 node，不重复增减总账。`event_flow_summary` 给出跨步可追踪的 dispatch/arrival 群组 ID 和聚合计数。参数版本 `p1e.1` 下的兴趣率、入场率、散场率、入场提前量、缺省演出时长与容量均为 `T4 / ASSUMPTION`。
 
 可见层仅包含当前已公布演出的日程与当前状态（零延迟的权威状态路径），以及受 P1-D 噪声、缺失和延迟约束的排队及入场估计数；不包含未来散场人数、真实在途群组、内部累计流水或下一时刻 latent。`getState()`、完整 `step()` 与 event audit 继续限定为内部接口；`getObservation()` 与 `getLegalActions().observation` 才是未来 agent/model 的输入边界。
+
+## 14. P1-F 聚合疲劳与抽象休息（2026-10-28）
+
+本版仍使用聚合人数。每个节点的 walking 桶保存 `node_fatigue[node_id]`（该节点人数的 0～1 加权平均疲劳）；每个 transit 群组保存 `fatigue_level`；POI 与演出队列保存均值，POI 内群组保存 `fatigue_level`，演出入场人数保存均值。人数跨桶转移时用人数加权合并疲劳，部分流出时保留源桶均值。这是用于 T4 合成环境机制验证的群组级加权平均：它会平滑真实个体差异，不能解释为真实个人生理状态，也不能表示每位游客的精确疲劳；不推断年龄、健康或天气影响。`fatigue_low/medium/high_count` 只是按每个聚合桶均值划入 `<0.35 / 0.35～<0.7 / ≥0.7` 的审计统计，不是逐人诊断。
+
+每个时间区间先按所在活动增加或恢复疲劳：节点 walking 与 transit 使用 `fatigue_walk_rate`，普通及演出队列使用 `fatigue_queue_rate`，POI 内使用 `fatigue_visit_rate`，演出入场使用 `fatigue_event_rate`，rest 群组使用 `fatigue_recovery_rate`。区间末执行既有 POI、演出、移动转移；当前决策游客的已知 `visitor.fatigue` 也按简化 walking 速率推进并继续作为可见游客自身状态。所有速率、初始疲劳、休息接受率、触发/释放阈值与最短休息时长集中在参数版本 `p1f.1`，均标记为 `T4 / ASSUMPTION`。
+
+休息优先级固定为 **EXIT > REST > EVENT > POI**：先处理已有与新产生的离园意图，再从尚在节点、无离园意图且疲劳达到 `rest_trigger_threshold=0.7` 的 walking 人数中，按独立 seeded RNG 与 `rest_accept_rate` 生成休息意图。transit、队列、POI 内及演出中游客须先回到节点，不能原地瞬间休息。休息是当前节点的抽象状态，不新增地图节点；`rest_groups` 各自记录 `rest_id, count, node_id, started_at, minimum_rest_until, fatigue_level`。休息群组不参与普通移动或活动意图。
+
+只有同时满足 `current_time >= minimum_rest_until` 与 `fatigue_level <= rest_release_threshold=0.3`，整组才从 resting 回到原节点 walking。`minimum_rest_duration_min=15` 且 `trigger > release` 提供滞回，避免紧邻步骤反复进入/离开。休息不改变在园人数：`walking → resting` 与 `resting → walking` 仅搬运人数；严格检查 `resting = Σrest_groups.count = rest_started_total - rest_completed_total`，以及 `park_population = node_walkers + transit + queueing + inside_poi + attending_event + resting`。`fatigue_summary` 记录每步及累计开始、完成人数和可追踪休息群组流水；这些审计信息仅在内部 `step()` 返回，不进入 agent/model 的观测。
+
+`rest_started_total` 与 `rest_completed_total` 的单位是**人次（person-events）**，同一批聚合游客恢复后再次疲劳、再次休息时会重复计入；它们不能解释为去重游客数。`resting_current` 的单位是当前**人数**。本版没有其他休息状态，所以任意时刻必须满足 `resting_current = rest_started_total - rest_completed_total`。
+
+`getObservation()` 仅继续显示系统已知的单个决策游客 `fatigue`，不暴露 `node_fatigue`、`rest_groups`、聚合疲劳直方图或未来恢复。独立休息随机子流使观测噪声场景不改变真实休息轨迹。该版本不修改 C 的 Schema 或规则，不计算奖励、道路拥堵或天气速度。

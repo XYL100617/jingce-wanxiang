@@ -1,6 +1,7 @@
 'use strict';
 
 const { addMinutes, toMillis } = require('../planner/time');
+const { addNodeFatigue } = require('./fatigue-rest');
 
 function stochasticCount(ratePerMin, durationMin, rng) {
   if (!Number.isFinite(ratePerMin) || ratePerMin < 0 || !Number.isFinite(durationMin) || durationMin < 0) {
@@ -20,7 +21,11 @@ function advancePopulation(environment, durationMin, parameters, rng, ledger = n
     ledger.outside += arrivals;
     ledger.outside -= arrivals;
     ledger.walking += arrivals;
-    if (mobility) mobility.node_walkers[mobility.entry_node_id] += arrivals;
+    if (mobility) {
+      addNodeFatigue(mobility, mobility.entry_node_id, arrivals,
+        parameters.initial_fatigue_level ?? 0.1);
+      mobility.node_walkers[mobility.entry_node_id] += arrivals;
+    }
   }
   const exitAvailable = mobility
     ? mobility.exit_node_ids.reduce((sum, id) => sum + mobility.node_walkers[id], 0) : null;
@@ -61,17 +66,22 @@ function advancePoiService(pois, ledger, mobility, durationMin, segmentStartTime
         ? Math.min(group.count, remainingService) : 0;
       completed += leaving;
       remainingService -= leaving;
+      if (leaving) {
+        const nodeId = mobility.poi_node_map[poiId];
+        addNodeFatigue(mobility, nodeId, leaving, group.fatigue_level);
+        mobility.node_walkers[nodeId] += leaving;
+      }
       if (group.count > leaving) retained.push({ ...group, count: group.count - leaving });
     }
     poi.inside_groups = retained;
     if (admitted) poi.inside_groups.push({ count: admitted, poi_id: poiId,
-      entered_at: segmentEnd, leave_at: addMinutes(segmentEnd, poi.visit_duration_min) });
+      entered_at: segmentEnd, leave_at: addMinutes(segmentEnd, poi.visit_duration_min),
+      fatigue_level: poi.queue_fatigue ?? 0 });
     poi.queue_count -= admitted;
     poi.inside_count += admitted - completed;
     ledger.queueing -= admitted;
     ledger.inside_poi += admitted - completed;
     ledger.walking += completed;
-    mobility.node_walkers[mobility.poi_node_map[poiId]] += completed;
     poi.queue = poi.queue_count;
     flows[poiId] = { queue_before, inside_before, arrivals: 0, admitted, completed,
       served: admitted, queue_after: poi.queue_count, inside_after: poi.inside_count };

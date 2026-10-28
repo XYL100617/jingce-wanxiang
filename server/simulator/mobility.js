@@ -6,6 +6,12 @@ const { parseTime, stamp } = require('../state/scenarioEngine');
 const { toVisibleState } = require('./legal-action-adapter');
 const { stochasticCount } = require('./dynamics');
 const { addMinutes, toMillis } = require('../planner/time');
+const { addNodeFatigue, addPoiQueueFatigue, addEventQueueFatigue } = require('./fatigue-rest');
+
+function returnToNode(mobility, group) {
+  addNodeFatigue(mobility, group.current_node_id, group.count, group.fatigue_level);
+  mobility.node_walkers[group.current_node_id] += group.count;
+}
 
 function plannerSnapshot(graph, state) {
   return buildLivePlannerScenario(graph, toVisibleState(state), {}, null);
@@ -101,6 +107,7 @@ function advanceExitIntents(graph, state, durationMin, parameters, rng, departur
     const group = {
       group_id: `cohort_${String(mobility.next_group_id++).padStart(6, '0')}`,
       purpose: 'EXIT_TRAVEL', count: pending, origin_node_id: originNodeId,
+      fatigue_level: mobility.node_fatigue?.[originNodeId] ?? 0,
       target_exit_id: chosen.exit_node_id, destination_node_id: chosen.exit_node_id,
       path: { node_sequence: route.node_sequence, edge_sequence: route.edge_sequence },
       path_index: 0, current_node_id: originNodeId,
@@ -133,6 +140,7 @@ function dispatchToPoi({ graph, state, originNodeId, poiId, count, departureTime
   const group = {
     group_id: `cohort_${String(mobility.next_group_id++).padStart(6, '0')}`,
     purpose: 'POI_TRAVEL', count, origin_node_id: originNodeId, destination_poi_id: poiId,
+    fatigue_level: mobility.node_fatigue?.[originNodeId] ?? 0,
     destination_node_id: destinationNodeId,
     path: { node_sequence: route.node_sequence, edge_sequence: route.edge_sequence },
     path_index: 0, current_node_id: originNodeId,
@@ -203,7 +211,7 @@ function advanceTransit(graph, state, durationMin, parameters) {
           if (!show?.is_show_event) throw new Error(`unknown event travel target: ${group.target_event_id}`);
           if (show.cancelled || ['RELEASING', 'FINISHED'].includes(show.phase)
             || toMillis(now) >= toMillis(show.latest_entry_time)) {
-            mobility.node_walkers[group.current_node_id] += group.count;
+            returnToNode(mobility, group);
             show.missed_count += group.count;
             events.event_missed_total += group.count;
             events.event_missed_by_event[group.target_event_id] =
@@ -235,7 +243,7 @@ function advanceTransit(graph, state, durationMin, parameters) {
             break;
           }
           if (!alternative.reachable || !alternative.edge_sequence.length) {
-            mobility.node_walkers[group.current_node_id] += group.count;
+            returnToNode(mobility, group);
             if (group.purpose === 'EVENT_TRAVEL') {
               state.events[group.target_event_id].missed_count += group.count;
               events.event_missed_total += group.count;
@@ -259,7 +267,7 @@ function advanceTransit(graph, state, durationMin, parameters) {
           if (group.purpose === 'EVENT_TRAVEL'
             && toMillis(addMinutes(now, alternative.travel_time_min)) >=
               toMillis(state.events[group.target_event_id].latest_entry_time)) {
-            mobility.node_walkers[group.current_node_id] += group.count;
+            returnToNode(mobility, group);
             state.events[group.target_event_id].missed_count += group.count;
             events.event_missed_total += group.count;
             events.event_missed_by_event[group.target_event_id] =
@@ -299,6 +307,7 @@ function advanceTransit(graph, state, durationMin, parameters) {
           const show = state.events[group.target_event_id];
           if (toMillis(reachedAt) <= toMillis(show.latest_entry_time)
             && !show.cancelled && !['RELEASING', 'FINISHED'].includes(show.phase)) {
+            addEventQueueFatigue(show, group.count, group.fatigue_level);
             show.event_queue_count += group.count;
             show.queue_arrivals_total += group.count;
             state.population_ledger.walking -= group.count;
@@ -309,7 +318,7 @@ function advanceTransit(graph, state, durationMin, parameters) {
             events.event_arrivals.push({ group_id: group.group_id, event_id: group.target_event_id,
               count: group.count, node_id: group.current_node_id, timestamp: reachedAt });
           } else {
-            mobility.node_walkers[group.current_node_id] += group.count;
+            returnToNode(mobility, group);
             show.missed_count += group.count;
             events.event_missed_total += group.count;
             events.event_missed_by_event[group.target_event_id] =
@@ -317,6 +326,7 @@ function advanceTransit(graph, state, durationMin, parameters) {
             events.event_missed_nodes.push(group.current_node_id);
           }
         } else if (poi.is_open) {
+          addPoiQueueFatigue(poi, group.count, group.fatigue_level);
           poi.queue_count += group.count;
           poi.queue = poi.queue_count;
           state.population_ledger.walking -= group.count;
@@ -324,7 +334,7 @@ function advanceTransit(graph, state, durationMin, parameters) {
           events.arrivals[group.destination_poi_id] = (events.arrivals[group.destination_poi_id] || 0) + group.count;
           events.arrived_total += group.count;
         } else {
-          mobility.node_walkers[group.current_node_id] += group.count;
+          returnToNode(mobility, group);
           events.closed_poi_returns += group.count;
           events.closed_poi_nodes.push(group.current_node_id);
         }

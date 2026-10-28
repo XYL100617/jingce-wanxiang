@@ -3,6 +3,7 @@
 const { addMinutes, toMillis } = require('../planner/time');
 const { stochasticCount } = require('./dynamics');
 const { plannerSnapshot, routeToNode } = require('./mobility');
+const { addNodeFatigue, addEventQueueFatigue, addEventAttendingFatigue } = require('./fatigue-rest');
 
 function showMilestones(events, initialTime) {
   const startMs = toMillis(initialTime);
@@ -32,6 +33,7 @@ function advanceEventService(state, durationMin, parameters) {
     if (canBoard && !event.cancelled) {
       admitted = Math.min(event.event_queue_count, event.capacity - event.attending_count,
         Math.floor(parameters.event_admission_rate * durationMin));
+      addEventAttendingFatigue(event, admitted, event.queue_fatigue);
       event.event_queue_count -= admitted;
       event.attending_count += admitted;
       event.admitted_total += admitted;
@@ -44,6 +46,7 @@ function advanceEventService(state, durationMin, parameters) {
       event.released_count += released;
       state.population_ledger.attending_event -= released;
       state.population_ledger.walking += released;
+      addNodeFatigue(state.mobility_ledger, event.node_id, released, event.attending_fatigue);
       state.mobility_ledger.node_walkers[event.node_id] += released;
       if (event.attending_count === 0 && event.event_queue_count === 0) {
         event.phase = 'FINISHED';
@@ -69,6 +72,7 @@ function applyShowMilestone(state, milestone) {
     event.missed_count += missed;
     state.population_ledger.queueing -= missed;
     state.population_ledger.walking += missed;
+    addNodeFatigue(state.mobility_ledger, event.node_id, missed, event.queue_fatigue);
     state.mobility_ledger.node_walkers[event.node_id] += missed;
   } else if (milestone.event_type === 'SHOW_END') {
     event.phase = event.attending_count ? 'RELEASING' : 'FINISHED';
@@ -98,6 +102,7 @@ function dispatchEventIntents(graph, state, durationMin, parameters, rng, depart
       if (!route.reachable || toMillis(addMinutes(departureTime, route.travel_time_min))
         >= toMillis(event.latest_entry_time)) continue;
       if (originNodeId === event.node_id) {
+        addEventQueueFatigue(event, desired, mobility.node_fatigue?.[originNodeId] ?? 0);
         mobility.node_walkers[originNodeId] -= desired;
         state.population_ledger.walking -= desired;
         state.population_ledger.queueing += desired;
@@ -111,6 +116,7 @@ function dispatchEventIntents(graph, state, durationMin, parameters, rng, depart
         const group = {
           group_id: `cohort_${String(mobility.next_group_id++).padStart(6, '0')}`,
           purpose: 'EVENT_TRAVEL', count: desired, origin_node_id: originNodeId,
+          fatigue_level: mobility.node_fatigue?.[originNodeId] ?? 0,
           target_event_id: event.event_id, destination_node_id: event.node_id,
           path: { node_sequence: route.node_sequence, edge_sequence: route.edge_sequence },
           path_index: 0, current_node_id: originNodeId,
