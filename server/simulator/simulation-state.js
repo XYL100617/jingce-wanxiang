@@ -203,6 +203,7 @@ function createSimulationState(sourceGraph, sourceState, scenario, parameters) {
     rest_groups: [], next_rest_id: 1, rest_started_total: 0, rest_completed_total: 0,
     visitor: {
       visitor_id: initial.visitor.visitor_id,
+      shadow_in_park: true,
       current_node_id: initial.visitor.current_node_id,
       remaining_time_min: nonnegative(initial.visitor.remaining_time_min, 'visitor remaining_time_min'),
       walking_speed: nonnegative(parameters.visitor_speed_range, 'walking_speed'),

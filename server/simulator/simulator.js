@@ -14,7 +14,12 @@ const { showMilestones, advanceEventService, applyShowMilestone, dispatchEventIn
 const { validateFatigueParameters, ageFatigue, completeRest, dispatchRestIntents,
   summarizeFatigue, validateFatigue } = require('./fatigue-rest');
 const { syncRoadOccupancy, summarizeRoads, validateRoadDynamics } = require('./road-dynamics');
+const { createTransition, advanceTransition } = require('./transition-audit');
+const { computeReward } = require('./reward-engine');
+const { REWARD_VERSION } = require('./config/reward-parameters');
 const { toMillis } = require('../planner/time');
+
+const SIMULATOR_VERSION = 'sim-p1ta.1';
 
 function validateEvents(events, graph) {
   const edgeIds = new Set(graph.edges.map(edge => edge.edge_id));
@@ -205,12 +210,40 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
   const observationBuffer = createObservationBuffer();
   observationBuffer.capture(generateObservation(state, observationRng,
     observationParameters, observationScenario));
+  let activeDecisionTransition = null;
+  const completedDecisionTransitions = [];
+  let nextDecisionTransitionId = 1;
 
   function getLegalActionsSnapshot() {
+    if (state.visitor.shadow_in_park === false) return {
+      legal: [], rejected: [], observation: clone(observationBuffer.latestAvailable(state.simulation_time)),
+      planner_view_fallbacks: null, adapter_defaults: 'shadow decision visitor has exited'
+    };
     const result = evaluateLegalActions(graph,
       observationBuffer.latestAvailable(state.simulation_time), rules, observationParameters);
     validateInvariants(state, null, null, result, graph, parameters);
     return clone(result);
+  }
+
+  function startDecisionTransition(action) {
+    if (activeDecisionTransition) throw new Error('decision transition already in progress');
+    const legal = getLegalActionsSnapshot();
+    const matched = legal.legal.find(item => {
+      const expected = item.action;
+      return action && Object.keys(action).length === Object.keys(expected).length
+        && Object.keys(expected).every(key => action[key] === expected[key]);
+    });
+    if (!matched) {
+      const error = new Error('INVALID_ACTION: chosen action is absent from current legal actions');
+      error.code = 'INVALID_ACTION';
+      throw error;
+    }
+    activeDecisionTransition = createTransition({
+      id: `transition_${String(nextDecisionTransitionId++).padStart(6, '0')}`,
+      action: matched.action, legalEvaluation: matched,
+      observation: legal.observation, state
+    });
+    return clone({ audit: activeDecisionTransition.audit, reward: null });
   }
 
   function step() {
@@ -249,10 +282,12 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     const eventAudit = { dispatches: [], arrivals: [] };
     const blockedExitNodes = new Set();
     const missedEventNodes = new Set();
+    let decisionTransitionResult = null;
 
     for (const checkpoint of schedule.checkpoints) {
       const durationMin = (checkpoint.timeMs - cursor) / 60000;
       if (durationMin > 0) {
+        const decisionFatigueAtStart = activeDecisionTransition ? state.visitor.fatigue : null;
         ageFatigue(state, durationMin, parameters);
         const population = advancePopulation(state.environment, durationMin, arrivalOnlyParameters, rng,
           state.population_ledger, state.mobility_ledger);
@@ -301,6 +336,23 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
         mobilityEvents.exit_completions.push(...transit.exit_completions);
         for (const id of transit.exit_blocked_nodes) blockedExitNodes.add(id);
         state.visitor.remaining_time_min = Math.max(0, Math.round((state.visitor.remaining_time_min - durationMin) * 1000) / 1000);
+        if (activeDecisionTransition) {
+          // Generic P1-F visitor aging is replaced by this action's actual phase time.
+          state.visitor.fatigue = decisionFatigueAtStart;
+          const terminal = advanceTransition(activeDecisionTransition, {
+            state, graph, parameters, startTime: state.simulation_time, durationMin
+          });
+          if (terminal) {
+            const finished = activeDecisionTransition;
+            finished.reward = computeReward({ action: finished.audit.action,
+              beforeState: finished.beforeState,
+              afterState: { visitor: clone(state.visitor) },
+              transitionAudit: finished.audit });
+            decisionTransitionResult = clone({ audit: finished.audit, reward: finished.reward });
+            completedDecisionTransitions.push(decisionTransitionResult);
+            activeDecisionTransition = null;
+          }
+        }
         cursor = checkpoint.timeMs;
       }
       state.simulation_time = checkpoint.timestamp;
@@ -388,7 +440,9 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     observationBuffer.capture(generateObservation(state, observationRng,
       observationParameters, observationScenario));
     const availableObservation = observationBuffer.latestAvailable(state.simulation_time);
-    const legal = evaluateLegalActions(graph, availableObservation, rules, observationParameters);
+    const legal = state.visitor.shadow_in_park === false
+      ? { legal: [], rejected: [] }
+      : evaluateLegalActions(graph, availableObservation, rules, observationParameters);
     const invariant_summary = validateInvariants(state, beforeTime, population, legal, graph, parameters);
     const nodeAfter = Object.values(state.mobility_ledger.node_walkers).reduce((sum, count) => sum + count, 0);
     const transitAfter = state.mobility_ledger.transit_groups.reduce((sum, group) => sum + group.count, 0);
@@ -429,6 +483,8 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
       legal_actions: legal.legal,
       rejected_actions: legal.rejected,
       observation: availableObservation,
+      decision_transition: activeDecisionTransition
+        ? { audit: activeDecisionTransition.audit, reward: null } : decisionTransitionResult,
       invariant_summary
     });
   }
@@ -445,10 +501,16 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     getExitLedger: () => clone(summarizeExitLedger(state)),
     getGraph: () => clone(graph),
     getLegalActions: getLegalActionsSnapshot,
+    startDecisionTransition,
+    getActiveDecisionTransition: () => activeDecisionTransition
+      ? clone({ audit: activeDecisionTransition.audit, reward: null }) : null,
+    getCompletedDecisionTransitions: () => clone(completedDecisionTransitions),
     getMetadata: () => ({ graph_version: GRAPH_VERSION, scenario_id: scenario,
       observation_scenario_id: observationScenario, observation_version: OBSERVATION_VERSION,
       observation_parameter_version: OBSERVATION_VERSION,
-      seed, parameter_version: VERSION, synthetic: true, source_tier: 'T4' }),
+      seed, simulator_version: SIMULATOR_VERSION, parameter_version: VERSION,
+      reward_version: REWARD_VERSION, visitor_mode: 'SHADOW_VISITOR',
+      synthetic: true, source_tier: 'T4' }),
     reset: (nextSeed = seed) => createSimulator({ initialGraph: sourceGraph, initialState: sourceState,
       scenario, observationScenario, seed: nextSeed, events: sourceEvents, rules })
   };
