@@ -11,3 +11,4 @@ server/data/.http-test-*/
 .DS_Store
 Thumbs.db
 docs/data-sources/snapshots/*.txt
+dataset_v0.1/
