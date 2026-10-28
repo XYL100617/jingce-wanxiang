@@ -19,7 +19,8 @@ function gaussian(rng) {
   return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * rng.next());
 }
 
-function generateObservation(state, rng, parameters, scenarioId = 'P1D_CLEAN') {
+function generateObservation(state, rng, parameters, scenarioId = 'P1D_CLEAN',
+  graph = null, positionRng = rng) {
   const scenario = SCENARIOS[scenarioId];
   if (!scenario) throw new RangeError(`unknown observation scenario: ${scenarioId}`);
   if (!rng || typeof rng.next !== 'function') throw new TypeError('observation requires SeededRNG');
@@ -68,6 +69,17 @@ function generateObservation(state, rng, parameters, scenarioId = 'P1D_CLEAN') {
       phase: false, status: false, cancelled: false };
   }
   const visitor = state.visitor;
+  const confidence = parameters.position_confidence ?? (scenario.noise ? 0.85 : 1);
+  const neighbors = graph?.edges ? [...new Set(graph.edges.flatMap(edge =>
+    edge.from_node_id === visitor.current_node_id ? [edge.to_node_id]
+      : edge.to_node_id === visitor.current_node_id ? [edge.from_node_id] : []))].sort() : [];
+  const uncertain = confidence < 1 && neighbors.length > 0;
+  const reported = uncertain && positionRng.next() >= confidence
+    ? positionRng.choice(neighbors) : visitor.current_node_id;
+  const position_observation = { authoritative_node_id: visitor.current_node_id,
+    reported_node_id: reported,
+    candidate_nodes: uncertain ? [visitor.current_node_id, ...neighbors] : [visitor.current_node_id],
+    confidence, noise_type: uncertain ? 'ADJACENT_NODE' : 'NONE' };
   return {
     synthetic: true, source_tier: 'T4', observation_version: OBSERVATION_VERSION,
     parameter_version: OBSERVATION_VERSION, observation_scenario_id: scenarioId,
@@ -77,10 +89,12 @@ function generateObservation(state, rng, parameters, scenarioId = 'P1D_CLEAN') {
     pois, roads,
     visitor: { visitor_id: visitor.visitor_id, current_node_id: visitor.current_node_id,
       remaining_time_min: visitor.remaining_time_min, fatigue: visitor.fatigue,
+      position_confidence: confidence, position_observation,
       visited_poi_ids: clone(visitor.visited_poi_ids),
       attended_event_ids: clone(visitor.attended_event_ids),
       visited_facility_ids: clone(visitor.visited_facility_ids),
-      preference: clone(visitor.preference) },
+      preference: clone(visitor.preference),
+      ...(visitor.profile ? { profile: clone(visitor.profile) } : {}) },
     events, missing_mask
   };
 }

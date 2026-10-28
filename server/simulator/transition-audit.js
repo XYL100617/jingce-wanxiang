@@ -143,8 +143,9 @@ function advanceTransition(transition, { state, graph, parameters, startTime, du
         }
         if (!state.roads[edgeId]?.is_open) { finish('FAILED', 'TARGET_UNREACHABLE'); break; }
         runtime.current_edge_id = edgeId;
+        const speedFactor = visitor.profile?.walking_speed_factor ?? 1;
         runtime.edge_remaining_min = lockedTravelMin(
-          estimateRoad(state, edgeId, parameters).effective_travel_time_min, parameters);
+          estimateRoad(state, edgeId, parameters).effective_travel_time_min / speedFactor, parameters);
         if (!audit.timeline.travel_started_at) audit.timeline.travel_started_at = time();
         audit.actual_route.edges.push({ edge_id: edgeId, entered_at: time(),
           left_at: null, locked_travel_time_min: runtime.edge_remaining_min });
@@ -180,7 +181,8 @@ function advanceTransition(transition, { state, graph, parameters, startTime, du
         } else {
           phase('INSIDE');
           audit.timeline.inside_started_at = time();
-          runtime.dwell_remaining_min = target.visit_duration_min;
+          runtime.dwell_remaining_min = rounded(target.visit_duration_min
+            * (visitor.profile?.dwell_time_factor ?? 1));
         }
         continue;
       }

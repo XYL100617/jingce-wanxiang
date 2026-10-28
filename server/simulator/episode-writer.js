@@ -93,7 +93,12 @@ function createEpisode(simulator, { runIndex = 1 } = {}) {
     simulator_version: metadata.simulator_version, parameter_version: metadata.parameter_version,
     observation_version: metadata.observation_version, reward_version: metadata.reward_version,
     episode_schema_version: EPISODE_SCHEMA_VERSION, visitor_mode: metadata.visitor_mode,
-    observation_scenario_id: metadata.observation_scenario_id };
+    observation_scenario_id: metadata.observation_scenario_id,
+    ...(metadata.scenario_instance_id
+      ? { scenario_instance_id: metadata.scenario_instance_id,
+        scenario_parameter_version: metadata.scenario_parameter_version } : {}),
+    ...(metadata.visitor_profile_version
+      ? { visitor_profile_version: metadata.visitor_profile_version } : {}) };
   for (const key of ['graph_version', 'scenario_id', 'seed', 'simulator_version',
     'parameter_version', 'observation_version', 'reward_version']) {
     assert(provenance[key] !== null && provenance[key] !== undefined, `missing ${key}`);

@@ -17,9 +17,11 @@ const { syncRoadOccupancy, summarizeRoads, validateRoadDynamics } = require('./r
 const { createTransition, advanceTransition } = require('./transition-audit');
 const { computeReward } = require('./reward-engine');
 const { REWARD_VERSION } = require('./config/reward-parameters');
-const { toMillis } = require('../planner/time');
+const { toMillis, addMinutes } = require('../planner/time');
+const { validateScenarioInstance, sampleScenario } = require('./scenario-sampler');
+const { createVisitorProfile, validateVisitorProfile } = require('./visitor-profile');
 
-const SIMULATOR_VERSION = 'sim-p1ta.1';
+const SIMULATOR_VERSION = 'sim-dr-p1.1';
 
 function validateEvents(events, graph) {
   const edgeIds = new Set(graph.edges.map(edge => edge.edge_id));
@@ -187,29 +189,112 @@ function validateInvariants(state, previousTime = null, populationLedger = null,
 
 function createSimulator({ initialGraph = provider.getScenicGraph(), initialState = provider.getState(),
   scenario = 'P0_BASELINE', observationScenario = 'P1D_CLEAN', seed = 42,
-  events = [], rules = {} } = {}) {
+  events = [], rules = {}, scenarioInstance = null, visitorProfile = null } = {}) {
   const sourceGraph = clone(initialGraph);
   const sourceState = clone(initialState);
   const sourceEvents = clone(events);
+  const instance = scenarioInstance ? clone(validateScenarioInstance(scenarioInstance)) : null;
+  if (instance && instance.seed !== seed) throw new RangeError('scenario seed differs from simulator seed');
+  if (instance && scenario !== 'P0_BASELINE') {
+    throw new RangeError('scenarioInstance requires P0_BASELINE to avoid multiplying P0 flow variants');
+  }
+  const effectiveState = clone(sourceState);
+  const effectiveEvents = clone(sourceEvents);
+  if (instance) {
+    // A scenario weather label must not retain contradictory DEMO temperature/rain text.
+    effectiveState.weather = { category: instance.dimensions.weather };
+    if (instance.dimensions.event_condition === 'EVENT_DELAY') {
+      const show = effectiveState.event_states?.['show-1'];
+      if (!show?.start_time || !show.latest_entry_time) throw new Error('show-1 unavailable for EVENT_DELAY');
+      for (const key of ['start_time', 'latest_entry_time', 'end_time']) {
+        if (show[key]) show[key] = addMinutes(show[key], instance.sampled_parameters.event_delay_min);
+      }
+    }
+    if (instance.dimensions.road_condition === 'LOCAL_CLOSURE') {
+      const candidates = sourceGraph.edges.map(edge => edge.edge_id)
+        .filter(id => effectiveState.road_states?.[id]?.available !== false).sort();
+      if (!candidates.length) throw new Error('LOCAL_CLOSURE requires an open graph edge');
+      const closureRng = new SeededRNG((seed ^ 0x4cf5ad43) >>> 0);
+      const edgeId = closureRng.choice(candidates);
+      instance.closure_edge_id = edgeId;
+      instance.provenance.closure_edge_id = edgeId;
+      instance.provenance.closure_selection = { parameter_name: 'closure_edge_id',
+        distribution_type: 'DISCRETE_CHOICE', choices: candidates,
+        source_tier: 'T4', basis: 'ASSUMPTION', version: instance.scenario_parameter_version };
+      const start = addMinutes(effectiveState.timestamp, instance.sampled_parameters.road_closure_start_min);
+      const end = addMinutes(start, instance.sampled_parameters.road_closure_duration_min);
+      effectiveEvents.push({ event_id: `${instance.scenario_instance_id}_ROAD_CLOSE`,
+        event_type: 'ROAD_CLOSE', target_id: edgeId, timestamp: start },
+      { event_id: `${instance.scenario_instance_id}_ROAD_REOPEN`,
+        event_type: 'ROAD_REOPEN', target_id: edgeId, timestamp: end });
+    }
+  }
   const rng = new SeededRNG(seed);
   const selectedScenario = resolveScenario(scenario);
-  const parameters = resolveParameters(selectedScenario, rng);
+  const baseParameters = resolveParameters(selectedScenario, rng);
+  const parameters = Object.freeze(instance ? { ...baseParameters,
+    arrival_multiplier: baseParameters.arrival_multiplier * instance.sampled_parameters.arrival_scale,
+    default_poi_capacity: baseParameters.default_poi_capacity
+      * instance.sampled_parameters.poi_capacity_scale,
+    default_service_rate: baseParameters.default_service_rate
+      * instance.sampled_parameters.poi_service_scale,
+    default_admission_rate: baseParameters.default_admission_rate
+      * instance.sampled_parameters.poi_service_scale,
+    road_reference_capacity: baseParameters.road_reference_capacity
+      * instance.sampled_parameters.road_capacity_scale,
+    event_admission_rate: baseParameters.event_admission_rate
+      * instance.sampled_parameters.event_admission_scale,
+    event_release_rate: baseParameters.event_release_rate
+      * instance.sampled_parameters.event_release_scale }
+    : baseParameters);
   validateFatigueParameters(parameters);
   const eventRng = new SeededRNG((seed ^ 0x1f123bb5) >>> 0);
   const restRng = new SeededRNG((seed ^ 0x6a09e667) >>> 0);
-  const observationParameters = resolveObservationParameters();
+  const baseObservationParameters = resolveObservationParameters();
+  const observationParameters = Object.freeze(instance ? { ...baseObservationParameters,
+    queue_noise_std: baseObservationParameters.queue_noise_std
+      * instance.sampled_parameters.observation_noise_scale,
+    crowd_noise_std: baseObservationParameters.crowd_noise_std
+      * instance.sampled_parameters.observation_noise_scale,
+    travel_time_noise_ratio: baseObservationParameters.travel_time_noise_ratio
+      * instance.sampled_parameters.observation_noise_scale,
+    queue_missing_rate: Math.min(1, baseObservationParameters.queue_missing_rate
+      * instance.sampled_parameters.observation_missing_scale),
+    travel_time_missing_rate: Math.min(1, baseObservationParameters.travel_time_missing_rate
+      * instance.sampled_parameters.observation_missing_scale),
+    observation_delay_min: instance.sampled_parameters.observation_delay_min,
+    position_confidence: instance.sampled_parameters.position_confidence }
+    : baseObservationParameters);
+  const effectiveObservationScenario = instance
+    ? `P1D_${instance.dimensions.observation_quality}` : observationScenario;
   // Separate substream: sensor draws never alter environmental dynamics.
   const observationRng = new SeededRNG((seed ^ 0x9e3779b9) >>> 0);
+  const positionRng = new SeededRNG((seed ^ 0xb7e15162) >>> 0);
   const arrivalOnlyParameters = Object.freeze({ ...parameters, departure_rate: 0 });
-  const { graph, state } = createSimulationState(sourceGraph, sourceState, selectedScenario, parameters);
+  const { graph, state } = createSimulationState(sourceGraph, effectiveState, selectedScenario, parameters);
+  if (instance?.dimensions.event_condition === 'EVENT_DELAY') {
+    const event = state.events['show-1'];
+    for (const name of ['boarding_start', 'latest_entry_time', 'start_time', 'end_time']) {
+      event.time_sources[name] = { type: 'SCENARIO_T4_OVERLAY',
+        scenario_instance_id: instance.scenario_instance_id,
+        delay_min: instance.sampled_parameters.event_delay_min };
+    }
+  }
+  const profile = visitorProfile ? clone(validateVisitorProfile(visitorProfile))
+    : instance ? createVisitorProfile({ seed, scenarioInstance: instance }) : null;
+  if (instance && profile?.scenario_instance_id
+    && profile.scenario_instance_id !== instance.scenario_instance_id) {
+    throw new RangeError('visitor profile references a different scenario instance');
+  }
+  if (profile) state.visitor.profile = clone(profile);
   syncRoadOccupancy(state, parameters);
-  validateEvents(sourceEvents, graph);
+  validateEvents(effectiveEvents, graph);
   const clock = new EventClock(state.simulation_time, parameters.simulation_step_min,
-    [...sourceEvents, ...showMilestones(state.events, state.simulation_time)]);
+    [...effectiveEvents, ...showMilestones(state.events, state.simulation_time)]);
   validateInvariants(state, null, null, null, graph, parameters);
   const observationBuffer = createObservationBuffer();
   observationBuffer.capture(generateObservation(state, observationRng,
-    observationParameters, observationScenario));
+    observationParameters, effectiveObservationScenario, graph, positionRng));
   let activeDecisionTransition = null;
   const completedDecisionTransitions = [];
   let nextDecisionTransitionId = 1;
@@ -438,7 +523,7 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
       }
     }
     observationBuffer.capture(generateObservation(state, observationRng,
-      observationParameters, observationScenario));
+      observationParameters, effectiveObservationScenario, graph, positionRng));
     const availableObservation = observationBuffer.latestAvailable(state.simulation_time);
     const legal = state.visitor.shadow_in_park === false
       ? { legal: [], rejected: [] }
@@ -500,19 +585,29 @@ function createSimulator({ initialGraph = provider.getScenicGraph(), initialStat
     getObservation: () => clone(observationBuffer.latestAvailable(state.simulation_time)),
     getExitLedger: () => clone(summarizeExitLedger(state)),
     getGraph: () => clone(graph),
+    getScenarioInstance: () => clone(instance),
+    getResolvedParameters: () => clone(parameters),
     getLegalActions: getLegalActionsSnapshot,
     startDecisionTransition,
     getActiveDecisionTransition: () => activeDecisionTransition
       ? clone({ audit: activeDecisionTransition.audit, reward: null }) : null,
     getCompletedDecisionTransitions: () => clone(completedDecisionTransitions),
     getMetadata: () => ({ graph_version: GRAPH_VERSION, scenario_id: scenario,
-      observation_scenario_id: observationScenario, observation_version: OBSERVATION_VERSION,
+      observation_scenario_id: effectiveObservationScenario, observation_version: OBSERVATION_VERSION,
       observation_parameter_version: OBSERVATION_VERSION,
       seed, simulator_version: SIMULATOR_VERSION, parameter_version: VERSION,
       reward_version: REWARD_VERSION, visitor_mode: 'SHADOW_VISITOR',
+      scenario_instance_id: instance?.scenario_instance_id ?? null,
+      closure_edge_id: instance?.closure_edge_id ?? null,
+      scenario_parameter_version: instance?.scenario_parameter_version ?? null,
+      visitor_profile_version: profile?.profile_version ?? null,
       synthetic: true, source_tier: 'T4' }),
     reset: (nextSeed = seed) => createSimulator({ initialGraph: sourceGraph, initialState: sourceState,
-      scenario, observationScenario, seed: nextSeed, events: sourceEvents, rules })
+      scenario, observationScenario, seed: nextSeed, events: sourceEvents, rules,
+      scenarioInstance: instance && nextSeed !== seed
+        ? sampleScenario({ scenario_family: instance.scenario_family, seed: nextSeed,
+          index: instance.index, dimensions: instance.dimensions }) : instance,
+      visitorProfile: visitorProfile && nextSeed === seed ? visitorProfile : null })
   };
 }
 
