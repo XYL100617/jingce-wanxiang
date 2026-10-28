@@ -303,3 +303,9 @@ Fixed 5-min Environment Rollout Dataset 与 shadow decision transition 无关。
 30 个 Episode、15 条固定时间轨迹的校准前验证批次含 71 条决策样本，WAIT=0，early exit=28/30。原始 T4 倾向中疲劳和时间项各为 0.35，随决策点叠加过快。游客画像参数版本升为 `visitor-p1.2`，将疲劳/剩余时间/恶劣天气/已完成游览贡献改为 0.12/0.12/0.04/每项 0.01；`early_exit_base` 仍为原有 T4 范围，所有项仍为 `ASSUMPTION`，不宣称真实离园比例。仅在 C 合法动作中没有立即可执行的游览目标时，rollout 推荐合法 WAIT，避免任意注入等待。
 
 相同配置复核得到 128 条决策样本，VISIT_POI=62、ATTEND_EVENT=15、REST=19、WAIT=3、EXIT=29；提前离园 20/30，1 条 Episode 时间耗尽；Reward 无越界。环境轨迹延长至 24 个 5 分钟步后共有 360 条样本，5/15/30/60 分钟有效目标为 360/330/285/195，覆盖率分别为 100%/91.67%/79.17%/54.17%。这些数值仅用于合成数据覆盖检查，不是景区实际行为统计。正式训练数据量仍需后续质量报告评估。
+
+## 23. Group-aware Train/Val/Test Split（review 阶段）
+
+`dataset-split-p1.1` 的最小不可拆单位是 `(scenario_instance_id, seed)`；该组中所有 `episode_id` 的 action step 和对应 `trajectory_id` 的固定时间 step 同属一个 split。默认目标比例 `train/val/test=70/15/15`，比例属于可调整的 T4 数据工程配置。确定性 seeded 排列后，对较小的 test、val 集合贪心补充不同场景标签，再把其余完整 group 放入 train；若有限组数无法兼顾比例和各维覆盖，manifest 明确列出缺口，不复制样本。Split Manifest 含 dataset/split/generation 版本、split seed、grouping keys、每集合的完整 group 与 episode/rollout ID、样本数、六维场景覆盖、缺口及 T4/synthetic 标记。
+
+用上节的 30 Episode、15 rollout 验证批次划分，共 15 个 scenario-seed group。实际得到 train/val/test 组数 11/2/2；Decision 样本数 94/12/22，Environment 样本数 264/48/48。train 覆盖 LOW/MEDIUM/HIGH、CLEAR/RAIN/HOT、封路、演出延迟及五种观测质量。val 缺 MEDIUM、HOT、NOISY/DELAYED/MIXED；test 缺 HIGH、HOT、CLEAN/NOISY/MISSING。原因是两套保留集各只有两个完整 group；未通过拆开 step 或重复样本填补。`checkSplitLeakage` 检查 train/val/test 的 scenario-seed group、episode_id 和 trajectory_id 交集，结果为零。此阶段只做内存小批验证，不写正式训练文件，Splitter 留在工作区审阅。
