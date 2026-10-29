@@ -1,0 +1,936 @@
+{
+  "model_type": "per-horizon ordinary least squares",
+  "model_version": "synthetic-baseline-0.1",
+  "dataset_version": "v0.1",
+  "dataset_schema_version": "dataset-p1.1",
+  "graph_version": "1.0",
+  "simulator_version": "sim-dr-p1.1",
+  "source_tier": "T4",
+  "synthetic": true,
+  "target_definition": "future queue_count per POI; not total park queue or footfall",
+  "horizons": {
+    "target_5": {
+      "target": "per-POI queue_count",
+      "input": "same POI observed queue_count",
+      "poi_models": {
+        "lake": {
+          "intercept": 0.18142399685983238,
+          "observed_queue_count": -0.002844251551017046,
+          "train_samples": 652
+        },
+        "market": {
+          "intercept": 0.18896776336278773,
+          "observed_queue_count": -0.01907927171930647,
+          "train_samples": 672
+        },
+        "museum": {
+          "intercept": 0.2768607602095277,
+          "observed_queue_count": 0.025480521133033132,
+          "train_samples": 646
+        },
+        "longtan": {
+          "intercept": 0.14220994946316728,
+          "observed_queue_count": 0.013438585020371086,
+          "train_samples": 660
+        },
+        "forest": {
+          "intercept": 0.13768049223840628,
+          "observed_queue_count": -0.018386598656814183,
+          "train_samples": 649
+        },
+        "theater": {
+          "intercept": -0.008775084272400663,
+          "observed_queue_count": 0.029175222737920396,
+          "train_samples": 641
+        },
+        "shizipo": {
+          "intercept": 0.18671623816416047,
+          "observed_queue_count": -0.014580502123177437,
+          "train_samples": 656
+        },
+        "summit": {
+          "intercept": 0.1641064649495355,
+          "observed_queue_count": -0.01746712588304069,
+          "train_samples": 653
+        },
+        "rest": {
+          "intercept": 0.16598660158330364,
+          "observed_queue_count": 0.020413965426799238,
+          "train_samples": 644
+        },
+        "temple": {
+          "intercept": 0.11638274048043269,
+          "observed_queue_count": 0.025215321450453177,
+          "train_samples": 646
+        },
+        "juxianzhuang": {
+          "intercept": 0.15200908332282023,
+          "observed_queue_count": -0.014886556844262912,
+          "train_samples": 638
+        },
+        "fortress": {
+          "intercept": 0.22748753593062343,
+          "observed_queue_count": 0.0012342270653003557,
+          "train_samples": 665
+        },
+        "hero_square": {
+          "intercept": 0.16676863063401398,
+          "observed_queue_count": 0.007347462914392668,
+          "train_samples": 644
+        },
+        "feiyunpu": {
+          "intercept": 0.18860931865581185,
+          "observed_queue_count": 0.013430356751117343,
+          "train_samples": 646
+        },
+        "shenboat": {
+          "intercept": 0.18095641134151502,
+          "observed_queue_count": -0.029454083791790098,
+          "train_samples": 653
+        },
+        "wangpo_island": {
+          "intercept": 0.13275437735511925,
+          "observed_queue_count": 0.025388476116230144,
+          "train_samples": 649
+        },
+        "water_street": {
+          "intercept": 0.24374093446441913,
+          "observed_queue_count": -0.015188343369522218,
+          "train_samples": 658
+        },
+        "wanfo_tower": {
+          "intercept": 0.12425040087530725,
+          "observed_queue_count": 0.014873856227767547,
+          "train_samples": 644
+        },
+        "xianxia_square": {
+          "intercept": 0.14058986742377239,
+          "observed_queue_count": 0.004489524442966412,
+          "train_samples": 670
+        },
+        "xianxia_stage": {
+          "intercept": 0.1378557749265302,
+          "observed_queue_count": -0.020281111794848202,
+          "train_samples": 665
+        },
+        "film_studio": {
+          "intercept": 0.21207150030656177,
+          "observed_queue_count": -0.023679971519425465,
+          "train_samples": 651
+        },
+        "art_square": {
+          "intercept": 0.1571459069839811,
+          "observed_queue_count": -0.002301337743024522,
+          "train_samples": 668
+        },
+        "children_park": {
+          "intercept": 0.16772016382582344,
+          "observed_queue_count": 0.0072799276765355015,
+          "train_samples": 668
+        },
+        "circus": {
+          "intercept": 0.1514506269266715,
+          "observed_queue_count": -0.009956005851583776,
+          "train_samples": 642
+        },
+        "tiger_hall": {
+          "intercept": 0.11207883517239926,
+          "observed_queue_count": 0.004305591650102196,
+          "train_samples": 652
+        },
+        "qianqiu_lake": {
+          "intercept": 0.21874047430348106,
+          "observed_queue_count": -0.022578186917027374,
+          "train_samples": 653
+        },
+        "wanshou_lake": {
+          "intercept": 0.16691765848919116,
+          "observed_queue_count": 0.013529268885110517,
+          "train_samples": 658
+        },
+        "retro_block": {
+          "intercept": 0.11069073197324057,
+          "observed_queue_count": 0.00039404371811356753,
+          "train_samples": 658
+        },
+        "puyi_wharf": {
+          "intercept": 0.1825002509555199,
+          "observed_queue_count": -0.01588521456427106,
+          "train_samples": 660
+        },
+        "dyehouse": {
+          "intercept": 0.15348445247807713,
+          "observed_queue_count": -0.0039204670363223336,
+          "train_samples": 656
+        },
+        "wulin_square": {
+          "intercept": 0.14889988718026784,
+          "observed_queue_count": -0.012064292795626718,
+          "train_samples": 668
+        },
+        "bailemen": {
+          "intercept": 0.1649511844395671,
+          "observed_queue_count": -0.0015515023083327026,
+          "train_samples": 659
+        },
+        "shili_yangchang": {
+          "intercept": 0.11050794448633103,
+          "observed_queue_count": 0.017895339420848342,
+          "train_samples": 643
+        },
+        "kuaipolin": {
+          "intercept": 0.108523789354077,
+          "observed_queue_count": -0.001739911178295242,
+          "train_samples": 651
+        },
+        "chaguan": {
+          "intercept": 0.295228816774149,
+          "observed_queue_count": -0.036464979135772665,
+          "train_samples": 650
+        },
+        "zhu_family_fort": {
+          "intercept": 0.14499109858319117,
+          "observed_queue_count": 0.004793783843928492,
+          "train_samples": 647
+        },
+        "magic_square": {
+          "intercept": 0.19041756385898248,
+          "observed_queue_count": -0.032332700021110404,
+          "train_samples": 650
+        },
+        "shuihu_li": {
+          "intercept": 0.15245131696200312,
+          "observed_queue_count": -0.011747111156559976,
+          "train_samples": 637
+        },
+        "flower_camp": {
+          "intercept": 0.21627959284268355,
+          "observed_queue_count": -0.02270758658314231,
+          "train_samples": 650
+        },
+        "creative_market": {
+          "intercept": 0.1992428423686763,
+          "observed_queue_count": 0.008268182768099711,
+          "train_samples": 644
+        },
+        "forest_boardwalk": {
+          "intercept": 0.18100877940895302,
+          "observed_queue_count": 0.03429601955343348,
+          "train_samples": 667
+        }
+      },
+      "validation": {
+        "n": 6076,
+        "mae": 0.2991244115791901,
+        "rmse": 0.5214205926534362,
+        "persistence_mae": 0.6110928242264648,
+        "absolute_error_p90": 0.8174997490444801
+      },
+      "test": {
+        "n": 6272,
+        "mae": 0.3150948437249963,
+        "rmse": 0.5712162813746507,
+        "persistence_mae": 0.8598533163265306,
+        "absolute_error_p90": 0.8242645062422017
+      },
+      "interval": {
+        "method": "symmetric validation absolute-error p90",
+        "half_width": 0.8174997490444801
+      }
+    },
+    "target_15": {
+      "target": "per-POI queue_count",
+      "input": "same POI observed queue_count",
+      "poi_models": {
+        "lake": {
+          "intercept": 0.17237232700040744,
+          "observed_queue_count": 0.011273441960288455,
+          "train_samples": 594
+        },
+        "market": {
+          "intercept": 0.21795091717448953,
+          "observed_queue_count": -0.02142136033723,
+          "train_samples": 615
+        },
+        "museum": {
+          "intercept": 0.28672239917171827,
+          "observed_queue_count": 0.01974973721023971,
+          "train_samples": 593
+        },
+        "longtan": {
+          "intercept": 0.20838146232983926,
+          "observed_queue_count": -0.03154691863899166,
+          "train_samples": 600
+        },
+        "forest": {
+          "intercept": 0.16116398288700684,
+          "observed_queue_count": -0.025452770882965586,
+          "train_samples": 593
+        },
+        "theater": {
+          "intercept": 0,
+          "observed_queue_count": 0,
+          "train_samples": 589
+        },
+        "shizipo": {
+          "intercept": 0.21150314704936937,
+          "observed_queue_count": -0.024731893459675015,
+          "train_samples": 598
+        },
+        "summit": {
+          "intercept": 0.1712834351932693,
+          "observed_queue_count": -0.004786704683521891,
+          "train_samples": 594
+        },
+        "rest": {
+          "intercept": 0.19454517340622396,
+          "observed_queue_count": -0.00888105225879501,
+          "train_samples": 588
+        },
+        "temple": {
+          "intercept": 0.16571219339603235,
+          "observed_queue_count": -0.012194218854138383,
+          "train_samples": 588
+        },
+        "juxianzhuang": {
+          "intercept": 0.17878711588734159,
+          "observed_queue_count": -0.014875629027017058,
+          "train_samples": 583
+        },
+        "fortress": {
+          "intercept": 0.21290711182600564,
+          "observed_queue_count": 0.036127093128763506,
+          "train_samples": 603
+        },
+        "hero_square": {
+          "intercept": 0.17699326820031006,
+          "observed_queue_count": 0.01734452872199852,
+          "train_samples": 595
+        },
+        "feiyunpu": {
+          "intercept": 0.1850130184761518,
+          "observed_queue_count": -0.016750884806836917,
+          "train_samples": 590
+        },
+        "shenboat": {
+          "intercept": 0.16379337445221973,
+          "observed_queue_count": 0.01015083212302972,
+          "train_samples": 599
+        },
+        "wangpo_island": {
+          "intercept": 0.1648127573361218,
+          "observed_queue_count": -0.01227233170174636,
+          "train_samples": 596
+        },
+        "water_street": {
+          "intercept": 0.261616741076996,
+          "observed_queue_count": -0.016162422367994412,
+          "train_samples": 608
+        },
+        "wanfo_tower": {
+          "intercept": 0.15821467140201068,
+          "observed_queue_count": 0.0010042195032342104,
+          "train_samples": 586
+        },
+        "xianxia_square": {
+          "intercept": 0.15274773076588463,
+          "observed_queue_count": 0.00556796102427283,
+          "train_samples": 615
+        },
+        "xianxia_stage": {
+          "intercept": 0.1476512012055525,
+          "observed_queue_count": -0.022442492158781607,
+          "train_samples": 609
+        },
+        "film_studio": {
+          "intercept": 0.2043709992492657,
+          "observed_queue_count": 0.008322462923640148,
+          "train_samples": 594
+        },
+        "art_square": {
+          "intercept": 0.17706658900096894,
+          "observed_queue_count": -0.016645850019323075,
+          "train_samples": 613
+        },
+        "children_park": {
+          "intercept": 0.1763186534136255,
+          "observed_queue_count": 0.013581948777479504,
+          "train_samples": 613
+        },
+        "circus": {
+          "intercept": 0.1371326062869632,
+          "observed_queue_count": 0.016642337633683106,
+          "train_samples": 586
+        },
+        "tiger_hall": {
+          "intercept": 0.13417654638729273,
+          "observed_queue_count": -0.004699812999585854,
+          "train_samples": 596
+        },
+        "qianqiu_lake": {
+          "intercept": 0.24225908001691493,
+          "observed_queue_count": -0.02923303419004213,
+          "train_samples": 597
+        },
+        "wanshou_lake": {
+          "intercept": 0.18666821389459026,
+          "observed_queue_count": -0.005791225767147032,
+          "train_samples": 605
+        },
+        "retro_block": {
+          "intercept": 0.1213534182150717,
+          "observed_queue_count": -0.010992084627160146,
+          "train_samples": 605
+        },
+        "puyi_wharf": {
+          "intercept": 0.20750494935422711,
+          "observed_queue_count": -0.020304136507903255,
+          "train_samples": 601
+        },
+        "dyehouse": {
+          "intercept": 0.17316290524355285,
+          "observed_queue_count": -0.018599550087794587,
+          "train_samples": 598
+        },
+        "wulin_square": {
+          "intercept": 0.156055504846299,
+          "observed_queue_count": -0.010253931433355443,
+          "train_samples": 610
+        },
+        "bailemen": {
+          "intercept": 0.17960982609586934,
+          "observed_queue_count": 0.012248453995695104,
+          "train_samples": 602
+        },
+        "shili_yangchang": {
+          "intercept": 0.12957157043552278,
+          "observed_queue_count": 0.004919137466307278,
+          "train_samples": 589
+        },
+        "kuaipolin": {
+          "intercept": 0.12144683075471578,
+          "observed_queue_count": 0.002957919766426336,
+          "train_samples": 593
+        },
+        "chaguan": {
+          "intercept": 0.2907587117646409,
+          "observed_queue_count": -0.006991994246363169,
+          "train_samples": 598
+        },
+        "zhu_family_fort": {
+          "intercept": 0.1703614474805751,
+          "observed_queue_count": -0.005565065477574195,
+          "train_samples": 589
+        },
+        "magic_square": {
+          "intercept": 0.1938698438223327,
+          "observed_queue_count": -0.023073362083668347,
+          "train_samples": 595
+        },
+        "shuihu_li": {
+          "intercept": 0.13704822988330648,
+          "observed_queue_count": 0.006079980644424183,
+          "train_samples": 584
+        },
+        "flower_camp": {
+          "intercept": 0.2171283840766251,
+          "observed_queue_count": 0.00544576767489638,
+          "train_samples": 597
+        },
+        "creative_market": {
+          "intercept": 0.23918860595597755,
+          "observed_queue_count": -0.016844441704174117,
+          "train_samples": 593
+        },
+        "forest_boardwalk": {
+          "intercept": 0.22552329507089802,
+          "observed_queue_count": -0.0003014372528214527,
+          "train_samples": 608
+        }
+      },
+      "validation": {
+        "n": 5556,
+        "mae": 0.31878266271045674,
+        "rmse": 0.539735805155731,
+        "persistence_mae": 0.6412886969042476,
+        "absolute_error_p90": 0.8133317861054097
+      },
+      "test": {
+        "n": 5729,
+        "mae": 0.33527555675610465,
+        "rmse": 0.5870199512369799,
+        "persistence_mae": 0.8778146273346134,
+        "absolute_error_p90": 0.8229334109990311
+      },
+      "interval": {
+        "method": "symmetric validation absolute-error p90",
+        "half_width": 0.8133317861054097
+      }
+    },
+    "target_30": {
+      "target": "per-POI queue_count",
+      "input": "same POI observed queue_count",
+      "poi_models": {
+        "lake": {
+          "intercept": 0.15417743324720068,
+          "observed_queue_count": -0.00027934911655841887,
+          "train_samples": 513
+        },
+        "market": {
+          "intercept": 0.20446331936439455,
+          "observed_queue_count": -0.007021919624299213,
+          "train_samples": 531
+        },
+        "museum": {
+          "intercept": 0.21291443267184526,
+          "observed_queue_count": 0.013046780415541836,
+          "train_samples": 517
+        },
+        "longtan": {
+          "intercept": 0.21807943402606186,
+          "observed_queue_count": -0.009766691809503993,
+          "train_samples": 515
+        },
+        "forest": {
+          "intercept": 0.14691149204697004,
+          "observed_queue_count": -0.0006586865302670526,
+          "train_samples": 512
+        },
+        "theater": {
+          "intercept": 0,
+          "observed_queue_count": 0,
+          "train_samples": 504
+        },
+        "shizipo": {
+          "intercept": 0.21571461138321463,
+          "observed_queue_count": -0.001779533977631479,
+          "train_samples": 514
+        },
+        "summit": {
+          "intercept": 0.18569014407240855,
+          "observed_queue_count": 0.02037445459666409,
+          "train_samples": 511
+        },
+        "rest": {
+          "intercept": 0.1722342581592005,
+          "observed_queue_count": -0.006848836396673422,
+          "train_samples": 506
+        },
+        "temple": {
+          "intercept": 0.17420127944744096,
+          "observed_queue_count": 0.00337609723160027,
+          "train_samples": 506
+        },
+        "juxianzhuang": {
+          "intercept": 0.1936714928805231,
+          "observed_queue_count": 0.00159354940190402,
+          "train_samples": 503
+        },
+        "fortress": {
+          "intercept": 0.16689275471540121,
+          "observed_queue_count": 0.009229835248801523,
+          "train_samples": 517
+        },
+        "hero_square": {
+          "intercept": 0.20181081725041697,
+          "observed_queue_count": -0.012253650566731339,
+          "train_samples": 522
+        },
+        "feiyunpu": {
+          "intercept": 0.20633195658312048,
+          "observed_queue_count": -0.007088403122968528,
+          "train_samples": 504
+        },
+        "shenboat": {
+          "intercept": 0.17090254574002622,
+          "observed_queue_count": -0.015396988003714732,
+          "train_samples": 518
+        },
+        "wangpo_island": {
+          "intercept": 0.18135695152571835,
+          "observed_queue_count": 0.0053894021511209774,
+          "train_samples": 509
+        },
+        "water_street": {
+          "intercept": 0.2834192835119861,
+          "observed_queue_count": -0.024641721658758334,
+          "train_samples": 524
+        },
+        "wanfo_tower": {
+          "intercept": 0.15661977730461796,
+          "observed_queue_count": -0.005670513646359226,
+          "train_samples": 500
+        },
+        "xianxia_square": {
+          "intercept": 0.19108834854843593,
+          "observed_queue_count": -0.017127806861939168,
+          "train_samples": 527
+        },
+        "xianxia_stage": {
+          "intercept": 0.10959902794653706,
+          "observed_queue_count": 0.01952207371405427,
+          "train_samples": 522
+        },
+        "film_studio": {
+          "intercept": 0.24128025071092798,
+          "observed_queue_count": -0.01241947652486797,
+          "train_samples": 508
+        },
+        "art_square": {
+          "intercept": 0.1831770307314962,
+          "observed_queue_count": 0.011672197374116289,
+          "train_samples": 524
+        },
+        "children_park": {
+          "intercept": 0.22582419710998333,
+          "observed_queue_count": -0.0236005113702398,
+          "train_samples": 527
+        },
+        "circus": {
+          "intercept": 0.13574634794969218,
+          "observed_queue_count": 0.039250236060211156,
+          "train_samples": 502
+        },
+        "tiger_hall": {
+          "intercept": 0.11460606319132949,
+          "observed_queue_count": 0.012357386376686999,
+          "train_samples": 511
+        },
+        "qianqiu_lake": {
+          "intercept": 0.22189268090118114,
+          "observed_queue_count": -0.005997970248206068,
+          "train_samples": 510
+        },
+        "wanshou_lake": {
+          "intercept": 0.23071096448599837,
+          "observed_queue_count": -0.008902456274839952,
+          "train_samples": 523
+        },
+        "retro_block": {
+          "intercept": 0.16323332712893743,
+          "observed_queue_count": -0.020361961570260455,
+          "train_samples": 523
+        },
+        "puyi_wharf": {
+          "intercept": 0.22473417330355513,
+          "observed_queue_count": 0.0007356762603064908,
+          "train_samples": 515
+        },
+        "dyehouse": {
+          "intercept": 0.20149235836655863,
+          "observed_queue_count": -0.016634803820053758,
+          "train_samples": 518
+        },
+        "wulin_square": {
+          "intercept": 0.1779782548692532,
+          "observed_queue_count": -0.012638157184173576,
+          "train_samples": 521
+        },
+        "bailemen": {
+          "intercept": 0.2082292296767746,
+          "observed_queue_count": -0.008226223977216797,
+          "train_samples": 513
+        },
+        "shili_yangchang": {
+          "intercept": 0.1480481373347046,
+          "observed_queue_count": 0.004381881723312683,
+          "train_samples": 505
+        },
+        "kuaipolin": {
+          "intercept": 0.12901907356948228,
+          "observed_queue_count": 0.009455040871934606,
+          "train_samples": 508
+        },
+        "chaguan": {
+          "intercept": 0.1872440791119736,
+          "observed_queue_count": -0.0018276794268592596,
+          "train_samples": 511
+        },
+        "zhu_family_fort": {
+          "intercept": 0.200230055537309,
+          "observed_queue_count": -0.002917306329053726,
+          "train_samples": 510
+        },
+        "magic_square": {
+          "intercept": 0.19652437779720866,
+          "observed_queue_count": 0.015349039847179865,
+          "train_samples": 506
+        },
+        "shuihu_li": {
+          "intercept": 0.15619636555310573,
+          "observed_queue_count": -0.027415840120334004,
+          "train_samples": 503
+        },
+        "flower_camp": {
+          "intercept": 0.2528679222133612,
+          "observed_queue_count": 0.030989918818886367,
+          "train_samples": 511
+        },
+        "creative_market": {
+          "intercept": 0.2729509617050771,
+          "observed_queue_count": -0.016108942277309468,
+          "train_samples": 512
+        },
+        "forest_boardwalk": {
+          "intercept": 0.2473897086068435,
+          "observed_queue_count": 0.006098155537094025,
+          "train_samples": 521
+        }
+      },
+      "validation": {
+        "n": 4784,
+        "mae": 0.33582536502610905,
+        "rmse": 0.5329381199025037,
+        "persistence_mae": 0.6500836120401338,
+        "absolute_error_p90": 0.8089116514515641
+      },
+      "test": {
+        "n": 4913,
+        "mae": 0.35398130249728976,
+        "rmse": 0.5887051816847414,
+        "persistence_mae": 0.8825564828007327,
+        "absolute_error_p90": 0.8143098559275914
+      },
+      "interval": {
+        "method": "symmetric validation absolute-error p90",
+        "half_width": 0.8089116514515641
+      }
+    },
+    "target_60": {
+      "target": "per-POI queue_count",
+      "input": "same POI observed queue_count",
+      "poi_models": {
+        "lake": {
+          "intercept": 0.17027392766341343,
+          "observed_queue_count": -0.010592143032887722,
+          "train_samples": 349
+        },
+        "market": {
+          "intercept": 0.189211451979162,
+          "observed_queue_count": 0.013780666993187586,
+          "train_samples": 359
+        },
+        "museum": {
+          "intercept": 0.17216154540650572,
+          "observed_queue_count": 0.04463517686060867,
+          "train_samples": 352
+        },
+        "longtan": {
+          "intercept": 0.20610171147551662,
+          "observed_queue_count": 0.021930824471982933,
+          "train_samples": 347
+        },
+        "forest": {
+          "intercept": 0.1824069712670749,
+          "observed_queue_count": -0.015622546710629612,
+          "train_samples": 356
+        },
+        "theater": {
+          "intercept": 0,
+          "observed_queue_count": 0,
+          "train_samples": 345
+        },
+        "shizipo": {
+          "intercept": 0.25616698292220114,
+          "observed_queue_count": -0.022134231279683232,
+          "train_samples": 350
+        },
+        "summit": {
+          "intercept": 0.18615907773049367,
+          "observed_queue_count": 0.006108168139244612,
+          "train_samples": 337
+        },
+        "rest": {
+          "intercept": 0.2190121735666808,
+          "observed_queue_count": 0.017389031342577608,
+          "train_samples": 349
+        },
+        "temple": {
+          "intercept": 0.15979960528313344,
+          "observed_queue_count": -0.008592682556550782,
+          "train_samples": 340
+        },
+        "juxianzhuang": {
+          "intercept": 0.19116738727609636,
+          "observed_queue_count": -0.0008235536339304097,
+          "train_samples": 336
+        },
+        "fortress": {
+          "intercept": 0.17350901265748986,
+          "observed_queue_count": 0.010040206634198752,
+          "train_samples": 346
+        },
+        "hero_square": {
+          "intercept": 0.22660146952292248,
+          "observed_queue_count": -0.010312532339853048,
+          "train_samples": 353
+        },
+        "feiyunpu": {
+          "intercept": 0.23015768897751424,
+          "observed_queue_count": -0.016245550512073745,
+          "train_samples": 341
+        },
+        "shenboat": {
+          "intercept": 0.18231678373839755,
+          "observed_queue_count": -0.0031551529511250455,
+          "train_samples": 350
+        },
+        "wangpo_island": {
+          "intercept": 0.18691407923465783,
+          "observed_queue_count": -0.0021641952000661813,
+          "train_samples": 347
+        },
+        "water_street": {
+          "intercept": 0.2211197311545861,
+          "observed_queue_count": -0.0012524048672013593,
+          "train_samples": 359
+        },
+        "wanfo_tower": {
+          "intercept": 0.2083567142918807,
+          "observed_queue_count": -0.008445921641415232,
+          "train_samples": 337
+        },
+        "xianxia_square": {
+          "intercept": 0.17032227967188895,
+          "observed_queue_count": 0.002445282432064689,
+          "train_samples": 349
+        },
+        "xianxia_stage": {
+          "intercept": 0.10906475424467382,
+          "observed_queue_count": 0.012883648161953863,
+          "train_samples": 348
+        },
+        "film_studio": {
+          "intercept": 0.2388887919451376,
+          "observed_queue_count": -0.030380232781335614,
+          "train_samples": 338
+        },
+        "art_square": {
+          "intercept": 0.19993917506177533,
+          "observed_queue_count": -0.010788823417601217,
+          "train_samples": 353
+        },
+        "children_park": {
+          "intercept": 0.2579221238938053,
+          "observed_queue_count": 0.00216283185840708,
+          "train_samples": 351
+        },
+        "circus": {
+          "intercept": 0.14654801205683937,
+          "observed_queue_count": -0.01794172527630257,
+          "train_samples": 340
+        },
+        "tiger_hall": {
+          "intercept": 0.12582896527757667,
+          "observed_queue_count": 0.011004604558223045,
+          "train_samples": 339
+        },
+        "qianqiu_lake": {
+          "intercept": 0.19668335029386722,
+          "observed_queue_count": -0.019421541954822676,
+          "train_samples": 341
+        },
+        "wanshou_lake": {
+          "intercept": 0.2035485758052746,
+          "observed_queue_count": -0.005771561940258001,
+          "train_samples": 354
+        },
+        "retro_block": {
+          "intercept": 0.1933179563146854,
+          "observed_queue_count": -0.023159977332153546,
+          "train_samples": 355
+        },
+        "puyi_wharf": {
+          "intercept": 0.22715389185977422,
+          "observed_queue_count": -0.00712163653340124,
+          "train_samples": 346
+        },
+        "dyehouse": {
+          "intercept": 0.14754557363279103,
+          "observed_queue_count": 0.01932442026739198,
+          "train_samples": 345
+        },
+        "wulin_square": {
+          "intercept": 0.16894375153134444,
+          "observed_queue_count": 0.017495245540141643,
+          "train_samples": 349
+        },
+        "bailemen": {
+          "intercept": 0.20690028120268225,
+          "observed_queue_count": -0.014384598745403418,
+          "train_samples": 341
+        },
+        "shili_yangchang": {
+          "intercept": 0.15656479426327471,
+          "observed_queue_count": -0.03073245688919242,
+          "train_samples": 348
+        },
+        "kuaipolin": {
+          "intercept": 0.17541489435883134,
+          "observed_queue_count": 0.004658845268809706,
+          "train_samples": 337
+        },
+        "chaguan": {
+          "intercept": 0.17509249775287944,
+          "observed_queue_count": -0.0024822843286858003,
+          "train_samples": 347
+        },
+        "zhu_family_fort": {
+          "intercept": 0.1857612286143877,
+          "observed_queue_count": 0.003993226751456852,
+          "train_samples": 344
+        },
+        "magic_square": {
+          "intercept": 0.21990049751243781,
+          "observed_queue_count": 0.04378109452736319,
+          "train_samples": 343
+        },
+        "shuihu_li": {
+          "intercept": 0.17101298529763823,
+          "observed_queue_count": -0.029462509390194572,
+          "train_samples": 338
+        },
+        "flower_camp": {
+          "intercept": 0.25794538546216395,
+          "observed_queue_count": 0.008646709988991868,
+          "train_samples": 341
+        },
+        "creative_market": {
+          "intercept": 0.287163694149471,
+          "observed_queue_count": 0.032669429536949776,
+          "train_samples": 338
+        },
+        "forest_boardwalk": {
+          "intercept": 0.25811296282074253,
+          "observed_queue_count": -0.007500703990988915,
+          "train_samples": 351
+        }
+      },
+      "validation": {
+        "n": 3223,
+        "mae": 0.3473645678526769,
+        "rmse": 0.5366032506698668,
+        "persistence_mae": 0.6766987278932671,
+        "absolute_error_p90": 0.8138409222695063
+      },
+      "test": {
+        "n": 3323,
+        "mae": 0.3667969759948133,
+        "rmse": 0.5859859764638804,
+        "persistence_mae": 0.9383087571471562,
+        "absolute_error_p90": 0.8218689162881245
+      },
+      "interval": {
+        "method": "symmetric validation absolute-error p90",
+        "half_width": 0.8138409222695063
+      }
+    }
+  },
+  "limitations": [
+    "trained and evaluated only on T4 synthetic scenarios",
+    "scenario groups, not individual rows, define train/validation/test separation",
+    "linear model cannot represent event or graph interactions",
+    "confidence interval is empirical validation error, not calibrated coverage",
+    "not integrated into the live forecast API"
+  ]
+}

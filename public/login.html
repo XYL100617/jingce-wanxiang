@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#24483d" />
+  <title>登录 / 注册 · 景策万象</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/auth.css?v=login-image-light-green-20261030b" />
+</head>
+<body class="auth-standalone">
+  <main class="auth-shell" aria-label="景策万象登录与注册">
+    <section class="auth-showcase">
+      <span class="auth-kicker">景策万象 · 游客账号</span>
+      <div class="auth-monogram" aria-hidden="true">策</div>
+      <h1>把每一次游览<br/><em>都留成自己的故事</em></h1>
+      <p>登录后保存路线、收藏景点、记录打卡，还能把喜欢的游览路线分享给其他游客。</p>
+      <div class="auth-benefits"><span>路线收藏</span><span>游览足迹</span><span>路线分享</span></div>
+      <small>景区主题：宋风武侠文化体验</small>
+    </section>
+    <section class="auth-panel">
+      <div class="auth-heading"><span>欢迎来到景策万象</span><h2 id="loginTitle">欢迎回来</h2><p id="loginSubtitle">登录账号，继续你的游览计划</p></div>
+      <form id="loginForm" class="auth-form" novalidate>
+        <label>账号<input id="loginUsername" name="username" autocomplete="username" required minlength="3" maxlength="32" pattern="[a-z0-9_]+" placeholder="小写字母、数字或下划线"/><small>3–32 位小写字母、数字或下划线</small></label>
+        <label>密码<input id="loginPassword" name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128" placeholder="请输入至少 8 位密码"/><small id="loginPasswordHint">密码至少 8 位</small></label>
+        <label id="registerConfirmRow" hidden>确认密码<input id="loginPasswordConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="再次输入密码"/></label>
+        <label id="registerNameRow" hidden>昵称（选填）<input id="loginDisplayName" maxlength="30" placeholder="其他游客看到的名称"/></label>
+        <p id="loginError" class="auth-error" role="alert" hidden></p>
+        <button class="teal-btn auth-submit" type="submit" id="loginSubmit">登录</button>
+        <p class="auth-switch"><span id="loginSwitchPrompt">还没有账号？</span><button class="link-btn" type="button" id="loginMode">注册游客账号</button></p>
+      </form>
+      <div class="auth-footnote"><span>新注册账号为普通游客</span><span>管理者账号由平台配置</span></div>
+      <a class="auth-guest-link" href="/?guest=1">先以游客身份体验</a>
+    </section>
+  </main>
+  <script src="/login.js"></script>
+</body>
+</html>

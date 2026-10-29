@@ -51,8 +51,17 @@ function scoreAction({ graph, visitor, evaluation, action, rules }) {
   const fit = preferenceFit(visitor, definition, evaluation, action);
   let score = Number(definition?.base_utility || 0) * .62;
   score += fit.value * scoreRules.preference_reward;
-  score -= evaluation.route.travel_time_min * scoreRules.walk_cost_per_min;
+  const firstLegCost = Number(visitor.action_count || 0) === 0 ? Number(scoreRules.first_leg_walk_cost_per_min || 0) : 0;
+  score -= evaluation.route.travel_time_min * (scoreRules.walk_cost_per_min + firstLegCost);
   score -= evaluation.predicted_queue_min * scoreRules.queue_cost_per_min;
+  const crowdSensitivity = clamp01(visitor.preference_profile?.sensitivities?.crowd
+    ?? Math.min(1, Number(visitor.preference_weights?.comfort || 0) * 2));
+  const crowdRatio = clamp01(evaluation.predicted_crowd_ratio || 0);
+  // Moderate crowd remains viable, while severe congestion gets a stronger
+  // penalty; sensitivity comes from the visitor's explicit survey response.
+  const crowdSeverity = crowdRatio ** 2 + Math.max(0, crowdRatio - .65) * 1.5;
+  score -= crowdSeverity * scoreRules.crowd_cost_per_ratio * (0.35 + crowdSensitivity);
+  score -= (evaluation.upward_trend_probability || 0) * scoreRules.crowd_trend_cost * (0.35 + crowdSensitivity);
   score -= evaluation.wait_time_min * scoreRules.wait_cost_per_min;
   score -= Number(visitor.fatigue || 0) * scoreRules.fatigue_cost;
   if (action.action_type === 'ATTEND_EVENT' && definition?.latest_entry_time) {
@@ -69,11 +78,28 @@ function usefulActionCount(itinerary) {
   return itinerary.filter(x => ['VISIT_POI', 'ATTEND_EVENT'].includes(x.action_type)).length;
 }
 
+// A route leg may physically pass through a later planned stop before the
+// itinerary says to visit it. That makes the map look as if a numbered leg is
+// missing or out of order. Prefer complete plans whose stops follow the
+// actual traversal order of the shared Map1 graph.
+function routeOrderConflictCount(itinerary = []) {
+  const visits = itinerary.filter(item => ['VISIT_POI', 'ATTEND_EVENT'].includes(item.action_type));
+  let conflicts = 0;
+  for (let index = 0; index < visits.length - 1; index += 1) {
+    const futureTargets = new Set(visits.slice(index + 1).map(item => item.target_node_id || item.target_id).filter(Boolean));
+    const routeNodes = visits[index].route?.node_sequence || [];
+    const crossed = new Set(routeNodes.slice(1, -1).filter(nodeId => futureTargets.has(nodeId)));
+    conflicts += crossed.size;
+  }
+  return conflicts;
+}
+
 function actionSignature(action) { return `${action.action_type}:${action.target_id}`; }
 function itinerarySignature(itinerary) { return itinerary.map(actionSignature).join('>'); }
 
 function selectDiverseBeam(candidates, width) {
-  const ordered = [...candidates].sort((a, b) => b.score - a.score || usefulActionCount(b.itinerary) - usefulActionCount(a.itinerary));
+  const ordered = [...candidates].sort((a, b) => routeOrderConflictCount(a.itinerary) - routeOrderConflictCount(b.itinerary)
+    || b.score - a.score || usefulActionCount(b.itinerary) - usefulActionCount(a.itinerary));
   const selected = [];
   const firstActions = new Set();
   for (const candidate of ordered) {
@@ -97,11 +123,21 @@ function selectDiverseBeam(candidates, width) {
 function planReason(plan) {
   const first = plan.itinerary[0];
   if (!first) return '当前没有可执行动作';
-  if (first.action_type === 'EXIT') return '当前没有满足硬约束的游览目标，优先安全离园';
+  if (first.action_type === 'EXIT' && usefulActionCount(plan.itinerary) === 0) {
+    const exitMinutes = Number(first.travel_time_min || first.route?.travel_time_min || 0);
+    const duration = exitMinutes > 0 ? `（预计步行约 ${Math.round(exitMinutes)} 分钟）` : '';
+    return `当前暂无可安排景点：剩余时间不足以安排游览并预留离园路程，已优先安排前往所选出口的离园路线${duration}。可延后离园时间，或选择离当前位置更近的出口后重新规划`;
+  }
+  if (first.action_type === 'EXIT') return '已安排当前可行景点，并预留安全离园路线';
   if (first.action_type === 'REST') return '当前疲劳或时间约束较强，先恢复体力并保留离园时间';
-  if (first.action_type === 'WAIT') return '当前目标均受开放或时间窗约束，短暂等待后再滚动规划';
+  if (first.action_type === 'WAIT' && usefulActionCount(plan.itinerary) > 0)
+    return `当前尚未到景点开放时段，计划等待约 ${Math.round(first.visit_duration_min || 0)} 分钟后继续游览`;
+  if (first.action_type === 'WAIT') return '暂时没有可立即游览的目标，等待后需按现场状态重新规划';
   const queueText = first.predicted_queue_min > 0 ? `，预计到达时排队 ${first.predicted_queue_min} 分钟` : '';
-  return `首选 ${first.target_id}${queueText}；方案已校验开放时间、道路状态、演出时间窗和返程余量`;
+  const crowdText = Number.isFinite(first.predicted_crowd_ratio)
+    ? `，模型模拟拥挤度约 ${Math.round(first.predicted_crowd_ratio * 100)}%，上升风险 ${Math.round((first.upward_trend_probability || 0) * 100)}%`
+    : '';
+  return `首选 ${first.target_id}${queueText}${crowdText}；方案已校验开放时间、道路状态、演出时间窗和返程余量`;
 }
 
 function candidateSummary(candidate) {
@@ -226,9 +262,11 @@ function applyReplanEvent({ graph, state, forecast, event }) {
   return { state: nextState, forecast: nextForecast };
 }
 
-function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excluded_target_ids = [], ensure_alternatives = true }) {
+function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excluded_target_ids = [], ensure_alternatives = true, target_order = null }) {
   validateInputs(graph, state, forecast);
   const rules = mergeRules(ruleOverrides);
+  if (target_order !== null && (!Array.isArray(target_order) || target_order.some(id => typeof id !== 'string' || (!graph.pois.some(poi => poi.poi_id === id) && !graph.nodes.some(node => node.node_id === id))) || new Set(target_order).size !== target_order.length))
+    throw new Error('target_order 必须由不重复的已知 poi_id 或 node_id 组成');
   let beam = [{ state: JSON.parse(JSON.stringify(state)), itinerary: [], score: 0, score_breakdown: { preference: 0, cost: 0 }, ended: false }];
   const completed = [];
   const candidatePool = [];
@@ -237,9 +275,17 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
     const expanded = [];
     for (const candidate of beam) {
       if (candidate.ended) { completed.push(candidate); continue; }
-      const options = getLegalActions({ graph, state: candidate.state, forecast, visitor: candidate.state.visitor, rules, excluded_target_ids, candidate_limit: rules.planner_candidate_limit });
-      for (const evaluation of options.legal) {
+      const requiredTarget = target_order?.[usefulActionCount(candidate.itinerary)];
+      const requiredPoi = requiredTarget ? graph.pois.find(poi => poi.poi_id === requiredTarget) : null;
+      const options = getLegalActions({ graph, state: candidate.state, forecast, visitor: candidate.state.visitor, rules, excluded_target_ids, candidate_limit: rules.planner_candidate_limit, required_target_ids: requiredTarget ? [requiredTarget] : [] });
+      const legalActions = requiredTarget
+        ? options.legal.filter(({ action }) => ['VISIT_POI', 'ATTEND_EVENT'].includes(action.action_type) && (action.target_id === requiredTarget || action.target_node_id === requiredTarget || action.target_node_id === requiredPoi?.node_id))
+        : options.legal;
+      for (const evaluation of legalActions) {
         const action = evaluation.action;
+        // WAIT is a one-time recovery action inside a plan. Repeated WAIT
+        // steps make a route look like several visits to the current node.
+        if (action.action_type === 'WAIT' && candidate.itinerary.some(item => item.action_type === 'WAIT')) continue;
         if (action.action_type === 'EXIT' && candidate.state.visitor.require_rest === true && options.legal.some(x => x.action.action_type === 'REST')) continue;
         if (action.action_type === 'EXIT' && usefulActionCount(candidate.itinerary) < rules.min_actions && options.legal.some(x => !['EXIT', 'WAIT'].includes(x.action.action_type))) continue;
         const stepped = stepByRules({ graph, state: candidate.state, forecast, action, visitor: candidate.state.visitor, evaluation, rules, compute_next_actions: false });
@@ -276,11 +322,20 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
   // Select an actual day plan, not the highest-scoring early prefix. Prefer
   // candidates that reach an exit, then maximize useful stops and finally use
   // the remaining visit window before comparing utility scores.
-  const terminalPool = candidatePool.filter(candidate => candidate.ended && (rules.preferred_exit_node_id || usefulActionCount(candidate.itinerary) >= minimumUseful));
-  const selectablePool = terminalPool.length ? terminalPool : rules.preferred_exit_node_id ? [] : candidatePool;
+  const allExitPlans = candidatePool.filter(candidate => candidate.ended
+    && candidate.itinerary.at(-1)?.action_type === 'EXIT');
+  const terminalPool = allExitPlans.filter(candidate => rules.preferred_exit_node_id
+    || usefulActionCount(candidate.itinerary) >= minimumUseful);
+  // If the requested minimum cannot be met, return the best safe completed
+  // route (possibly an exit recommendation) instead of an unfinished WAIT prefix.
+  const selectablePool = terminalPool.length ? terminalPool
+    : target_order ? (rules.preferred_exit_node_id ? [] : candidatePool)
+      : allExitPlans.length ? allExitPlans : rules.preferred_exit_node_id ? [] : candidatePool;
   const fullDayOrder = (a, b) => {
     const usefulDifference = usefulActionCount(b.itinerary) - usefulActionCount(a.itinerary);
     if (usefulDifference) return usefulDifference;
+    const orderDifference = routeOrderConflictCount(a.itinerary) - routeOrderConflictCount(b.itinerary);
+    if (orderDifference) return orderDifference;
     // Compare the complete day, not only its first attractive stop. The old
     // first-action tie-break could select a route that repeatedly crossed the
     // park even when a geographically continuous route had higher total value.
@@ -296,7 +351,8 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
   alternatePool.sort((a, b) => {
     const aDifferentFirst = actionSignature(a.itinerary[0]) !== actionSignature(main.itinerary[0]) ? 1 : 0;
     const bDifferentFirst = actionSignature(b.itinerary[0]) !== actionSignature(main.itinerary[0]) ? 1 : 0;
-    return bDifferentFirst - aDifferentFirst || b.score - a.score;
+    return routeOrderConflictCount(a.itinerary) - routeOrderConflictCount(b.itinerary)
+      || bDifferentFirst - aDifferentFirst || b.score - a.score;
   });
   const alternatives = [];
   const signatures = new Set([itinerarySignature(main.itinerary)]);
@@ -314,7 +370,8 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
       forecast,
       rules: ruleOverrides,
       excluded_target_ids: [...new Set([...excluded_target_ids, main.itinerary[0].target_id])],
-      ensure_alternatives: false
+      ensure_alternatives: false,
+      target_order
     });
     if (fallback.feasible && fallback.diagnostics.useful_action_count >= minimumUseful) {
       const alternative = {
@@ -350,7 +407,7 @@ function planItinerary({ graph, state, forecast, rules: ruleOverrides = {}, excl
     alternative_status: alternatives.length ? 'available' : 'none_feasible',
     alternative_message: specifiedExitUnavailable ? '无法在当前离园时间前到达指定出口，请更换出口或调整离园时间' : alternatives.length ? null : '当前约束下没有其他满足最少游览步数且不同于主方案的可执行方案',
     reason: specifiedExitUnavailable ? '指定离园出口不可达' : summary.reason,
-    feasible: main.itinerary.length > 0,
+    feasible: main.itinerary.length > 0 && (!target_order || usefulActionCount(main.itinerary) === target_order.length),
     diagnostics: {
       used_arrival_time_forecast: true,
       planned_action_count: main.itinerary.length,
@@ -404,4 +461,4 @@ function replan({ graph, state, forecast, event, rules = {} }) {
   return result;
 }
 
-module.exports = { planItinerary, replan, validateInputs, validateUserEvent, scoreAction, preferenceFit, applyReplanEvent, promoteAlternative, REPLAN_EVENTS };
+module.exports = { planItinerary, replan, validateInputs, validateUserEvent, scoreAction, preferenceFit, routeOrderConflictCount, applyReplanEvent, promoteAlternative, REPLAN_EVENTS };

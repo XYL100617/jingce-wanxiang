@@ -5,6 +5,18 @@ const { URL } = require('url');
 const { createMockScenario, buildLivePlannerScenario, planItinerary, replan, promoteAlternative } = require('./planner');
 const { inferPreference: inferPreferenceV2 } = require('./preference-engine');
 const accounts = require('./accounts');
+const { createCommunity, ROUTE_TAGS } = require('./community');
+const { routeSeeds } = require('./dna-seeds');
+const { normalizeProgressEvent, summarizePlanChange } = require('./c-progress');
+const { createCompanionService } = require('./companion/service');
+const { createOperations } = require('./companion/operations');
+const { createCloudEngine } = require('./companion/cloud/engine');
+const { createVoiceGateway } = require('./companion/voice-gateway');
+const { createQianfanTts } = require('./companion/qianfan-tts');
+const syntheticWorldModel = require('./world-model/synthetic-baseline');
+const graphTemporalWorldModel = require('./world-model/graph-temporal');
+const crowdTrendWorldModel = require('./world-model/crowd-trend');
+const applicationCrowd = require('./world-model/application-crowd');
 
 const PORT = Number(process.env.PORT || 4173);
 const ROOT = path.resolve(__dirname, '..');
@@ -30,11 +42,19 @@ function requireManager(req, res) {
   json(res, 403, { error: '此操作仅限景区管理员' });
   return false;
 }
+function requireVisitor(req, res) {
+  if (!requireAccount(req, res)) return false;
+  if (req.account.role === 'visitor') return true;
+  audit(req, 'permission.denied', req.url, 'denied');
+  json(res, 403, { error: '此功能仅供普通游客账号使用；管理者请使用管理工作台' });
+  return false;
+}
 
 const provider = require('./state/stateProvider');
 const { predictEnvironment } = require('./state/forecastSimulator');
 const { applyScenarioEvent, parseTime } = require('./state/scenarioEngine');
 const { queryQueue, queryTravelTime } = require('./state/forecastQuery');
+const scenarioSettings = require('./data/scenarios.json');
 const graph = provider.getLegacyGraph();
 const scenicGraph = provider.getScenicGraph();
 const routeEdges = scenicGraph.edges;
@@ -46,6 +66,91 @@ let currentPlanNextTarget = null;
 let currentPlanId = null;
 let currentPlanResult = null;
 const cInteractionEvents = [];
+const cProgressEventCache = new Map();
+const C_PROGRESS_CACHE_LIMIT = 200;
+const companionOperations = createOperations({ readIncidents: () => {
+  const current = provider.getState();
+  const events = Object.values(current.event_states || {}).filter(item => ['live', 'upcoming', 'active'].includes(item.status) && !item.cancelled).map(item => ({
+    incident_id: item.event_id, incident_type: 'SCENIC_EVENT', severity: 'medium', scope: item.node_id,
+    status: 'active', source: '共享演示事件状态', started_at: item.start_time, title: item.title || '景区活动事件'
+  }));
+  const closedRoads = scenicGraph.edges.filter(edge => current.road_states[edge.edge_id]?.available === false).map(edge => ({
+    incident_id: `closure:${edge.edge_id}`, incident_type: 'ROAD_CLOSED', severity: 'high', scope: edge.edge_id,
+    status: 'active', source: '共享演示路网状态', started_at: current.timestamp, title: `演示封闭：${edge.name || edge.edge_id}`
+  }));
+  return [...events, ...closedRoads];
+} });
+const community = createCommunity();
+const publicCommunityRoutes = viewerId => community.listRoutes(viewerId, username => Boolean(accounts.findShareableProfile(username)));
+const companionCloud = createCloudEngine({
+  ledgerPath: process.env.COMPANION_USAGE_FILE || (process.env.ACCOUNTS_FILE
+    ? path.join(path.dirname(process.env.ACCOUNTS_FILE), 'companion-usage.local.json')
+    : path.join(__dirname, 'data', 'companion-usage.local.json'))
+});
+const companionVoice = createVoiceGateway();
+const qianfanTts = createQianfanTts();
+const companionService = createCompanionService({
+  cloudEngine: companionCloud,
+  graph: scenicGraph,
+  readState: () => {
+    const current = { ...provider.getState(), data_mode: 'demo' };
+    delete current.visitor;
+    return current;
+  },
+  readOperations: () => companionOperations.read(),
+  // Companion route context is reconstructed from the authenticated account's
+  // own saved route only; the shared demo planner state is never exposed.
+  readPlan: ({ owner } = {}) => {
+    const match = /^account:(.+)$/.exec(String(owner || ''));
+    const user = match && accounts.getUserById(match[1]);
+    const saved = user?.routeHistory?.[0];
+    if (!saved?.stops?.length) return null;
+    const itinerary = saved.stops.map(nodeId => {
+      const item = scenicGraph.nodes.find(value => value.node_id === nodeId);
+      if (!item?.poi_id) return null;
+      return { target_id: item.poi_id, target_node_id: item.node_id, action_type: item.type === 'show' ? 'ATTEND_EVENT' : 'VISIT_POI' };
+    }).filter(Boolean);
+    const next = itinerary[0];
+    return next ? { plan_id: saved.planId || `saved-${saved.createdAt}`, next_action: { target_id: next.target_id }, itinerary, reason: '来自该账号最近一次保存的路线；路线说明不改变规划结果。', generated_at: saved.createdAt } : null;
+  },
+  readPreferences: ({ owner } = {}) => {
+    const match = /^account:(.+)$/.exec(String(owner || ''));
+    return match ? accounts.getUserById(match[1])?.preferences || null : null;
+  },
+});
+const companionGuests = new Map();
+function companionOwner(req, res) {
+  if (req.account) return `account:${req.account.id}`;
+  const token = /(?:^|;\s*)jc_companion=([a-f0-9]{64})(?:;|$)/.exec(req.headers.cookie || '')?.[1];
+  const now = Date.now();
+  for (const [key, expires] of companionGuests) if (expires <= now) companionGuests.delete(key);
+  if (token && companionGuests.has(token)) {
+    companionGuests.set(token, now + 30 * 60 * 1000);
+    return `guest:${token}`;
+  }
+  const created = require('node:crypto').randomBytes(32).toString('hex');
+  if (companionGuests.size >= 1000) companionGuests.delete(companionGuests.keys().next().value);
+  companionGuests.set(created, now + 30 * 60 * 1000);
+  res.setHeader('Set-Cookie', `jc_companion=${created}; Path=/api; HttpOnly; SameSite=Strict; Max-Age=1800${req.socket?.encrypted ? '; Secure' : ''}`);
+  return `guest:${created}`;
+}
+function companionSessionCookie(req) {
+  return /(?:^|;\s*)jc_companion_session=([A-Za-z0-9_-]{8,80})(?:;|$)/.exec(req.headers.cookie || '')?.[1] || null;
+}
+function setCompanionSessionCookie(req, res, sessionId) {
+  const existing = res.getHeader('Set-Cookie');
+  const cookies = existing == null ? [] : Array.isArray(existing) ? existing : [existing];
+  cookies.push(`jc_companion_session=${sessionId}; Path=/api; HttpOnly; SameSite=Strict; Max-Age=1800${req.socket?.encrypted ? '; Secure' : ''}`);
+  res.setHeader('Set-Cookie', cookies);
+}
+function companionConsent(req, body) {
+  const permissions = body.permissions || {};
+  return {
+    location: permissions.location === true && (!req.account || req.account.consent?.location === true),
+    route: permissions.route === true,
+    preferences: permissions.preferences === true,
+  };
+}
 const refresh = () => {
   state = provider.getLegacyState();
   state.user.preferenceProfile = preferenceProfile;
@@ -57,7 +162,12 @@ const commit = () => { provider.setLegacyState(state); refresh(); };
 
 function livePlannerScenario() {
   const current = provider.getState();
-  return buildLivePlannerScenario(provider.getScenicGraph(), current, state.user, predictEnvironment(current, ROUTE_FORECAST_HORIZON_MIN, 10));
+  const graph = provider.getScenicGraph();
+  const baseForecast = predictEnvironment(current, ROUTE_FORECAST_HORIZON_MIN, 10);
+  const crowd = applicationCrowd.predictApplicationCrowd(graph, current,
+    predictEnvironment(current, 60, 5));
+  const forecast = applicationCrowd.blendCrowdIntoForecast(baseForecast, crowd.distribution);
+  return buildLivePlannerScenario(graph, current, state.user, forecast);
 }
 
 function setActivePlan(planResult) {
@@ -66,12 +176,6 @@ function setActivePlan(planResult) {
   currentPlanId = planResult?.plan_id || null;
   refresh();
 }
-
-const routeSeeds = [
-  { id: '8A3F', title: '亲子避晒 · 文化慢游', author: '小河的周末', tags: ['室内优先', '休息点多', '亲子'], minutes: 178, likes: 286, stops: ['museum', 'theater', 'rest', 'market'], cover: 'museum' },
-  { id: '2C71', title: '一小时高效打卡', author: '今天不排队', tags: ['时间紧', '高价值', '少绕行'], minutes: 72, likes: 194, stops: ['market', 'museum', 'theater'], cover: 'theater' },
-  { id: 'F902', title: '湖畔林间自由行', author: '风从湖面来', tags: ['自然探索', '低密度', '拍照'], minutes: 146, likes: 341, stops: ['lake', 'forest', 'summit', 'rest'], cover: 'lake' }
-];
 
 const companionFacts = {
   museum: { name: '大宋武馆', title: '从一处展陈读懂景区文化', fact: '大宋武馆以武术展陈和互动体验为主，室内遮阴条件较好，适合在高温或人流波动时作为稳定节点。', prompt: '这里适合停留多久？' },
@@ -106,7 +210,20 @@ function lightWorldModel(horizon = 60) {
     const queue = mean(predictions.map(x => x.queue_min));
     return { offset, label: `+${offset} min`, crowd: Math.round(crowd * 100), queue: Math.round(queue * 10) / 10, load: Math.round(Math.min(.98, current.visitor.fatigue + offset / 300) * 100), confidence: Math.round((.95 - offset / 420) * 100) };
   });
-  return { model: 'Light Scenic Graph World Model', version: 'LSGWM-0.4', latent: { env: [meanCrowd, meanQueue / 25, current.weather.rain], user: [current.visitor.fatigue] }, state: { environment: meanCrowd > .68 ? '多点拥挤' : meanCrowd > .42 ? '局部繁忙' : '人流稳定', user: current.visitor.fatigue > .7 ? '负荷偏高' : current.visitor.fatigue > .42 ? '建议安排休息' : '舒适' }, horizon: points, uncertainty: 19, updatedAt: current.timestamp };
+  return {
+    model: 'Light Scenic Graph World Model',
+    version: 'LSGWM-0.4-rule-simulation',
+    source_mode: 'synthetic_rule_simulation',
+    source_tier: 'synthetic',
+    trained: false,
+    fallback: 'rule_planner',
+    latent: { env: [meanCrowd, meanQueue / 25, current.weather.rain], user: [current.visitor.fatigue] },
+    state: { environment: meanCrowd > .68 ? '多点拥挤' : meanCrowd > .42 ? '局部繁忙' : '人流稳定', user: current.visitor.fatigue > .7 ? '负荷偏高' : current.visitor.fatigue > .42 ? '建议安排休息' : '舒适' },
+    horizon: points,
+    uncertainty: 19,
+    updatedAt: current.timestamp,
+    limitations: ['当前为可重复规则模拟', '未使用本地真实客流训练', '预测结果尚未使用真实客流校准']
+  };
 }
 
 function json(res, code, payload) {
@@ -163,7 +280,7 @@ function predictedTime(forecastData, offsetMin) {
   return new Date(parseTime(forecastData.base_timestamp, 'base timestamp') + Math.round(offsetMin * 60000)).toISOString();
 }
 
-function pathBetween(start, goal, forecastData, departOffsetMin = 0) {
+function pathBetween(start, goal, forecastData, departOffsetMin = 0, objective = 'time') {
   if (!node(start) || !node(goal)) return null;
   const best = { [start]: { cost: 0, path: [start], steps: [], distance: 0, minutes: 0 } };
   const open = [start];
@@ -177,7 +294,7 @@ function pathBetween(start, goal, forecastData, departOffsetMin = 0) {
       const road = queryTravelTime(forecastData, next.edge_id, enterTime);
       if (!road.available) continue;
       const crowdPenalty = (state.crowd[next.id] || 0) * 2.2;
-      const cost = best[current].cost + road.travel_time_min + crowdPenalty;
+      const cost = best[current].cost + (objective === 'distance' ? Number(next.distance) || 0 : road.travel_time_min + crowdPenalty);
       if (!best[next.id] || cost < best[next.id].cost) {
         best[next.id] = { cost, path: [...best[current].path, next.id], steps: [...best[current].steps, { from: current, to: next.id, edge_id: next.edge_id, distance: next.distance, minutes: road.travel_time_min, shade: next.shade }], distance: best[current].distance + next.distance, minutes: best[current].minutes + road.travel_time_min };
         open.push(next.id);
@@ -252,7 +369,7 @@ function snapshot() {
     weather: state.weather, graph, crowd: state.crowd, queues: state.queues, events: state.events, user: state.user, routes, forecast: forecast(), worldModel: lightWorldModel(), routeSeeds, planResult: currentPlanResult,
     companion: companionFacts[state.user.location] || companionFacts.museum,
     emergency: { rain: state.weather.rain, safe: closedRoads.length === 0, closed: closedRoads, sos: false },
-    metrics: { nodes: graph.nodes.length, edges: graph.edges.length, confidence: 91, responseMs: 84, coverage: 87 }
+    metrics: { nodes: graph.nodes.length, edges: graph.edges.length, source_mode: 'synthetic_rule_simulation', measured: false }
   };
 }
 
@@ -261,9 +378,17 @@ let simulatedMinutes = 0;
 let lastUpdateVersion = null;
 function updateEnvironment() {
   const current = provider.getState();
+  const runawayRoadTime = scenicGraph.edges.some(edge => Number(current.road_states[edge.edge_id]?.travel_time_min) > Number(edge.base_travel_time_min) * 10);
   // Keep a stable baseline between external state changes so small drifts are not lost to repeated rounding.
-  if (!simulationAnchor || current.state_version !== lastUpdateVersion || simulatedMinutes >= 1440) {
-    simulationAnchor = current;
+  if (!simulationAnchor || current.state_version !== lastUpdateVersion || simulatedMinutes >= 1440 || runawayRoadTime) {
+    simulationAnchor = provider.cloneState(current);
+    const completedFactor=1+simulatedMinutes/60*scenarioSettings.NORMAL.road_delay_per_hour;
+    for(const edge of scenicGraph.edges){
+      const road=simulationAnchor.road_states[edge.edge_id];
+      if(!road)continue;
+      if(runawayRoadTime && road.travel_time_min>edge.base_travel_time_min*10)road.travel_time_min=edge.base_travel_time_min;
+      else if(simulatedMinutes>=1440)road.travel_time_min=Math.max(edge.base_travel_time_min,Math.round(road.travel_time_min/completedFactor*100)/100);
+    }
     simulatedMinutes = 0;
   }
   const nextMinute = simulatedMinutes + 1;
@@ -311,11 +436,154 @@ async function api(req, res, url) {
   }
   if (req.method === 'GET' && url.pathname === '/api/account/me')
     return json(res, 200, { user: accounts.publicUser(req.account), profile: req.account ? accounts.profile(req.account) : null });
+  if (req.method === 'GET' && url.pathname === '/api/account/export') {
+    if (!requireAccount(req, res)) return;
+    const payload = { exported_at: new Date().toISOString(), account: accounts.profile(req.account),
+      community: req.account.role === 'visitor' ? community.me(req.account) : null,
+      scope_note: '此导出包含当前本地账号资料、偏好、路线历史与个人中心记录；不含服务端审计日志、第三方模型处理记录或共享演示运行状态。' };
+    audit(req, 'account.data.export', req.account.id);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="jingce-account-export.json"', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify(payload, null, 2));
+  }
+  if (req.method === 'DELETE' && url.pathname === '/api/account/me') {
+    if (!requireAccount(req, res)) return;
+    const body = await readBody(req);
+    if (req.account.role !== 'visitor') return json(res, 403, { error: '管理者账号不能通过游客端自助删除' });
+    const removed = accounts.deleteUser(req.account, body.password, () => community.deleteUserData(req.account.id));
+    audit(req, 'account.delete', removed.id, 'success', { removedRoutes: true });
+    res.setHeader('Set-Cookie', accounts.clearCookie());
+    return json(res, 200, { ok: true, message: '账号及本地个人中心数据已删除' });
+  }
   if (req.method === 'PATCH' && url.pathname === '/api/account/profile') {
     if (!requireAccount(req, res)) return;
     const profile = accounts.updateProfile(req.account, await readBody(req));
     audit(req, 'profile.update', req.account.id, 'success', { fields: ['displayName', 'consent'] });
     return json(res, 200, { profile });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/community/routes')
+    return json(res, 200, { routes: publicCommunityRoutes(req.account?.role === 'visitor' ? req.account.id : null), popular_pois: community.popularPois(new Map(scenicGraph.nodes.map(item => [item.node_id, item.name])), req.account?.role === 'visitor' ? req.account.id : null) });
+  if (req.method === 'GET' && url.pathname === '/api/community/me') {
+    if (!requireVisitor(req, res)) return;
+    return json(res, 200, community.me(req.account));
+  }
+  if (req.method === 'GET' && url.pathname === '/api/admin/community/routes') {
+    if (!requireManager(req, res)) return;
+    return json(res, 200, { routes: community.listForModeration() });
+  }
+  const moderationRoute = /^\/api\/admin\/community\/routes\/([^/]+)$/.exec(url.pathname);
+  if (req.method === 'PATCH' && moderationRoute) {
+    if (!requireManager(req, res)) return;
+    const body = await readBody(req);
+    const route = community.moderateRoute(decodeURIComponent(moderationRoute[1]), body.status);
+    audit(req, 'community.route.moderate', route.id, 'success', { status: route.status });
+    return json(res, 200, { route });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/admin/announcements') {
+    if (!requireManager(req, res)) return;
+    return json(res, 200, { announcements: companionOperations.list() });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/admin/announcements') {
+    if (!requireManager(req, res)) return;
+    const body = await readBody(req);
+    const announcement = companionOperations.publish(body);
+    audit(req, 'operations.announcement.create', announcement.id, 'success', { reviewStatus: announcement.review_status });
+    return json(res, 201, { announcement });
+  }
+  const announcementAction = /^\/api\/admin\/announcements\/([^/]+)$/.exec(url.pathname);
+  if (announcementAction && req.method === 'PATCH') {
+    if (!requireManager(req, res)) return;
+    const body = await readBody(req);
+    const announcement = companionOperations.setReviewStatus(decodeURIComponent(announcementAction[1]), body.review_status);
+    audit(req, 'operations.announcement.review', announcement.id, 'success', { reviewStatus: announcement.review_status });
+    return json(res, 200, { announcement });
+  }
+  if (announcementAction && req.method === 'DELETE') {
+    if (!requireManager(req, res)) return;
+    const id = decodeURIComponent(announcementAction[1]);
+    const removed = companionOperations.remove(id);
+    if (!removed) return json(res, 404, { error: '没有找到这条公告' });
+    audit(req, 'operations.announcement.delete', id);
+    return json(res, 200, { ok: true });
+  }
+  if (req.method === 'GET' && url.pathname.startsWith('/api/community/profiles/')) {
+    const username = decodeURIComponent(url.pathname.slice('/api/community/profiles/'.length));
+    return json(res, 200, community.publicProfile(username, accounts.findShareableProfile));
+  }
+  if (req.method === 'POST' && url.pathname === '/api/community/routes') {
+    if (!requireAccount(req, res)) return;
+    const body = await readBody(req);
+    const result = community.publishRoute(req.account, body, scenicGraph.graph_version || scenicGraph.schema_version, stops => {
+      const validNodes = stops.map(id => scenicGraph.nodes.find(item => item.node_id === id));
+      if (validNodes.some(item => !item || !item.poi_id)) return { valid: false, error: '路线只能包含地图1统一图中可规划的景点节点' };
+      const forecastData = planningForecast();
+      let elapsed = 0;
+      for (let index = 1; index < stops.length; index++) {
+        const segment = pathBetween(stops[index - 1], stops[index], forecastData, elapsed);
+        if (!segment) return { valid: false, error: `当前模拟状态下无法从${validNodes[index - 1].name}到达${validNodes[index].name}` };
+        elapsed += segment.minutes;
+      }
+      return { valid: true };
+    });
+    audit(req, 'community.route.publish', result.id, 'success', { stops: result.stops.length });
+    return json(res, 201, { route: result });
+  }
+  const routeAction = /^\/api\/community\/routes\/([^/]+)\/(like|favorite)$/.exec(url.pathname);
+  if (req.method === 'POST' && routeAction) {
+    if (!requireVisitor(req, res)) return;
+    const [, routeId, action] = routeAction;
+    const exists = publicCommunityRoutes(req.account.id).some(route => route.id === routeId);
+    if (!exists) return json(res, 404, { error: '没有找到这条公开路线' });
+    const body = await readBody(req);
+    if (action === 'like') {
+      const route = community.toggleLike(req.account, routeId);
+      audit(req, 'community.route.like', routeId);
+      return json(res, 200, { route });
+    }
+    const favorite_routes = community.setMembership(req.account, 'favorite_routes', routeId, body.saved === true);
+    audit(req, 'community.route.favorite', routeId);
+    return json(res, 200, { favorite_routes });
+  }
+  const seedRouteAction = /^\/api\/community\/dna-seeds\/([^/]+)\/(like|favorite)$/.exec(url.pathname);
+  if (req.method === 'POST' && seedRouteAction) {
+    if (!requireVisitor(req, res)) return;
+    const [, seedId, action] = seedRouteAction;
+    const body = await readBody(req);
+    const listName = action === 'like' ? 'liked_routes' : 'favorite_routes';
+    const enabled = action === 'like' ? body.liked === true : body.saved === true;
+    const routes = community.setSeedMembership(req.account, listName, seedId, enabled);
+    audit(req, `community.dna_seed.${action}`, seedId);
+    return json(res, 200, { [listName]: routes });
+  }
+  if (req.method === 'POST' && ['/api/community/poi-favorites', '/api/community/checkins'].includes(url.pathname)) {
+    if (!requireVisitor(req, res)) return;
+    const body = await readBody(req);
+    const scenicNode = scenicGraph.nodes.find(item => item.node_id === body.node_id && item.poi_id);
+    if (!scenicNode) return json(res, 400, { error: '景点必须来自地图1统一图中的可规划节点' });
+    if (url.pathname.endsWith('poi-favorites')) {
+      const saved = body.saved === true;
+      const favorite_pois = community.setMembership(req.account, 'favorite_pois', scenicNode.node_id, saved);
+      audit(req, saved ? 'community.poi.favorite' : 'community.poi.unfavorite', scenicNode.node_id);
+      return json(res, 200, { favorite_pois });
+    }
+    const item = community.checkin(req.account, scenicNode.node_id, scenicNode.name);
+    audit(req, 'community.poi.checkin', scenicNode.node_id, 'success', { mode: 'visitor_self_reported_demo' });
+    return json(res, 201, { checkin: item });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/community/poi-likes') {
+    if (!requireVisitor(req, res)) return;
+    const body = await readBody(req);
+    const scenicNode = scenicGraph.nodes.find(item => item.node_id === body.node_id && item.poi_id);
+    if (!scenicNode) return json(res, 400, { error: '点赞景点必须来自地图1统一图中的可规划节点' });
+    const liked_pois = community.setMembership(req.account, 'liked_pois', scenicNode.node_id, body.liked === true);
+    audit(req, body.liked === true ? 'community.poi.like' : 'community.poi.unlike', scenicNode.node_id);
+    return json(res, 200, { liked_pois });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/community/views') {
+    if (!requireVisitor(req, res)) return;
+    const body = await readBody(req);
+    const scenicNode = scenicGraph.nodes.find(item => item.node_id === body.node_id && item.poi_id);
+    if (!scenicNode) return json(res, 400, { error: '浏览记录必须来自地图1统一图中的景点节点' });
+    return json(res, 201, { view: community.recordView(req.account, scenicNode.node_id, scenicNode.name) });
   }
   if (req.method === 'GET' && url.pathname === '/api/admin/users') {
     if (!requireManager(req, res)) return;
@@ -348,7 +616,34 @@ async function api(req, res, url) {
   }
   if (req.method === 'GET' && url.pathname === '/api/v1/scenic-graph') return json(res, 200, provider.getScenicGraph());
   if (req.method === 'GET' && url.pathname === '/api/v1/state') return json(res, 200, provider.getState(url.searchParams.get('timestamp') || undefined, url.searchParams.get('visitor_id') || undefined));
+  if (req.method === 'GET' && url.pathname === '/api/v1/world-model/experimental') return json(res, 200, syntheticWorldModel.describe());
+  if (req.method === 'POST' && url.pathname === '/api/v1/world-model/experimental') {
+    const body = await readBody(req);
+    try { return json(res, 200, syntheticWorldModel.predict(body.observation)); }
+    catch (error) { return json(res, 400, { error: error.message, model_mode: 'experimental_shadow' }); }
+  }
+  if (req.method === 'GET' && url.pathname === '/api/v1/world-model/graph-temporal') return json(res, 200, graphTemporalWorldModel.describe());
+  if (req.method === 'POST' && url.pathname === '/api/v1/world-model/graph-temporal') {
+    const body = await readBody(req);
+    try { return json(res, 200, graphTemporalWorldModel.predict(scenicGraph, body.observation, body.history || [])); }
+    catch (error) { return json(res, 400, { error: error.message, model_mode: 'experimental_shadow' }); }
+  }
+  if (req.method === 'GET' && url.pathname === '/api/v1/world-model/crowd-trend') return json(res, 200, crowdTrendWorldModel.describe());
+  if (req.method === 'POST' && url.pathname === '/api/v1/world-model/crowd-trend') {
+    const body = await readBody(req);
+    try { return json(res, 200, crowdTrendWorldModel.predict(scenicGraph, body.observation,
+      { horizonMin: body.horizon_min ?? 30, history: body.history || [], routes: body.routes || [] })); }
+    catch (error) { return json(res, 400, { error: error.message, model_mode: 'experimental_shadow', affects_planning: false }); }
+  }
   if (req.method === 'GET' && url.pathname === '/api/v1/environment-forecast') return json(res, 200, predictEnvironment(provider.getState(), Number(url.searchParams.get('horizon') || 60), Number(url.searchParams.get('step') || 10)));
+  if (req.method === 'GET' && url.pathname === '/api/v1/crowd-distribution') {
+    try {
+      const current = provider.getState();
+      const calibration = predictEnvironment(current, 60, 5);
+      return json(res, 200, applicationCrowd.predictApplicationCrowd(scenicGraph, current, calibration));
+    }
+    catch (error) { return json(res, 503, { error: '轻量化世界模型暂不可用', fallback: 'environment-forecast 规则模拟仍可用', detail: error.message }); }
+  }
   if (req.method === 'GET' && url.pathname === '/api/v1/query-queue') {
     const forecastData = predictEnvironment(provider.getState(), Number(url.searchParams.get('horizon') || 60), Number(url.searchParams.get('step') || 10));
     return json(res, 200, queryQueue(forecastData, url.searchParams.get('poi_id'), url.searchParams.get('arrival_time')));
@@ -384,6 +679,7 @@ async function api(req, res, url) {
     const scenario = livePlannerScenario();
     const planResult = replan({ ...scenario, event: body.event, rules: body.rules || state.user.preferenceProfile?.planner_rules || {} });
     setActivePlan(planResult);
+    accounts.saveRoute(req.account, planResult, req.account?.preferences || null);
     return json(res, 200, planResult);
   }
   if (req.method === 'POST' && url.pathname === '/api/b/select-plan') {
@@ -406,12 +702,33 @@ async function api(req, res, url) {
     }
     catch (error) { return json(res, 409, { error: error.message }); }
     setActivePlan(planResult);
+    accounts.saveRoute(req.account, planResult, req.account?.preferences || null);
     return json(res, 200, planResult);
   }
   if (req.method === 'POST' && url.pathname === '/api/b/demo-event') {
     const body = req.demoEventBody;
-    const event = body.event;
+    const rawEvent = body.event;
+    let progress;
+    try { progress = normalizeProgressEvent(rawEvent); }
+    catch (error) { return json(res, 400, { error: error.message }); }
+    const event = progress.event;
     if (!event || typeof event.event_type !== 'string') return json(res, 400, { error: 'event.event_type 为必填项' });
+    const progressKey = progress.eventId ? `${provider.getState().visitor.visitor_id}:${progress.eventId}` : null;
+    if (progressKey && cProgressEventCache.has(progressKey))
+      return json(res, 200, { ...cProgressEventCache.get(progressKey), idempotent: true });
+    if (progress.exitNodeId) {
+      const exitNode = scenicGraph.nodes.find(item => (item.node_id || item.id) === progress.exitNodeId);
+      if (!exitNode || !(exitNode.access_roles || []).includes('PARK_EXIT'))
+        return json(res, 400, { error: `EXIT_CHANGE.node_id 不是已知离园出口: ${progress.exitNodeId}` });
+      const existingRules = preferenceProfile?.planner_rules || {};
+      preferenceProfile = {
+        ...(preferenceProfile || {}),
+        weights: preferenceProfile?.weights || state.user.preference || defaultPreference,
+        planner_rules: { ...existingRules, preferred_exit_node_id: progress.exitNodeId },
+      };
+      state.user.preferenceProfile = preferenceProfile;
+    }
+    const previousPlan = currentPlanResult;
     const initial = livePlannerScenario();
     const type = event.event_type;
     const target = event.target_id;
@@ -468,8 +785,25 @@ async function api(req, res, url) {
     const normalizedEvent = { ...event, schema_version: updated.state.schema_version, scenario_id: updated.state.scenario_id, timestamp: event.timestamp || updated.state.timestamp };
     const planResult = replan({ ...updated, event: normalizedEvent, rules: state.user.preferenceProfile?.planner_rules || {} });
     setActivePlan(planResult);
-    audit(req, type === 'PROGRESS_UPDATE' ? 'route.progress' : 'scenic.demo_event', event.edge_id || target || event.current_node_id || null, 'success', { eventType: type });
-    return json(res, 200, { ok: true, ...snapshot(), planResult });
+    accounts.saveRoute(req.account, planResult, req.account?.preferences || null);
+    const progressRecord = progress.progress ? {
+      ...progress.progress,
+      applied_at: planResult.generated_at,
+      state_version: planResult.based_on_state_version,
+      plan_id: planResult.plan_id,
+    } : null;
+    const changeSummary = progressRecord ? summarizePlanChange(previousPlan, planResult, progressRecord) : null;
+    audit(req, progressRecord || type === 'PROGRESS_UPDATE' ? 'route.progress' : 'scenic.demo_event', event.edge_id || target || event.current_node_id || null, 'success', { eventType: progressRecord?.event_type || type });
+    const response = { ok: true, ...snapshot(), planResult };
+    if (progressRecord) {
+      response.progress_event = progressRecord;
+      response.change_summary = changeSummary;
+    }
+    if (progressKey) {
+      if (cProgressEventCache.size >= C_PROGRESS_CACHE_LIMIT) cProgressEventCache.delete(cProgressEventCache.keys().next().value);
+      cProgressEventCache.set(progressKey, response);
+    }
+    return json(res, 200, response);
   }
   if (req.method === 'GET' && url.pathname === '/api/snapshot') return json(res, 200, snapshot());
   if (req.method === 'GET' && url.pathname === '/api/pois') return json(res, 200, { nodes: graph.nodes, edges: graph.edges });
@@ -479,7 +813,8 @@ async function api(req, res, url) {
     const from = url.searchParams.get('from') || state.user.location;
     const to = url.searchParams.get('to') || 'museum';
     if (!node(from) || !node(to)) return json(res, 404, { error: 'Unknown node_id', from, to });
-    const p = pathBetween(from, to, planningForecast());
+    const objective = url.searchParams.get('objective') === 'distance' ? 'distance' : 'time';
+    const p = pathBetween(from, to, planningForecast(), 0, objective);
     if (!p) return json(res, 409, { error: 'No feasible route', from, to });
     const segments = p.steps.map(step => {
       const id = step.from, next = step.to, e = step, n = node(next);
@@ -488,10 +823,43 @@ async function api(req, res, url) {
       const chairs = e.shade > .7 ? Math.round(4 + e.shade * 5) : e.shade > .45 ? 2 : 1;
       return { from: node(id).name, to: n.name, edge_id: e.edge_id, distance: e.distance, minutes: e.minutes, shade: Math.round(e.shade * 100), chairs, slope, crowd: Math.round(crowd * 100), event: state.events.some(x => x.node === next && (x.status === 'live' || x.status === 'upcoming')), warning: crowd > .67 ? '人流较高' : e.shade < .35 ? '部分暴晒' : slope >= 5 ? '坡度变化' : '通行顺畅' };
     });
-    return json(res, 200, { from, to, path: p.path, edgeSequence: p.steps.map(step => step.edge_id), totalMinutes: p.minutes, totalDistance: p.distance, segments, model: lightWorldModel() });
+    return json(res, 200, { from, to, objective, path: p.path, edgeSequence: p.steps.map(step => step.edge_id), totalMinutes: p.minutes, totalDistance: p.distance, segments, model: lightWorldModel() });
   }
-  if (req.method === 'GET' && url.pathname === '/api/route-dna') return json(res, 200, { seeds: routeSeeds });
-  if (req.method === 'GET' && url.pathname === '/api/companion') return json(res, 200, { companion: companionFacts[state.user.location] || companionFacts.museum });
+  if (req.method === 'GET' && url.pathname === '/api/route-dna') {
+    const selectedTags = [...new Set((url.searchParams.get('tags') || '').split(',').filter(Boolean))];
+    if (selectedTags.some(tag => !ROUTE_TAGS.includes(tag))) return json(res, 400, { error: '包含不支持的路线特点标签', available_tags: ROUTE_TAGS });
+    const matches = tags => selectedTags.every(tag => (tags || []).includes(tag));
+    return json(res, 200, { tags: ROUTE_TAGS, selected_tags: selectedTags,
+      seeds: routeSeeds.filter(seed => matches(seed.tags)).map(seed => community.seedSummary(seed, req.account?.role === 'visitor' ? req.account.id : null)),
+      community: community.listRoutes(req.account?.role === 'visitor' ? req.account.id : null, username => Boolean(accounts.findShareableProfile(username)), { tags: selectedTags }),
+      popular_pois: community.popularPois(new Map(scenicGraph.nodes.map(item => [item.node_id, item.name])), req.account?.role === 'visitor' ? req.account.id : null) });
+  }
+  if (req.method === 'GET' && url.pathname === '/api/companion/voice') {
+    const vivo = companionVoice.status(), qianfan = qianfanTts.status();
+    return json(res, 200, { ...vivo, enabled: vivo.enabled || qianfan.qianfan_tts_ready,
+      tts_ready: qianfan.qianfan_tts_ready || vivo.tts_ready,
+      provider: qianfan.qianfan_tts_ready ? 'qianfan_tts' : vivo.provider,
+      tts_provider: qianfan.qianfan_tts_ready ? 'qianfan' : vivo.tts_ready ? 'vivo' : null,
+      qianfan_tts_ready: qianfan.qianfan_tts_ready });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/companion/voice/asr') return json(res, 200, await companionVoice.recognize(await readBody(req)));
+  if (req.method === 'POST' && url.pathname === '/api/companion/voice/tts') {
+    const payload = await readBody(req);
+    return json(res, 200, qianfanTts.status().qianfan_tts_ready
+      ? await qianfanTts.synthesize(payload)
+      : await companionVoice.synthesize(payload));
+  }
+  if (req.method === 'GET' && url.pathname === '/api/companion') return json(res, 200, {
+    companion: companionFacts[state.user.location] || companionFacts.museum,
+    service: companionService.status(),
+    mode: companionCloud.config.enabled ? 'cloud_first_with_local_fallback' : 'local',
+    cloud: companionCloud.config,
+  });
+  if (req.method === 'GET' && url.pathname === '/api/companion/costs') {
+    if (!requireManager(req, res)) return;
+    return json(res, 200, companionCloud.report());
+  }
+  if (req.method === 'GET' && url.pathname === '/api/operations') return json(res, 200, companionOperations.read());
   if (req.method === 'POST' && url.pathname === '/api/preferences') {
     const body = await readBody(req);
     const exitNodeId = body.exit_node_id == null || body.exit_node_id === '' ? null : body.exit_node_id;
@@ -521,23 +889,81 @@ async function api(req, res, url) {
     updateEnvironment();
     const planResult = makeLivePlan();
     setActivePlan(planResult);
+    accounts.saveRoute(req.account, planResult, req.account?.preferences || null);
     return json(res, 200, { routes: makeRoutes(state.user.preference || defaultPreference), planResult, forecast: forecast(), model: lightWorldModel(), user: state.user, crowd: state.crowd, queues: state.queues, updatedAt: new Date().toISOString() });
   }
   if (req.method === 'POST' && url.pathname === '/api/companion') {
-    const body = await readBody(req); const fact = companionFacts[body.location || state.user.location] || companionFacts.museum;
-    const answer = body.question ? `结合你现在的位置和行程，我建议先关注“${fact.name}”的核心体验。${fact.fact}` : fact.fact;
-    return json(res, 200, { answer, source: '景区知识库 · 已定位到当前景点', companion: fact });
+    const body = await readBody(req), owner = companionOwner(req, res);
+    if (!body.session_id && companionSessionCookie(req)) body.session_id = companionSessionCookie(req);
+    const result = await companionService.respondAsync(body, {
+      owner, consent: companionConsent(req, body), currentConsent: () => companionConsent(req, body),
+    });
+    setCompanionSessionCookie(req, res, result.session_id);
+    return json(res, 200, result);
+  }
+  if (req.method === 'DELETE' && url.pathname === '/api/companion/session') {
+    const body = await readBody(req), owner = companionOwner(req, res);
+    companionService.clear(owner, body.session_id || companionSessionCookie(req));
+    const existing = res.getHeader('Set-Cookie');
+    const cookies = existing == null ? [] : Array.isArray(existing) ? existing : [existing];
+    cookies.push(`jc_companion_session=; Path=/api; HttpOnly; SameSite=Strict; Max-Age=0${req.socket?.encrypted ? '; Secure' : ''}`);
+    res.setHeader('Set-Cookie', cookies);
+    return json(res, 200, { ok: true });
   }
   if (req.method === 'POST' && url.pathname === '/api/dna/clone') {
-    const body = await readBody(req); const source = routeSeeds.find(x => x.id === body.id) || routeSeeds[0]; const preference = state.user.preference || defaultPreference;
-    const routes = makeRoutes(preference);
-    const cloned = routes[preference.freedom > preference.time ? 2 : 1] || routes[0];
-    if (!cloned) return json(res, 409, { error: 'No feasible route' });
-    return json(res, 200, { source, route: { ...cloned, title: `${source.title} · 个性化变异`, dna: `#${source.id}-M${Math.floor(Math.random() * 900 + 100)}` } });
+    const body = await readBody(req);
+    const source = routeSeeds.find(item => item.id === body.id)
+      || publicCommunityRoutes(req.account?.role === 'visitor' ? req.account.id : null).find(item => item.id === body.id);
+    if (!source) return json(res, 404, { error: '没有找到这条路线DNA' });
+    const preference = state.user.preference || defaultPreference;
+    // DNA provides inspiration and tags only. The same B planner and shared
+    // graph/state/forecast generate a fresh itinerary, never copying stale edges.
+    const scenario = livePlannerScenario();
+    const templateWeights = { time: .08, interest: .12, comfort: .08, freedom: .08, culture: .1, nature: .1, performance: .1, food: .1 };
+    const weights = body.mutate === false ? { ...templateWeights } : { ...defaultPreference, ...preference };
+    const taggedNodes = (source.stops || []).map(id => scenicGraph.nodes.find(item => item.node_id === id)).filter(Boolean);
+    const tagRules = [
+      ['culture', /文化|宋|展陈|武术|历史/], ['nature', /自然|瀑布|林|视野|城墙/],
+      ['performance', /演艺|演出|预约/], ['food', /美食|市集/], ['comfort', /休息|补给|安静|舒适/]
+    ];
+    for (const [key, pattern] of tagRules) if (taggedNodes.some(item => (item.tags || []).some(tag => pattern.test(tag)))) weights[key] += .18;
+    const featureWeights = { '亲子': { comfort: .12 }, '文化': { culture: .2 }, '演艺': { performance: .2 }, '美食': { food: .2 }, '拍照': { freedom: .12, nature: .06 }, '轻松': { comfort: .2 }, '深度游': { culture: .12, interest: .12 }, '短时': { time: .24 }, '自然': { nature: .2, freedom: .08 } };
+    for (const tag of source.tags || []) for (const [key, amount] of Object.entries(featureWeights[tag] || {})) weights[key] += amount;
+    const weightTotal = Object.values(weights).reduce((sum, value) => sum + value, 0);
+    const preferenceWeights = Object.fromEntries(Object.entries(weights).map(([key, value]) => [key, value / weightTotal]));
+    scenario.state = { ...scenario.state, visitor: { ...scenario.state.visitor, preference_weights: preferenceWeights } };
+    const userRules = req.account?.preferences?.planner_rules || state.user.preferenceProfile?.planner_rules || {};
+    const visited = new Set(scenario.state.visitor.visited_poi_ids || []);
+    const remainingStops = (source.stops || []).filter(id => !visited.has(id));
+    if (!remainingStops.length) return json(res, 409, { error: '这条路线中的景点都已游览，请选择其他 DNA 路线', source });
+    const planResult = planItinerary({ ...scenario, rules: { ...userRules, min_actions: 1, max_actions: remainingStops.length }, target_order: remainingStops, ensure_alternatives: false });
+    const plannedStops = (planResult.itinerary || []).filter(item => ['VISIT_POI', 'ATTEND_EVENT'].includes(item.action_type)).map(item => item.target_node_id || item.target_id);
+    const matchesTemplatePrefix = plannedStops.length > 0 && plannedStops.every((id, index) => id === remainingStops[index]);
+    if (!matchesTemplatePrefix) return json(res, 409, { error: '当前地图1示意路网、游览状态和剩余时间无法执行这条 DNA 路线，请换一条短路线或重新规划时间', source });
+    const appliedStops = remainingStops.slice(0, plannedStops.length);
+    // The planner may return a legal ordered prefix when the next requested
+    // stop is closed or the visit window is exhausted. Report that prefix as
+    // the actual feasible plan and expose the omitted stops to the client.
+    planResult.feasible = true;
+    planResult.diagnostics.minimum_useful_actions = appliedStops.length;
+    planResult.diagnostics.satisfies_minimum_actions = true;
+    planResult.diagnostics.dna_requested_stop_count = source.stops.length;
+    planResult.diagnostics.dna_applied_stop_count = appliedStops.length;
+    accounts.saveRoute(req.account, planResult, req.account?.preferences || null);
+    const route = makeRoutes(preference).find(item => item.id === (preference.freedom > preference.time ? 'experience' : 'balance')) || makeRoutes(preference)[0];
+    return json(res, 200, {
+      source: { ...source, requested_stops: source.stops || [], stops: appliedStops, omitted_stops: (source.stops || []).filter(id => !appliedStops.includes(id)), stop_names: appliedStops.map(id => scenicGraph.nodes.find(item => item.node_id === id)?.name || id) },
+      route: route ? { ...route, title: `${source.title} · ${body.mutate === false ? '统一规划器重算' : 'DNA偏好变异'}`, dna: `#${String(source.id).slice(0, 8)}-${body.mutate === false ? 'C' : 'M'}${Math.floor(Math.random() * 900 + 100)}`, source_seed_id: source.id, graph_version: scenicGraph.graph_version || scenicGraph.schema_version, state_version: planResult.based_on_state_version, plan_id: planResult.plan_id, planner_validated: true, inspired_by_stops: appliedStops } : null,
+      planResult,
+      source_mode: 'shared_graph_state_forecast_and_b_planner', dna_preferences: preferenceWeights
+    });
   }
   if (req.method === 'POST' && url.pathname === '/api/emergency') {
     const body = await readBody(req); const type = body.type || 'rain';
-    return json(res, 200, { ok: true, emergency: type === 'sos' ? { sos: true, message: 'SOS 已发送至景区服务中心，系统正在共享你的授权位置' } : { rain: true, safe: false, message: '已切换至应急规划：优先推荐最近的室内与避雨节点' } });
+    if (!['sos', 'rain'].includes(type)) return json(res, 400, { error: 'type 只支持 sos 或 rain' });
+    return json(res, 200, { ok: true, emergency: type === 'sos'
+      ? { sos: true, delivered: false, mode: 'guidance_only', message: '未发送求助信息，也未联系景区值班系统。请直接拨打 110、120 或 119，并向接线员说明位置。' }
+      : { rain: true, mode: 'guidance_only', message: '本演示没有实时天气或经核实的避雨点资料；请听从现场工作人员和广播指引。路线重算仅依据演示路网状态。' } });
   }
   if (req.method === 'POST' && url.pathname === '/api/feedback') {
     const body = await readBody(req); state.feedback.push({ ...body, at: new Date().toISOString() });
@@ -577,7 +1003,14 @@ async function api(req, res, url) {
 }
 
 function serve(req, res) {
-  const pathname = new URL(req.url, `http://${req.headers.host}`).pathname;
+  const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = requestUrl.pathname;
+  if (pathname === '/login.html' && req.account) {
+    res.writeHead(302, { Location: '/' }); res.end(); return;
+  }
+  if ((pathname === '/' || pathname === '/index.html') && !req.account && requestUrl.searchParams.get('guest') !== '1') {
+    res.writeHead(302, { Location: '/login.html' }); res.end(); return;
+  }
   const safe = pathname === '/' ? '/index.html' : pathname;
   const file = path.normalize(path.join(PUBLIC, safe));
   if (!file.startsWith(PUBLIC)) return json(res, 403, { error: 'Forbidden' });

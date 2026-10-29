@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "category": "culture",
+  "records": [
+    {
+      "id": "culture-museum-demo", "category": "culture", "node_ids": ["museum"],
+      "title": "大宋武馆的演示文化介绍",
+      "content": "演示资料：大宋武馆在项目地图中使用展陈、武术、讲解标签，可以作为武术主题的导览示例。建筑年代、历史人物与展品内容尚无已审核资料，我无法确认这些背景。",
+      "keywords": ["大宋武馆", "武馆", "武术", "展陈", "文化", "介绍", "讲解"],
+      "source": { "id": "demo-graph-museum", "title": "项目演示地图：大宋武馆", "kind": "demo", "locator": "server/data/scenic_graph.json#museum", "verified": false },
+      "review_status": "demo", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "culture-lake-demo", "category": "culture", "node_ids": ["lake"],
+      "title": "九龙瀑的演示导览介绍",
+      "content": "演示资料：九龙瀑在项目地图中使用自然、瀑布、拍照标签，可作为自然主题的导览示例。现场观景条件、通行与安全情况须以运营信息和现场指引为准。",
+      "keywords": ["九龙瀑", "瀑布", "自然", "拍照", "介绍", "讲解"],
+      "source": { "id": "demo-graph-lake", "title": "项目演示地图：九龙瀑", "kind": "demo", "locator": "server/data/scenic_graph.json#lake", "verified": false },
+      "review_status": "demo", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "culture-market-demo", "category": "culture", "node_ids": ["market"],
+      "title": "非遗市集的演示导览介绍",
+      "content": "演示资料：非遗市集在项目地图中使用美食、市集、自由探索标签。具体非遗项目、摊位经营与活动安排尚无已审核资料，不能据此确认当天服务。",
+      "keywords": ["非遗市集", "市集", "非遗", "美食", "介绍", "讲解"],
+      "source": { "id": "demo-graph-market", "title": "项目演示地图：非遗市集", "kind": "demo", "locator": "server/data/scenic_graph.json#market", "verified": false },
+      "review_status": "demo", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "culture-temple-demo", "category": "culture", "node_ids": ["temple"],
+      "title": "万岁寺的演示导览介绍",
+      "content": "演示资料：万岁寺在项目地图中使用古寺、文化、安静标签。其建造年代、宗教活动及文物身份尚无已审核来源，我无法确认这些历史信息。",
+      "keywords": ["万岁寺", "古寺", "文化", "历史", "介绍", "讲解"],
+      "source": { "id": "demo-graph-temple", "title": "项目演示地图：万岁寺", "kind": "demo", "locator": "server/data/scenic_graph.json#temple", "verified": false },
+      "review_status": "demo", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    }
+  ]
+}

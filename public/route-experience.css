@@ -174,6 +174,7 @@
 .overview-number-seal{fill:#994b3b;stroke:#e7d09c;stroke-width:1.5}.overview-number{fill:#f6e7be;font:700 12px Manrope,"Microsoft YaHei",sans-serif}
 .overview-reference-label-bg{fill:#e7d9b1}.overview-reference-label{fill:#405347;font:600 12px KaiTi,"Noto Serif SC",serif}
 .overview-reference{fill:#f3e2b0;stroke:#87583e;stroke-width:2}.overview-reference path,.overview-reference polygon{fill:#e5d4a6;stroke:#755e43;stroke-width:1.8}.overview-reference-gate path{fill:#a9553d;stroke:#70402f}.overview-reference-water path{fill:#5f9690;stroke:#e0d3a8}.overview-reference-show path{fill:#b78342;stroke:#704d35}
+.overview-reference .overview-reference-street-road{fill:none;stroke:#b3905d;stroke-width:9;stroke-linecap:round}.overview-reference .overview-reference-street-marking{fill:none;stroke:#f1dfb4;stroke-width:2;stroke-linecap:round}
 .overview-map-furniture{color:#435646}.overview-compass circle{fill:#e2d7b6;stroke:#8a7c57;stroke-width:2}.overview-compass-needle{fill:#a44f3e;stroke:#f0dfb5;stroke-width:1}.overview-compass text{fill:#4b4532;font:700 12px Georgia,serif}
 .overview-scale{stroke:#f0e5c6;stroke-width:3}.overview-scale-text,.overview-legend-text{fill:#f0e5c6;font:600 12px KaiTi,"Noto Serif SC",serif;paint-order:stroke;stroke:#465846;stroke-width:2px}
 .overview-legend-line{stroke-width:5;stroke-linecap:round}
@@ -227,6 +228,10 @@
 .overview-pavilion-roof{fill:#315951;stroke:#674d38;stroke-width:1.8;stroke-linejoin:round}
 .overview-pavilion-eave{fill:none;stroke:#e1c27f;stroke-width:2.1}
 .overview-fortress-wall{fill:#bd7655;stroke:#704a39;stroke-width:1.7;stroke-linejoin:round}
+.overview-fortress-yard{fill:#d6b77d;stroke:#91774d;stroke-width:2}.overview-fortress-yard-ring{fill:none;stroke:#f2daa1;stroke-width:2;stroke-dasharray:5 4}.overview-fortress-gate{fill:#493e31;stroke:#f1d7a0;stroke-width:1.5}.overview-fortress-banner{fill:#a44938;stroke:#f0d29b;stroke-width:1.3}.overview-fortress-training-post{fill:none;stroke:#754c35;stroke-width:2.2;stroke-linecap:round}.overview-fortress-yard-edge{fill:none;stroke:#90784f;stroke-width:2}
+.overview-bailemen-base{fill:#c7a26a;stroke:#71533a;stroke-width:2}.overview-bailemen-front{fill:#bd7055;stroke:#704638;stroke-width:2}.overview-bailemen-door{fill:#423b31;stroke:#f0d79e;stroke-width:2}.overview-bailemen-window{fill:#e6c77d;stroke:#754c38;stroke-width:1.5}.overview-bailemen-wing{fill:#31564f;stroke:#6f4935;stroke-width:2}.overview-bailemen-roof{fill:#713e50;stroke:#6e4a35;stroke-width:2;stroke-linejoin:round}.overview-bailemen-eave{fill:none;stroke:#efcf87;stroke-width:3}.overview-bailemen-marquee{fill:#a84438;stroke:#ffe2a0;stroke-width:2.5}.overview-bailemen-sign{fill:#fff0be;font:700 16px KaiTi,"Noto Serif SC",serif;paint-order:stroke;stroke:#8f382e;stroke-width:.5px;stroke-linejoin:round}.overview-bailemen-bulb{fill:#f5d77d;stroke:#fff0ba;stroke-width:1}.overview-bailemen-step{fill:none;stroke:#f2dca7;stroke-width:2}
+.overview-street-paving{fill:#d7c49c;stroke:#a18b60;stroke-width:1.5}.overview-street-shop{stroke:#72513a;stroke-width:1.6}.overview-street-shop-red{fill:#bd7859}.overview-street-shop-gold{fill:#cda46b}.overview-street-shop-jade{fill:#a6b78b}.overview-street-roof{fill:#365951;stroke:#73513b;stroke-width:1.7;stroke-linejoin:round}.overview-street-door{fill:#433d31;stroke:#e7d2a0;stroke-width:1.4}.overview-street-curb{fill:none;stroke:#f5e4bd;stroke-width:2}.overview-wharf-water{fill:#8cb8b5;stroke:#699ca2;stroke-width:1.5}.overview-wharf-deck{fill:#c8a978;stroke:#765b3c;stroke-width:1.8}.overview-wharf-plank{fill:none;stroke:#8e6b43;stroke-width:1.2}.overview-wharf-house{fill:#b97858;stroke:#694a36;stroke-width:1.8;stroke-linejoin:round}.overview-wharf-boat{fill:#715039;stroke:#e5cc95;stroke-width:1.2}
+.overview-shenboat-hull{fill:#a96749;stroke:#704636;stroke-width:2;stroke-linejoin:round}.overview-shenboat-deck{fill:#e6ce99;stroke:#805e3f;stroke-width:1.6}.overview-shenboat-cabin{fill:#bb7b58;stroke:#704a39;stroke-width:1.8}.overview-shenboat-roof{fill:#31564c;stroke:#6d4b36;stroke-width:2;stroke-linejoin:round}.overview-shenboat-mast{fill:#a74c3d;stroke:#e8d3a3;stroke-width:2;stroke-linejoin:round}.overview-shenboat-railing{fill:none;stroke:#f1dcaa;stroke-width:1.8;stroke-linecap:round}
 .overview-grove{fill:#547a59;opacity:.14;stroke:#47724f;stroke-opacity:.1;stroke-width:2}.overview-grove-1{fill:#64875b;opacity:.12}.overview-grove-2{fill:#759770;opacity:.15}
 .overview-water{fill:#74b7d4;fill-opacity:.37;stroke:#78acc0;stroke-opacity:.45;stroke-width:1.5;opacity:1}
 .overview-water-line{stroke:#e7f8f5;stroke-width:1.3;opacity:.36}
@@ -288,6 +293,10 @@
 .overview-circus-canopy{fill:#b74f40;stroke:#e7c994;stroke-width:1.7}
 .overview-circus-seam{fill:none;stroke:#f0d5a0;stroke-width:1.5}
 .overview-circus-skirt{fill:#d1a367;stroke:#80533c;stroke-width:1.4}
+.overview-hero-plinth{fill:#8c6547;stroke:#f0d39a;stroke-width:1.5}.overview-hero-statue{fill:none;stroke:#70483a;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.overview-hero-pavilion{fill:#385e55;stroke:#f0d39a;stroke-width:1.8;stroke-linejoin:round}
+.overview-tiger-emblem{fill:#e0b65e;stroke:#684637;stroke-width:1.5;stroke-linejoin:round}.overview-tiger-stripe{fill:none;stroke:#684637;stroke-width:2;stroke-linecap:round}.overview-tiger-eye{fill:#573b2f}.overview-tiger-muzzle{fill:#f3d99d;stroke:#684637;stroke-width:1.2}.overview-tiger-nose{fill:#573b2f}.overview-bailemen-marquee{fill:#8f4439;stroke:#ead29c;stroke-width:1.4}.overview-bailemen-marquee-detail{fill:none;stroke:#f1d79c;stroke-width:1.3}.overview-bailemen-lantern{fill:#e5bd69;stroke:#76483a;stroke-width:1.2}
+.overview-dye-cloth{stroke:#f2d9a8;stroke-width:1}.overview-dye-cloth.red{fill:#a54b49}.overview-dye-cloth.blue{fill:#4d7992}.overview-dye-cloth.gold{fill:#cb9f55}.overview-longtan-emblem{fill:none;stroke:#e9d492;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}.overview-feiyun-cloud{fill:none;stroke:#f2dea9;stroke-width:2.6;stroke-linecap:round}
+.overview-camp-canopy{fill:#d8a66b;stroke:#785640;stroke-width:1.7}.overview-camp-panel{fill:#b75f48;stroke:#785640;stroke-width:1.2}.overview-camp-door{fill:#534233;stroke:#f0d7a5;stroke-width:1.2}.overview-camp-flower{fill:#d58f98;stroke:#9d626a;stroke-width:1.2}.overview-boardwalk-deck{fill:#b9905c;stroke:#70543d;stroke-width:1.7}.overview-boardwalk-plank,.overview-boardwalk-rail{fill:none;stroke:#72573c;stroke-width:1.5;stroke-linecap:round}.overview-playground-frame,.overview-playground-swing{fill:none;stroke:#805a43;stroke-width:2;stroke-linecap:round}.overview-playground-slide{fill:#bf7651;stroke:#805a43;stroke-width:1.5}
 .trip-map-compass{position:absolute;z-index:20;top:28px;right:28px;width:58px;height:72px;display:flex;align-items:center;justify-content:flex-end;flex-direction:column;gap:0;padding:5px 0 3px;box-sizing:border-box;border:1px solid #9a875e;border-radius:30px;background:linear-gradient(145deg,#f7f0d9f5,#e8ddbbf5);box-shadow:0 2px 8px #283a2c38,inset 0 0 0 3px #fff8e866;pointer-events:none}
 .trip-map-compass span{position:static;color:#554936;font:700 11px/12px Georgia,serif;letter-spacing:.04em}
 .trip-map-compass svg{display:block;width:38px;height:38px;overflow:visible}
@@ -350,6 +359,8 @@
 .trip-route-line{stroke:#aa5142;stroke-width:4.5;stroke-dasharray:9 7;marker-end:none!important;filter:none}
 .trip-route-stop circle{r:13;fill:#fff8e7;stroke:#a54e3d;stroke-width:3;filter:drop-shadow(0 1px 2px #243b2b55)}
 .trip-route-stop text{font-size:11px;fill:#873b31}
+.trip-stop-passed{border-style:dashed;background:#fbf8ec}
+.trip-stop-passed em{background:#edf1e7;color:#687e62}
 .trip-current-pin circle{r:18;stroke-width:3}
 .trip-current-pin text{font-size:10px}
 .trip-route-leader{stroke-width:1.2;stroke-dasharray:3 4;opacity:.48}
@@ -374,7 +385,7 @@
 .overview-area-jianghu{opacity:.32!important}
 .overview-area-link{opacity:.3!important}
 .overview-minor-road.is-upper{stroke-width:1.35;opacity:.34}
-.overview-label{font-size:13px}
+.overview-label{font-size:12px}
 .overview-number{font-size:11px}
 .trip-route-halo{stroke-width:7;opacity:.64}
 .trip-route-line{stroke-width:3.3;stroke-dasharray:none;marker-end:none!important}
@@ -384,22 +395,37 @@
 .overview-fall-water-detail{fill:none;stroke:#f4fbef;stroke-width:1.6;stroke-linecap:round;opacity:.85}
 .overview-fall-pool{fill:#83bdc6;stroke:#d3ece0;stroke-width:1.2}
 
+/* Keep the recommendation overlay above roads, water, trees and callouts. */
+.trip-map-frame #tripMap{z-index:0}
+.trip-map-frame #tripMapOverlay{z-index:1}
+
 /* Readable streets and unambiguous callouts on the widened northern courts. */
 .overview-road-casing{stroke:#f8efd8;stroke-width:8;opacity:.9}
 .overview-road-casing.is-main{stroke-width:12;opacity:.96}
 .overview-road{stroke:#b6996c;stroke-width:3.1;opacity:.96}
 .overview-road.is-main{stroke:#bf975b;stroke-width:5.5;opacity:1}
-.overview-minor-road{stroke:#fff5dd;stroke-width:2.8;opacity:.83}
-.overview-minor-road.is-upper{stroke-width:2.3;opacity:.76}
-.overview-minor-roads{display:none}
-.trip-map-frame.show-reference-paths .overview-minor-roads{display:block}
-.trip-map-controls button[data-overview-action="toggle-reference"]{font-size:15px;color:#74836c}
-.trip-map-controls button[data-overview-action="toggle-reference"].active{background:#dce9d4;color:#315b49}
+.overview-road-casing:not(.is-main){stroke-width:5;opacity:.78}
+.overview-road:not(.is-main){stroke:#ad9b77;stroke-width:2;opacity:.82}
+.overview-minor-road{stroke:#f6edd6;stroke-width:1.7;opacity:.65;stroke-dasharray:6 7}
+.overview-minor-road.is-upper{stroke-width:1.5;opacity:.57}
 .overview-label-leader{stroke:#785e40;stroke-width:1.8;opacity:.92;paint-order:stroke;filter:drop-shadow(0 1px 0 #fff3d6)}
 .overview-label-anchor{fill:#8d5239;stroke:#f9eed2;stroke-width:1.2}
+.overview-label-kind{font:600 8px/1 "Microsoft YaHei","Noto Sans SC",sans-serif;fill:#866d50;letter-spacing:.08em}
+.overview-hero-head{fill:#e0b65e;stroke:#684637;stroke-width:1.2}
+.overview-hero-statue{fill:none;stroke:#70483a;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.overview-hero-spear{fill:none;stroke:#70483a;stroke-width:2.6;stroke-linecap:round}
 .overview-area{stroke-width:1.7!important;stroke-opacity:.5!important}
 
 /* The upper roof is supported by a visible storey, never a floating tile. */
 .overview-building-upper-storey{fill:#bd7957;stroke:#664836;stroke-width:1.5;stroke-linejoin:round}
 .overview-upper-window{fill:none;stroke:#ecd4a4;stroke-width:1.6;stroke-linecap:round}
 .overview-market-posts{fill:none;stroke:#704c38;stroke-width:1.4;stroke-linecap:round}
+
+/* Local links use the same graph IDs as the planner while staying quieter
+   than the through paths in the long overview. */
+.overview-road-casing.is-branch{stroke-width:5;opacity:.82}
+.overview-road.is-branch{stroke:#cfb992;stroke-width:2.1;opacity:.92}
+.overview-entrance-connector{fill:none;stroke:#f1e5c8;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;opacity:.96;pointer-events:stroke}
+.overview-reference-junction_gate .overview-reference-gate-approach{fill:none;stroke:#f1e5c8;stroke-width:3.5;stroke-linecap:round}
+.overview-reference-junction_gate .overview-reference-gate-building{fill:#b96e4d;stroke:#6f5040;stroke-width:2;stroke-linejoin:round}
+.overview-entrance-junction{fill:#efdfb7;stroke:#8b7349;stroke-width:2}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "category": "performances",
+  "records": [
+    {
+      "id": "performances-theater-demo", "category": "performances", "node_ids": ["theater"],
+      "title": "武林会场的演示导览",
+      "content": "演示资料：武林会场在项目地图中是演艺节点。演出名称、开演时间、入场要求和是否取消须从运营接口核实；这段介绍不能确认今天有演出。",
+      "keywords": ["武林会场", "演出", "演艺", "入场"],
+      "source": { "id": "demo-graph-theater", "title": "项目演示地图：武林会场", "kind": "demo", "locator": "server/data/scenic_graph.json#theater", "verified": false },
+      "review_status": "demo", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "performances-reminder-policy", "category": "performances", "node_ids": [],
+      "title": "演出提醒和到达建议的依据",
+      "content": "演出提醒须核对运营接口给出的场次、状态和入场时间，并结合当前路线的步行余量。没有确认的场次时，我会说明无法确认；建议更换路线后，只有规划接口返回明确结果才会更新路线。",
+      "keywords": ["演出", "演艺", "演出提醒", "开演", "场次", "入场", "什么时候到"],
+      "source": { "id": "app-performance-policy", "title": "应用演出提醒规则", "kind": "application", "locator": "server/data/companion/performances.json#performances-reminder-policy", "verified": true },
+      "review_status": "approved", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    }
+  ]
+}

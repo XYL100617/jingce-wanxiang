@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0",
+  "coordinate_system": "WGS84",
+  "status": "awaiting_verified_field_coordinates",
+  "note": "地图1当前使用手绘示意坐标，不能换算或冒充现场GPS点位。只有经景区GIS资料或现场测量核实，并填写 verification_status=verified、source、latitude、longitude 的景点才会触发自动讲解。",
+  "pois": []
+}

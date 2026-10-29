@@ -1,0 +1,80 @@
+{
+  "dataset_version": "schedule-enriched-v0.2-fixed",
+  "model_version": "synthetic-world-model-v0.3",
+  "test_metrics": {
+    "poi": {
+      "target_5": {
+        "n": 9840,
+        "mae": 0.266589832319931,
+        "rmse": 0.46684653576020896,
+        "simple_current_only_mae": 0.2710952754838335,
+        "persistence_mae": 0.6872967479674796,
+        "absolute_error_p90": 0.701149524642283
+      },
+      "target_15": {
+        "n": 9102,
+        "mae": 0.2835175724608696,
+        "rmse": 0.4795058203660105,
+        "simple_current_only_mae": 0.2857441978815537,
+        "persistence_mae": 0.7012744451768842,
+        "absolute_error_p90": 0.7358634673671617
+      },
+      "target_30": {
+        "n": 7995,
+        "mae": 0.29917033206461185,
+        "rmse": 0.4745956871119345,
+        "simple_current_only_mae": 0.3007650926522384,
+        "persistence_mae": 0.7220762976860537,
+        "absolute_error_p90": 0.7562008465652058
+      },
+      "target_60": {
+        "n": 5781,
+        "mae": 0.3111941097887513,
+        "rmse": 0.4727211730544039,
+        "simple_current_only_mae": 0.31315811344127625,
+        "persistence_mae": 0.7541947759903131,
+        "absolute_error_p90": 0.760677860138074
+      }
+    },
+    "road": {
+      "target_5": {
+        "n": 16302,
+        "mae": 0.21281229307710012,
+        "rmse": 0.6334928541047009,
+        "simple_current_only_mae": 0.39214699693462024,
+        "persistence_mae": 0.3165154759713082,
+        "absolute_error_p90": 0.5103439986375575
+      },
+      "target_15": {
+        "n": 15080,
+        "mae": 0.23115420997958044,
+        "rmse": 0.6825856883543143,
+        "simple_current_only_mae": 0.42284644362903767,
+        "persistence_mae": 0.35377437751448804,
+        "absolute_error_p90": 0.5750500604215985
+      },
+      "target_30": {
+        "n": 13259,
+        "mae": 0.21877757511548448,
+        "rmse": 0.6497659458958668,
+        "simple_current_only_mae": 0.41228275078601645,
+        "persistence_mae": 0.3624636665216318,
+        "absolute_error_p90": 0.5353976787290011
+      },
+      "target_60": {
+        "n": 9588,
+        "mae": 0.16865509965557304,
+        "rmse": 0.5040870591413426,
+        "simple_current_only_mae": 0.35625574999972626,
+        "persistence_mae": 0.3470693065927413,
+        "absolute_error_p90": 0.41126255338458506
+      }
+    }
+  },
+  "train_groups": 42,
+  "validation_groups": 9,
+  "test_groups": 9,
+  "event_reference_policy": "program names and exact map1 venue IDs come from an undated reference; all training start times are randomized T4 values",
+  "source_tier": "T4",
+  "synthetic": true
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "category": "facilities",
+  "records": [
+    {
+      "id": "facilities-rest-demo", "category": "facilities", "node_ids": ["rest"],
+      "title": "松风驿站的演示服务标签",
+      "content": "演示资料：松风驿站在项目地图中标注为休息、补给、厕所服务节点。这些设施及其可用情况尚未经景区确认；如需使用，请以运营接口和现场工作人员答复为准。",
+      "keywords": ["松风驿站", "休息", "厕所", "卫生间", "补给", "设施"],
+      "source": { "id": "demo-graph-rest", "title": "项目演示地图：松风驿站", "kind": "demo", "locator": "server/data/scenic_graph.json#rest", "verified": false },
+      "review_status": "demo", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "facilities-confirmation-policy", "category": "facilities", "node_ids": [],
+      "title": "设施与无障碍服务确认方式",
+      "content": "可以用短句提供设施信息，也可以重复说明。无障碍通行、轮椅租借、母婴室、饮水点等服务尚无已审核资料时，我会明确表示无法确认，并建议通过运营服务或现场工作人员核实。",
+      "keywords": ["无障碍", "轮椅", "母婴室", "饮水", "设施", "服务", "厕所", "卫生间"],
+      "source": { "id": "app-facilities-policy", "title": "应用设施信息确认规则", "kind": "application", "locator": "server/data/companion/facilities.json#facilities-confirmation-policy", "verified": true },
+      "review_status": "approved", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    }
+  ]
+}

@@ -138,7 +138,10 @@ function buildLivePlannerScenario(sourceGraph, sourceState, runtimeUser = {}, so
     poi_predictions: Object.fromEntries(pois.map(poi => [poi.poi_id, (forecast.poi_predictions?.[poi.poi_id] || []).map(point => ({
       timestamp: point.timestamp,
       queue_min: point.queue_min,
-      crowd_level: Math.max(0, Math.min(4, Math.ceil(Number(point.crowd_ratio || 0) * 4)))
+      crowd_level: Math.max(0, Math.min(4, Math.ceil(Number(point.crowd_ratio || 0) * 4))),
+      crowd_ratio: Number(point.crowd_ratio || 0),
+      upward_trend_probability: Number(point.upward_trend_probability || 0),
+      prediction_source: point.prediction_source || 'rule_simulation'
     }))])),
     road_predictions: Object.fromEntries(edges.map(edge => [edge.edge_id, (forecast.road_predictions?.[edge.edge_id] || []).map(point => ({
       timestamp: point.timestamp,

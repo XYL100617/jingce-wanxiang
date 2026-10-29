@@ -1,0 +1,63 @@
+{
+  "dataset_version": "schedule-enriched-poi-events-v0.3",
+  "dataset_schema_version": "dataset-p1.1",
+  "source_tier": "T4",
+  "synthetic": true,
+  "graph_version": "1.0",
+  "simulator_version": "sim-dr-p1.1+program-schedule-randomization-v0.3b-exact-map-venue",
+  "schedule_reference": "server/simulator/program-schedule-reference.json",
+  "base_dataset": "dataset_v0.1",
+  "base_environment_samples": 1080,
+  "added_scenario_templates": 5,
+  "added_seeds": [
+    501,
+    502,
+    503
+  ],
+  "added_steps_per_trajectory": 36,
+  "added_environment_samples": 540,
+  "total_environment_samples": 1620,
+  "group_counts": {
+    "train": 42,
+    "val": 9,
+    "test": 9
+  },
+  "files": {
+    "environment/train.jsonl": {
+      "samples": 1164,
+      "bytes": 98641895,
+      "sha256": "255d06129e766aa18955c440516e777025417110bf93d2c452ba50da1d4fcfd5"
+    },
+    "environment/val.jsonl": {
+      "samples": 216,
+      "bytes": 17561152,
+      "sha256": "8d2a6dbcca7842b945a75240396c1c2c5ea25fe21b2f6cec3528a67395ffdacc"
+    },
+    "environment/test.jsonl": {
+      "samples": 240,
+      "bytes": 19935049,
+      "sha256": "2356205d91ecd3f0ad226ed8ba29521701415e7e245274b34026d34683beb11e"
+    }
+  },
+  "program_event_policy": "T4 event identities are selected 2-4 at a time from the undated reference catalog with exact Map1 venue-node matches; event windows are spread and randomized. Reference timetable values are not used as current operations.",
+  "limitation": "Simulation-only; not calibrated against real crowd, queue, road occupancy or event attendance observations.",
+  "local_dataset_path": "D:\\jingxing\\b-data-governance-v1-inspect\\dataset_schedule_events_v0.3b\\environment",
+  "schedule_catalog_path": "server/data/program-schedule-reference.json",
+  "schedule_catalog_sha256": "6FDAAAB57A48F2BF9EC6E6C3C366B59936F2D7D59A6C1AD529DEDB5FF6353AC8",
+  "mapped_program_count": 11,
+  "observed_program_ids": [
+    "program_da_nao_feiyunpu",
+    "program_san_da_zhu_jia_zhuang",
+    "program_wu_song_zui_da_jiangmenshen",
+    "program_lv_popo_interaction",
+    "program_da_tiehua",
+    "program_li_kui_duan_an",
+    "program_weekend_fireworks",
+    "program_four_constables",
+    "program_ye_wen",
+    "program_western_band",
+    "program_feng_xue_shan_shen_miao"
+  ],
+  "event_coverage_note": "All 11 program IDs occur in train/validation/test environment observations; each trajectory samples 2-4 spread-out synthetic events.",
+  "source_boundary": "User schedule images have unknown date/validity; public guide is a third-party 2025 reference. Data is T4 simulation only."
+}

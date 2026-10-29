@@ -14,6 +14,13 @@ function persist() {
   fs.writeFileSync(temp, JSON.stringify({ schemaVersion: 1, users }, null, 2), { mode: 0o600 });
   fs.renameSync(temp, DATA_FILE);
 }
+// Rename the shipped demo manager without changing its ID or password hash.
+// Existing sessions remain associated with the same account ID.
+const legacyManager = users.find(user => user.role === 'manager' && user.username === 'scenic_admin');
+if (legacyManager && !users.some(user => user.username === 'admin' && user.id !== legacyManager.id)) {
+  legacyManager.username = 'admin';
+  persist();
+}
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   return { salt, hash: crypto.scryptSync(password, salt, 64).toString('hex') };
 }
@@ -27,8 +34,8 @@ function publicUser(user) {
   if (!user) return { id: null, username: null, displayName: '游客', role: 'guest', permissions: ['scenic:read', 'route:plan'] };
   return { id: user.id, username: user.username, displayName: user.displayName, role: user.role,
     permissions: user.role === 'manager'
-      ? ['scenic:read', 'route:plan', 'profile:write', 'scenic:manage', 'audit:read']
-      : ['scenic:read', 'route:plan', 'profile:write'] };
+      ? ['scenic:read', 'route:plan', 'profile:write', 'scenic:manage', 'audit:read', 'community:moderate', 'community:publish']
+      : ['scenic:read', 'route:plan', 'profile:write', 'community:interact', 'community:publish'] };
 }
 function createUser(username, password, displayName, role = 'visitor') {
   const normalized = String(username || '').trim().toLowerCase();
@@ -86,11 +93,28 @@ function updateProfile(user, input) {
 function profile(user) { return { ...publicUser(user), consent: user.consent, preferences: user.preferences, routeHistory: user.routeHistory }; }
 function saveRoute(user, plan, preferences) {
   if (!user) return;
-  user.preferences = preferences;
-  user.routeHistory.unshift({ planId: plan?.plan_id || null, createdAt: new Date().toISOString(),
-    stops: (plan?.itinerary || []).map(step => step.target_node_id || step.target_id).filter(Boolean).slice(0, 30) });
+  if (preferences) user.preferences = preferences;
+  const stops = [...new Set((plan?.itinerary || []).map(step => step.target_node_id || step.target_id).filter(Boolean))].slice(0, 30);
+  user.routeHistory.unshift({ planId: plan?.plan_id || null, createdAt: new Date().toISOString(), stops });
   user.routeHistory = user.routeHistory.slice(0, 30);
   persist();
 }
 function listUsers() { return users.map(user => ({ ...publicUser(user), createdAt: user.createdAt })); }
-module.exports = { createUser, login, logout, sessionUser, cookie, clearCookie, publicUser, profile, updateProfile, saveRoute, listUsers };
+function findShareableProfile(username) {
+  const normalized = String(username || '').trim().toLowerCase();
+  const user = users.find(item => item.username === normalized && item.consent?.sharing === true);
+  return user ? { id: user.id, username: user.username, displayName: user.displayName, consent: { sharing: true } } : null;
+}
+function getUserById(id) { return users.find(user => user.id === id) || null; }
+function deleteUser(user, password, beforeDelete = () => {}) {
+  if (!user || user.role !== 'visitor') throw Object.assign(new Error('仅普通游客账号可自行删除；管理者账号需由组织管理员处理'), { statusCode: 403 });
+  if (!validPassword(user, password)) throw Object.assign(new Error('密码验证失败，未删除账号'), { statusCode: 401 });
+  beforeDelete();
+  const index = users.findIndex(item => item.id === user.id);
+  if (index < 0) throw Object.assign(new Error('账号不存在'), { statusCode: 404 });
+  users.splice(index, 1);
+  for (const [token, session] of sessions) if (session.userId === user.id) sessions.delete(token);
+  persist();
+  return { id: user.id, username: user.username };
+}
+module.exports = { createUser, login, logout, sessionUser, cookie, clearCookie, publicUser, profile, updateProfile, saveRoute, listUsers, findShareableProfile, getUserById, deleteUser };

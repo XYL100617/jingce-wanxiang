@@ -1,0 +1,6 @@
+.poi-briefing{margin-top:10px;padding:10px 12px;border-left:3px solid #c6a65b;border-radius:0 7px 7px 0;background:#fbfaf5;text-align:left}
+.poi-briefing>b{display:block;color:#78653a;font-size:11px}
+.poi-briefing>p{margin:5px 0;color:#58645e;font-size:11px;line-height:1.7}
+.poi-briefing>small{display:block;color:#929b96;font-size:9px;line-height:1.6}
+.poi-briefing a{color:#668779;text-decoration:underline;text-underline-offset:2px}
+.trip-stop .poi-briefing{max-width:560px}

@@ -1,0 +1,208 @@
+{
+  "model_type": "cross-domain pooled standardized wait-time models (ridge and histogram gradient boosting)",
+  "source": {
+    "dataset": "Jester565/DisneylandData",
+    "download_url": "https://s3-us-west-2.amazonaws.com/disneyridetimes/disneyRideTimes.csv",
+    "repository_url": "https://github.com/Jester565/DisneylandData",
+    "license": "No explicit license found in repository; research-only local copy; do not redistribute"
+  },
+  "source_data": {
+    "path": "D:\\jingxing\\external-datasets\\disneyRideTimes.csv",
+    "bytes": 112323929,
+    "sha256": "f1884f8f9036da7a874312189898b4093446293cf755c8e5b9d29ef1509bf702",
+    "rows_with_numeric_wait": 668847,
+    "ride_count": 66,
+    "first_date": "2017-05-22",
+    "last_date": "2018-09-15",
+    "train_end": "2018-04-23",
+    "validation_end": "2018-07-04"
+  },
+  "target_definition": "next valid waitMins observation 20-40 minutes after current, numeric wait values only",
+  "split_policy": "chronological 70/15/15 by dataset date range; no random row split",
+  "feature_names": [
+    "current_wait/ride_train_mean",
+    "lag1/ride_train_mean",
+    "lag2/ride_train_mean",
+    "log_ride_train_mean",
+    "hour_sin",
+    "hour_cos",
+    "weekend"
+  ],
+  "alpha_candidates_validation_mae": [
+    {
+      "alpha": 0.01,
+      "normalized_mae": 0.20574335060377222
+    },
+    {
+      "alpha": 0.1,
+      "normalized_mae": 0.2057433839438711
+    },
+    {
+      "alpha": 1.0,
+      "normalized_mae": 0.20574371734143543
+    },
+    {
+      "alpha": 10.0,
+      "normalized_mae": 0.20574705097471535
+    },
+    {
+      "alpha": 100.0,
+      "normalized_mae": 0.20578036962398297
+    }
+  ],
+  "selected_alpha": 0.01,
+  "boosting_candidates_validation_mae": [
+    {
+      "max_leaf_nodes": 15,
+      "normalized_mae": 0.1876746048996741
+    },
+    {
+      "max_leaf_nodes": 31,
+      "normalized_mae": 0.18530509532723569
+    }
+  ],
+  "selected_max_leaf_nodes": 31,
+  "blend_validation_candidates": [
+    {
+      "learned_model_weight": 0.0,
+      "normalized_mae": 0.1637549626898656
+    },
+    {
+      "learned_model_weight": 0.1,
+      "normalized_mae": 0.16573187732395303
+    },
+    {
+      "learned_model_weight": 0.2,
+      "normalized_mae": 0.16770879195804053
+    },
+    {
+      "learned_model_weight": 0.35,
+      "normalized_mae": 0.17068548108431875
+    },
+    {
+      "learned_model_weight": 0.5,
+      "normalized_mae": 0.17373042418417842
+    },
+    {
+      "learned_model_weight": 0.75,
+      "normalized_mae": 0.17916569439657193
+    },
+    {
+      "learned_model_weight": 1.0,
+      "normalized_mae": 0.18529853472797322
+    }
+  ],
+  "selected_blend_weight": 0.0,
+  "model_comparison": {
+    "ridge": {
+      "train": {
+        "n": 424058,
+        "normalized_mae": 0.18380117141598953,
+        "normalized_persistence_mae": 0.14109571395112092,
+        "wait_minutes_mae": 4.420527954733813,
+        "wait_minutes_persistence_mae": 3.7938135821043346,
+        "target_wait_minutes_mean": 22.84471227992397
+      },
+      "val": {
+        "n": 92957,
+        "normalized_mae": 0.20161838717073857,
+        "normalized_persistence_mae": 0.1637549626898656,
+        "wait_minutes_mae": 4.711024257121865,
+        "wait_minutes_persistence_mae": 4.204632249319578,
+        "target_wait_minutes_mean": 24.838204761341267
+      },
+      "test": {
+        "n": 91469,
+        "normalized_mae": 0.2022878567499797,
+        "normalized_persistence_mae": 0.1615908154346489,
+        "wait_minutes_mae": 4.855596694812374,
+        "wait_minutes_persistence_mae": 4.277503853764664,
+        "target_wait_minutes_mean": 23.618001727361182
+      }
+    },
+    "hist_gradient_boosting": {
+      "train": {
+        "n": 424058,
+        "normalized_mae": 0.17040094014645002,
+        "normalized_persistence_mae": 0.14109571395112092,
+        "wait_minutes_mae": 4.231141472252651,
+        "wait_minutes_persistence_mae": 3.7938135821043346,
+        "target_wait_minutes_mean": 22.84471227992397
+      },
+      "val": {
+        "n": 92957,
+        "normalized_mae": 0.18529853472797322,
+        "normalized_persistence_mae": 0.1637549626898656,
+        "wait_minutes_mae": 4.448274221785189,
+        "wait_minutes_persistence_mae": 4.204632249319578,
+        "target_wait_minutes_mean": 24.838204761341267
+      },
+      "test": {
+        "n": 91469,
+        "normalized_mae": 0.18928332385797508,
+        "normalized_persistence_mae": 0.1615908154346489,
+        "wait_minutes_mae": 4.670749445079939,
+        "wait_minutes_persistence_mae": 4.277503853764664,
+        "target_wait_minutes_mean": 23.618001727361182
+      }
+    },
+    "persistence_blend": {
+      "train": {
+        "n": 424058,
+        "learned_model_weight": 0.0,
+        "normalized_mae": 0.14109571395112092,
+        "normalized_persistence_mae": 0.14109571395112092,
+        "wait_minutes_mae": 3.7938135821043346,
+        "wait_minutes_persistence_mae": 3.7938135821043346
+      },
+      "val": {
+        "n": 92957,
+        "learned_model_weight": 0.0,
+        "normalized_mae": 0.1637549626898656,
+        "normalized_persistence_mae": 0.1637549626898656,
+        "wait_minutes_mae": 4.204632249319578,
+        "wait_minutes_persistence_mae": 4.204632249319578
+      },
+      "test": {
+        "n": 91469,
+        "learned_model_weight": 0.0,
+        "normalized_mae": 0.1615908154346489,
+        "normalized_persistence_mae": 0.1615908154346489,
+        "wait_minutes_mae": 4.277503853764664,
+        "wait_minutes_persistence_mae": 4.277503853764664
+      }
+    }
+  },
+  "metrics": {
+    "train": {
+      "n": 424058,
+      "learned_model_weight": 0.0,
+      "normalized_mae": 0.14109571395112092,
+      "normalized_persistence_mae": 0.14109571395112092,
+      "wait_minutes_mae": 3.7938135821043346,
+      "wait_minutes_persistence_mae": 3.7938135821043346
+    },
+    "val": {
+      "n": 92957,
+      "learned_model_weight": 0.0,
+      "normalized_mae": 0.1637549626898656,
+      "normalized_persistence_mae": 0.1637549626898656,
+      "wait_minutes_mae": 4.204632249319578,
+      "wait_minutes_persistence_mae": 4.204632249319578
+    },
+    "test": {
+      "n": 91469,
+      "learned_model_weight": 0.0,
+      "normalized_mae": 0.1615908154346489,
+      "normalized_persistence_mae": 0.1615908154346489,
+      "wait_minutes_mae": 4.277503853764664,
+      "wait_minutes_persistence_mae": 4.277503853764664
+    }
+  },
+  "limitations": [
+    "Disneyland ride waits are not Wansui POI queue counts or footfall.",
+    "No Wansui POI matching or graph adjacency exists in this source.",
+    "This is an external temporal baseline only; it is not integrated into the Wansui world model or route planner."
+  ],
+  "reproducibility_note": "Report only; source CSV remains outside repository. Re-run scripts/train-external-wait-dynamics.py with the locally downloaded CSV."
+}

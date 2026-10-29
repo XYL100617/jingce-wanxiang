@@ -1,0 +1,118 @@
+{
+  "dataset_version": "schedule-enriched-poi-events-v0.3",
+  "model_version": "synthetic-world-model-v0.4b",
+  "test_metrics": {
+    "poi": {
+      "target_5": {
+        "n": 9840,
+        "mae": 0.2672717156317377,
+        "rmse": 0.4657560622646314,
+        "simple_current_only_mae": 0.2624188846722327,
+        "persistence_mae": 0.6900406504065041,
+        "absolute_error_p90": 0.6892855847878064
+      },
+      "target_15": {
+        "n": 9102,
+        "mae": 0.28449175907134255,
+        "rmse": 0.4802751963153766,
+        "simple_current_only_mae": 0.2765315916854658,
+        "persistence_mae": 0.7051197539002417,
+        "absolute_error_p90": 0.7450741413834576
+      },
+      "target_30": {
+        "n": 7995,
+        "mae": 0.30074697917604193,
+        "rmse": 0.47838698905549454,
+        "simple_current_only_mae": 0.29114456088818386,
+        "persistence_mae": 0.7270794246404002,
+        "absolute_error_p90": 0.7646714932889942
+      },
+      "target_60": {
+        "n": 5781,
+        "mae": 0.310107956524494,
+        "rmse": 0.4716713737316164,
+        "simple_current_only_mae": 0.30129101915630235,
+        "persistence_mae": 0.7547137173499394,
+        "absolute_error_p90": 0.7717105436062467
+      }
+    },
+    "road": {
+      "target_5": {
+        "n": 16302,
+        "mae": 0.19896765410824221,
+        "rmse": 0.5624467597540193,
+        "simple_current_only_mae": 0.3773891186561019,
+        "persistence_mae": 0.29824010065529055,
+        "absolute_error_p90": 0.5002709862421639
+      },
+      "target_15": {
+        "n": 15080,
+        "mae": 0.2112678719647494,
+        "rmse": 0.5928184042882592,
+        "simple_current_only_mae": 0.4048260712287487,
+        "persistence_mae": 0.32693115457697164,
+        "absolute_error_p90": 0.5478573062791092
+      },
+      "target_30": {
+        "n": 13259,
+        "mae": 0.19589879807994467,
+        "rmse": 0.5628948966756995,
+        "simple_current_only_mae": 0.39402570015963045,
+        "persistence_mae": 0.33425045531351943,
+        "absolute_error_p90": 0.4791804556384136
+      },
+      "target_60": {
+        "n": 9588,
+        "mae": 0.16056728461760686,
+        "rmse": 0.44813770236068134,
+        "simple_current_only_mae": 0.3512477883136931,
+        "persistence_mae": 0.3279368359484501,
+        "absolute_error_p90": 0.41052903031390287
+      }
+    },
+    "poi_nonzero_probability": {
+      "target_5": {
+        "n": 9840,
+        "positive_rate": 0.11260162601626016,
+        "average_precision": 0.14840584089330464,
+        "prevalence_baseline_average_precision": 0.11260162601626016,
+        "brier": 0.09808485322556672,
+        "prevalence_baseline_brier": 0.09992249983475444,
+        "top10_precision": 0.14532520325203252
+      },
+      "target_15": {
+        "n": 9102,
+        "positive_rate": 0.12052296198637662,
+        "average_precision": 0.1487548012895271,
+        "prevalence_baseline_average_precision": 0.12052296198637662,
+        "brier": 0.10478598834818774,
+        "prevalence_baseline_brier": 0.10599717762040704,
+        "top10_precision": 0.13391877058177826
+      },
+      "target_30": {
+        "n": 7995,
+        "positive_rate": 0.13270794246404002,
+        "average_precision": 0.15528534555225876,
+        "prevalence_baseline_average_precision": 0.13270794246404002,
+        "brier": 0.11467857013982555,
+        "prevalence_baseline_brier": 0.11509654447100107,
+        "top10_precision": 0.165
+      },
+      "target_60": {
+        "n": 5781,
+        "positive_rate": 0.1414980107247881,
+        "average_precision": 0.1552150418102489,
+        "prevalence_baseline_average_precision": 0.1414980107247881,
+        "brier": 0.12182431464011674,
+        "prevalence_baseline_brier": 0.12147632368571586,
+        "top10_precision": 0.16407599309153714
+      }
+    }
+  },
+  "train_groups": 42,
+  "validation_groups": 9,
+  "test_groups": 9,
+  "event_reference_policy": "program names and exact Map1 venue node IDs come from undated user images and a dated third-party guide; all training event windows are randomized T4 values",
+  "source_tier": "T4",
+  "synthetic": true
+}

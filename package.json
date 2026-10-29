@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node server/index.js",
     "sync:scenic-data": "node scripts/expand-scenic-network.js",
-    "test": "node server/tests/contract.test.js && node server/tests/http.test.js && node --test server/tests/account.test.js test/planner.test.js test/preference.test.js test/live-adapter.test.js test/c-map.test.js"
+    "test": "node server/tests/contract.test.js && node server/tests/http.test.js && node --test server/tests/account.test.js test/planner.test.js test/dna-seeds.test.js test/preference.test.js test/live-adapter.test.js test/c-map.test.js test/c-progress.test.js test/community.test.js test/operations.test.js test/companion-knowledge.test.js test/companion-cloud.test.js test/companion-voice.test.js test/qianfan-tts.test.js test/world-model-baseline.test.js test/graph-temporal-world-model.test.js test/world-model-crowd-trend.test.js test/application-crowd.test.js"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
   }
 }

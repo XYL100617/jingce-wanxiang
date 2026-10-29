@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jingce-wanxiang.local/contracts/c-progress.schema.json",
+  "title": "C ProgressEvent",
+  "description": "C 层的进度事件契约。服务端把它归一化成 B 的 UserEvent，再以同一个 event_id 保证幂等。",
+  "type": "object",
+  "required": ["event_type"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "scenario_id": { "type": "string" },
+    "event_id": {
+      "type": "string",
+      "description": "客户端生成的幂等键；同一游客重复提交同一 event_id 时返回同一结果。"
+    },
+    "event_type": {
+      "enum": ["ARRIVE", "SKIP", "DELAY", "DEVIATE", "EXIT_CHANGE"]
+    },
+    "target_id": {
+      "type": "string",
+      "description": "ARRIVE/SKIP 的景点、活动、设施或出口 ID。"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": ["POI", "EVENT", "FACILITY", "EXIT"],
+      "description": "ARRIVE 可选；EXIT 表示到达出口，不写入已访问景点。"
+    },
+    "node_id": {
+      "type": "string",
+      "description": "ARRIVE/DELAY/DEVIATE 的当前位置；EXIT_CHANGE 时为离园节点 ID。"
+    },
+    "timestamp": { "type": "string" },
+    "remaining_time_min": { "type": "number", "minimum": 0 },
+    "fatigue": { "type": "number", "minimum": 0, "maximum": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "event_type": { "const": "ARRIVE" } } },
+      "then": { "required": ["target_id", "node_id"] }
+    },
+    {
+      "if": { "properties": { "event_type": { "const": "SKIP" } } },
+      "then": { "required": ["target_id"] }
+    },
+    {
+      "if": { "properties": { "event_type": { "enum": ["DELAY", "DEVIATE", "EXIT_CHANGE"] } } },
+      "then": { "required": ["node_id"] }
+    }
+  ],
+  "additionalProperties": true
+}

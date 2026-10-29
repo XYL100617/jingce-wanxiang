@@ -1,0 +1,130 @@
+{
+  "schema_version": "program-reference-0.2",
+  "source": {
+    "type": "USER_SUPPLIED_SCHEDULE_IMAGES_AND_PUBLIC_TRAVEL_GUIDE",
+    "files": [
+      "2026302091226_14236.png",
+      "2026302091137_57374.png"
+    ],
+    "schedule_date": null,
+    "validity": "UNKNOWN",
+    "notice": "节目名称及场地仅作参考；图片日期和有效期未知，公开攻略场次也可能过时。本目录不是景区官方当日排期。模拟器只采样节目身份与地图1场地，并随机生成事件窗口和容量。"
+  },
+  "map1_alignment": {
+    "graph_file": "server/data/scenic_graph.json",
+    "matching_policy": "venue_name must exactly equal the current Map1 node name; use that node_id; do not fuzzy-match unmatched venues",
+    "unmatched_examples": ["王婆舞台", "水浒街擂台", "神舟广场", "仙侠奇境"]
+  },
+  "programs": [
+    {
+      "program_id": "program_da_nao_feiyunpu",
+      "program_name": "大闹飞云浦",
+      "venue_name": "飞云浦",
+      "poi_id": "feiyunpu",
+      "node_id": "feiyunpu",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wanshuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "演出名称与场地对应；未把该攻略时刻用于训练" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_san_da_zhu_jia_zhuang",
+      "program_name": "三打祝家庄",
+      "venue_name": "城寨沙场",
+      "poi_id": "fortress",
+      "node_id": "fortress",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "USER_SUPPLIED_SCHEDULE_IMAGE_AND_PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "图片及攻略均列出演出/场地对应" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_wu_song_zui_da_jiangmenshen",
+      "program_name": "武松醉打蒋门神",
+      "venue_name": "快活林",
+      "poi_id": "kuaipolin",
+      "node_id": "kuaipolin",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "演出名称与场地对应；未把该攻略时刻用于训练" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_lv_popo_interaction",
+      "program_name": "吕婆婆互动",
+      "venue_name": "王婆岛",
+      "poi_id": "wangpo_island",
+      "node_id": "wangpo_island",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "演出名称与场地对应；未把该攻略时刻用于训练" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_da_tiehua",
+      "program_name": "打铁花",
+      "venue_name": "城寨沙场",
+      "poi_id": "fortress",
+      "node_id": "fortress",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "USER_SUPPLIED_SCHEDULE_IMAGE_AND_PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "图片及攻略均列出演出/场地对应" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_li_kui_duan_an",
+      "program_name": "李逵断案",
+      "venue_name": "十字坡",
+      "poi_id": "shizipo",
+      "node_id": "shizipo",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "USER_SUPPLIED_SCHEDULE_IMAGE_AND_PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "图片及攻略均列出演出/场地对应" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_weekend_fireworks",
+      "program_name": "七彩烟花秀",
+      "venue_name": "魔力广场",
+      "poi_id": "magic_square",
+      "node_id": "magic_square",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "演出名称与场地对应；该攻略注明仅周末参考，未把时刻用于训练" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_four_constables",
+      "program_name": "四大名捕",
+      "venue_name": "大宋武馆",
+      "poi_id": "museum",
+      "node_id": "museum",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "演出名称与场地对应；未把该攻略时刻用于训练" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_ye_wen",
+      "program_name": "叶问",
+      "venue_name": "十里洋场",
+      "poi_id": "shili_yangchang",
+      "node_id": "shili_yangchang",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "演出名称与场地对应；未把该攻略时刻用于训练" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_western_band",
+      "program_name": "西洋乐队",
+      "venue_name": "十里洋场",
+      "poi_id": "shili_yangchang",
+      "node_id": "shili_yangchang",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "演出名称与场地对应；未把该攻略时刻用于训练" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    },
+    {
+      "program_id": "program_feng_xue_shan_shen_miao",
+      "program_name": "风雪山神庙",
+      "venue_name": "快活林",
+      "poi_id": "kuaipolin",
+      "node_id": "kuaipolin",
+      "map1_name_match": "EXACT",
+      "sources": [{ "source_type": "PUBLIC_TRAVEL_GUIDE_REFERENCE", "source_url": "https://travelnews.qunar.com/qa_strategy/kaifeng-wansuishan-must-see-performance-guide", "published_on": "2025-11-26", "evidence": "演出名称与场地对应；未把该攻略时刻用于训练" }],
+      "status": "REFERENCE_ONLY", "synthetic_training_allowed": true, "real_schedule_eligible": false
+    }
+  ]
+}

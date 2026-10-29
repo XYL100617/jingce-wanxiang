@@ -77,6 +77,7 @@ function inferPreference(answers = {}) {
   if (mobility === 'minimal') addVector(logits, { comfort: .9, time: .25, freedom: -.5, nature: -.25 }, 1, contributions, '步行能力:尽量少走');
 
   const weights = softmax(logits);
+  const crowdSensitivity = clamp((Number(answers.crowd_sensitivity ?? 3) - 1) / 4, 0, 1);
   const ranked = FACTORS.slice().sort((a, b) => weights[b] - weights[a]);
   const topContributions = contributions.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 8);
   const answeredScales = Object.keys(SCALE_MATRIX).filter(key => answers[key] !== undefined).length;
@@ -92,6 +93,7 @@ function inferPreference(answers = {}) {
       archetype,
       group,
       mobility,
+      sensitivities: { crowd: Math.round(crowdSensitivity * 1000) / 1000 },
       interests: Array.isArray(answers.interests) ? answers.interests : [],
       top_factors: ranked.slice(0, 3),
       confidence: clamp(completeness, 35, 100)
@@ -105,7 +107,9 @@ function inferPreference(answers = {}) {
         // Preserve geographic continuity on the shared hand-map coordinate
         // frame; lower-mobility visitors receive an even stronger penalty.
         walk_cost_per_min: mobility === 'minimal' ? 1.7 : mobility === 'light' ? 1.4 : 1.2,
-        queue_cost_per_min: Number(answers.crowd_sensitivity || 3) >= 4 ? .72 : .45,
+        queue_cost_per_min: Math.round((.35 + .6 * crowdSensitivity) * 100) / 100,
+        crowd_cost_per_ratio: Math.round((8 + 10 * crowdSensitivity) * 100) / 100,
+        crowd_trend_cost: Math.round((4 + 8 * crowdSensitivity) * 100) / 100,
         preference_reward: 34
       }
     }

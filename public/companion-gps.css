@@ -1,0 +1,7 @@
+.companion-gps-panel { display: grid; gap: 8px; align-items: start; }
+.companion-gps-panel p { margin: 0; color: #718797; font-size: .84rem; line-height: 1.55; }
+#companionGpsStatus { padding: 10px 12px; border-radius: 10px; background: #f3f8f7; border: 1px solid #e0ece8; }
+#companionGpsStatus[data-state="error"] { color: #9a5147; background: #fff6f3; border-color: #f0ded9; }
+#companionGpsStatus[data-state="active"] { color: #276a59; background: #f0f8f4; border-color: #d7e9df; }
+#companionGpsStatus[data-state="unavailable"] { color: #806332; background: #fbf7ee; border-color: #eee3c9; }
+#companionGpsStatus[data-state="waiting"] { color: #526f82; background: #f3f8fb; border-color: #dde8ef; }

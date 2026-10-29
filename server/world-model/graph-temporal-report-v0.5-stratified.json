@@ -1,0 +1,126 @@
+{
+  "dataset_version": "schedule-enriched-poi-events-v0.3c-stratified",
+  "model_version": "synthetic-world-model-v0.5-stratified-risk",
+  "test_metrics": {
+    "poi": {
+      "target_5": {
+        "n": 11316,
+        "mae": 0.27889925888182576,
+        "rmse": 0.5416439709369508,
+        "simple_current_only_mae": 0.29282526002220016,
+        "persistence_mae": 0.5661894662424886,
+        "zero_baseline_mae": 0.179745493107105,
+        "absolute_error_p90": 0.7930863413682709
+      },
+      "target_15": {
+        "n": 10578,
+        "mae": 0.29584014252354085,
+        "rmse": 0.5571549882106508,
+        "simple_current_only_mae": 0.3093887727442373,
+        "persistence_mae": 0.5646625070901872,
+        "zero_baseline_mae": 0.19039515976555113,
+        "absolute_error_p90": 0.8107679099771969
+      },
+      "target_30": {
+        "n": 9471,
+        "mae": 0.31276767279676676,
+        "rmse": 0.5658888390982336,
+        "simple_current_only_mae": 0.32577435668507604,
+        "persistence_mae": 0.5611867806989759,
+        "zero_baseline_mae": 0.20282969063456868,
+        "absolute_error_p90": 0.8143122943296394
+      },
+      "target_60": {
+        "n": 7257,
+        "mae": 0.3420604871131415,
+        "rmse": 0.6016367809215047,
+        "simple_current_only_mae": 0.3477673767828853,
+        "persistence_mae": 0.5820587019429516,
+        "zero_baseline_mae": 0.22557530660052363,
+        "absolute_error_p90": 0.8238303644152881
+      }
+    },
+    "road": {
+      "target_5": {
+        "n": 18750,
+        "mae": 0.2399016482923195,
+        "rmse": 0.7610227971392839,
+        "simple_current_only_mae": 0.3594471967542999,
+        "persistence_mae": 0.2998389144816977,
+        "zero_baseline_mae": null,
+        "absolute_error_p90": 0.5552017477130866
+      },
+      "target_15": {
+        "n": 17529,
+        "mae": 0.25883000050997984,
+        "rmse": 0.8188562133505515,
+        "simple_current_only_mae": 0.3889441115904256,
+        "persistence_mae": 0.3349754850746324,
+        "zero_baseline_mae": null,
+        "absolute_error_p90": 0.6261594228261957
+      },
+      "target_30": {
+        "n": 15707,
+        "mae": 0.24448841484746922,
+        "rmse": 0.782042357539971,
+        "simple_current_only_mae": 0.3789691740941056,
+        "persistence_mae": 0.33031901451652884,
+        "zero_baseline_mae": null,
+        "absolute_error_p90": 0.5527445747581023
+      },
+      "target_60": {
+        "n": 12036,
+        "mae": 0.21219490641772967,
+        "rmse": 0.7409877270640739,
+        "simple_current_only_mae": 0.34479076537944764,
+        "persistence_mae": 0.3308064398283522,
+        "zero_baseline_mae": null,
+        "absolute_error_p90": 0.4133280911560666
+      }
+    },
+    "poi_nonzero_probability": {
+      "target_5": {
+        "n": 11316,
+        "positive_rate": 0.12822552138564863,
+        "average_precision": 0.1779162743716312,
+        "prevalence_baseline_average_precision": 0.12822552138564863,
+        "brier": 0.10998620548843112,
+        "prevalence_baseline_brier": 0.11178373705102719,
+        "top10_precision": 0.19964664310954064
+      },
+      "target_15": {
+        "n": 10578,
+        "positive_rate": 0.1363206655322367,
+        "average_precision": 0.17681849233107547,
+        "prevalence_baseline_average_precision": 0.1363206655322367,
+        "brier": 0.11667057623158787,
+        "prevalence_baseline_brier": 0.11773734168108477,
+        "top10_precision": 0.18525519848771266
+      },
+      "target_30": {
+        "n": 9471,
+        "positive_rate": 0.1479252454862211,
+        "average_precision": 0.19261095890331942,
+        "prevalence_baseline_average_precision": 0.1479252454862211,
+        "brier": 0.1250822706348924,
+        "prevalence_baseline_brier": 0.12604336723406231,
+        "top10_precision": 0.22468354430379747
+      },
+      "target_60": {
+        "n": 7257,
+        "positive_rate": 0.16260162601626016,
+        "average_precision": 0.17542346052679555,
+        "prevalence_baseline_average_precision": 0.16260162601626016,
+        "brier": 0.13610681357533916,
+        "prevalence_baseline_brier": 0.13616233723312843,
+        "top10_precision": 0.17768595041322313
+      }
+    }
+  },
+  "train_groups": 42,
+  "validation_groups": 9,
+  "test_groups": 9,
+  "event_reference_policy": "program names and exact Map1 venue node IDs come from undated user images and a dated third-party guide; all training event windows are randomized T4 values",
+  "source_tier": "T4",
+  "synthetic": true
+}

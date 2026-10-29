@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const scenarios = require('../data/scenarios.json');
 const { getScenicGraph } = require('./stateProvider');
 const { parseTime, stamp } = require('./scenarioEngine');
+const { applyRealModel } = require('../world-model/real-poi-runtime');
 
 const graph = getScenicGraph();
 const round = (value, places = 2) => Math.round(value * 10 ** places) / 10 ** places;
@@ -51,6 +52,7 @@ function predictEnvironment(state, horizonMin = 60, stepMin = 10) {
   }
   const identity = JSON.stringify({ state, horizonMin, stepMin, scenarios });
   const forecast_version = `forecast_${crypto.createHash('sha256').update(identity).digest('hex').slice(0, 12)}`;
-  return { schema_version: '0.1', scenario_id: state.scenario_id, state_version: state.state_version, forecast_version, base_timestamp: state.timestamp, horizon_min: horizonMin, step_min: stepMin, poi_predictions, road_predictions };
+  return applyRealModel(state, { schema_version: '0.1', scenario_id: state.scenario_id, state_version: state.state_version,
+    forecast_version, base_timestamp: state.timestamp, horizon_min: horizonMin, step_min: stepMin, poi_predictions, road_predictions });
 }
 module.exports = { predictEnvironment };

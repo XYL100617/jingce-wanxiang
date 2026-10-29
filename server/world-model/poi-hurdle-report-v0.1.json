@@ -1,0 +1,180 @@
+{
+  "experiment": "zero-inflated two-stage POI queue count",
+  "model_version": "synthetic-world-model-poi-hurdle-v0.1",
+  "dataset_version": "schedule-enriched-poi-events-v0.3c-stratified",
+  "source_tier": "T4",
+  "synthetic": true,
+  "selection_policy": "classifier and conditional-count regularization selected by validation MAE; test split used once after selection",
+  "split_samples": {
+    "train": 1068,
+    "val": 276,
+    "test": 276
+  },
+  "metrics": {
+    "target_5": {
+      "selected_on_validation": {
+        "classifier_lambda": 10,
+        "positive_count_lambda": 10
+      },
+      "validation": {
+        "hurdle": {
+          "n": 11316,
+          "mae": 0.2239914576263463,
+          "rmse": 0.40702714454191513
+        },
+        "direct": {
+          "n": 11316,
+          "mae": 0.2220510427352267,
+          "rmse": 0.40786249147177284
+        },
+        "zero": {
+          "n": 11316,
+          "mae": 0.11284906327324143,
+          "rmse": 0.42218857809684174
+        }
+      },
+      "test": {
+        "hurdle": {
+          "n": 11316,
+          "mae": 0.27944167527986286,
+          "rmse": 0.5409679520993198
+        },
+        "direct": {
+          "n": 11316,
+          "mae": 0.27889925888182576,
+          "rmse": 0.5416439709369508
+        },
+        "zero": {
+          "n": 11316,
+          "mae": 0.179745493107105,
+          "rmse": 0.5735109509741199
+        }
+      }
+    },
+    "target_15": {
+      "selected_on_validation": {
+        "classifier_lambda": 10,
+        "positive_count_lambda": 100
+      },
+      "validation": {
+        "hurdle": {
+          "n": 10578,
+          "mae": 0.23649175371097755,
+          "rmse": 0.41581734542978366
+        },
+        "direct": {
+          "n": 10578,
+          "mae": 0.2352191623110227,
+          "rmse": 0.4201347535174321
+        },
+        "zero": {
+          "n": 10578,
+          "mae": 0.11939875212705615,
+          "rmse": 0.4327533678735925
+        }
+      },
+      "test": {
+        "hurdle": {
+          "n": 10578,
+          "mae": 0.29628851668099004,
+          "rmse": 0.5559884901956182
+        },
+        "direct": {
+          "n": 10578,
+          "mae": 0.29584014252354085,
+          "rmse": 0.5571549882106508
+        },
+        "zero": {
+          "n": 10578,
+          "mae": 0.19039515976555113,
+          "rmse": 0.5890216402822066
+        }
+      }
+    },
+    "target_30": {
+      "selected_on_validation": {
+        "classifier_lambda": 10,
+        "positive_count_lambda": 100
+      },
+      "validation": {
+        "hurdle": {
+          "n": 9471,
+          "mae": 0.25594460610684355,
+          "rmse": 0.4190459195541819
+        },
+        "direct": {
+          "n": 9471,
+          "mae": 0.25430322527466076,
+          "rmse": 0.4220859739161684
+        },
+        "zero": {
+          "n": 9471,
+          "mae": 0.12723049308415163,
+          "rmse": 0.4343745359269179
+        }
+      },
+      "test": {
+        "hurdle": {
+          "n": 9471,
+          "mae": 0.3145699445165424,
+          "rmse": 0.5649683760958918
+        },
+        "direct": {
+          "n": 9471,
+          "mae": 0.31276767279676676,
+          "rmse": 0.5658888390982336
+        },
+        "zero": {
+          "n": 9471,
+          "mae": 0.20282969063456868,
+          "rmse": 0.6013569985283452
+        }
+      }
+    },
+    "target_60": {
+      "selected_on_validation": {
+        "classifier_lambda": 300,
+        "positive_count_lambda": 0.1
+      },
+      "validation": {
+        "hurdle": {
+          "n": 7257,
+          "mae": 0.26990782293948945,
+          "rmse": 0.4154163470718488
+        },
+        "direct": {
+          "n": 7257,
+          "mae": 0.2683431313598449,
+          "rmse": 0.4210124028427539
+        },
+        "zero": {
+          "n": 7257,
+          "mae": 0.13159707868265122,
+          "rmse": 0.4314685179590777
+        }
+      },
+      "test": {
+        "hurdle": {
+          "n": 7257,
+          "mae": 0.34443852626993765,
+          "rmse": 0.6025717921742668
+        },
+        "direct": {
+          "n": 7257,
+          "mae": 0.3420604871131415,
+          "rmse": 0.6016367809215047
+        },
+        "zero": {
+          "n": 7257,
+          "mae": 0.22557530660052363,
+          "rmse": 0.6409179375499495
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Synthetic simulator labels only; no real crowd calibration.",
+    "This is an offline comparison and is not used by runtime or route planning.",
+    "The expected count combines two fitted stages and may be poorly calibrated under distribution shift."
+  ]
+}

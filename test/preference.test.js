@@ -12,6 +12,28 @@ test('前端八维权重在首次访问的 null 偏好状态下使用安全默�
   assert.match(source, /weights\[b\[0\]\]/);
   assert.doesNotMatch(source, /function renderVector\(p = app\.data\?\.user\.preference/);
 });
+test('所有地图1 POI都有简短解说，并区分公开参考与项目图演示', () => {
+  const graph = require('../server/data/scenic_graph.json');
+  const pack = require('../public/poi-briefings.json');
+  const poiIds = graph.nodes.filter(node => node.poi_id).map(node => node.node_id);
+  assert.deepEqual(Object.keys(pack.briefings).sort(), poiIds.sort());
+  assert.ok(pack.source.url.startsWith('https://'));
+  assert.equal(pack.source.type, 'secondary_reference');
+  assert.equal(pack.project_map_source.type, 'project_demo_unverified');
+  for (const [nodeId, entry] of Object.entries(pack.briefings)) {
+    assert.ok(poiIds.includes(nodeId), `解说节点 ${nodeId} 必须是地图1中的 POI`);
+    assert.ok(entry.text.length <= 110, `${nodeId} 解说应简短`);
+    assert.ok(['public_reference', 'project_map_demo', 'creative_story'].includes(entry.mode), `${nodeId} 必须标明解说依据类别`);
+    if (entry.mode === 'public_reference') assert.ok(entry.source_excerpt, `${nodeId} 公开参考解说需记录依据`);
+    if (entry.mode === 'project_map_demo') assert.match(entry.text, /项目地图/);
+    if (entry.mode === 'creative_story') assert.ok(entry.text.length >= 25, `${nodeId} 故事化解说应有完整内容`);
+  }
+  const source = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
+  assert.match(source, /poiBriefingHtml\(item\.target_node_id/);
+  assert.match(source, /poi-briefings\.json/);
+  assert.match(source, /creative_story/);
+  assert.match(source, /文学化导览，不代表历史事实或当日活动安排/);
+});
 const { createMockScenario, planItinerary, replan } = require('../server/planner');
 
 test('完整问卷生成归一化的八维连续权重和可解释约束', () => {
@@ -27,6 +49,8 @@ test('完整问卷生成归一化的八维连续权重和可解释约束', () =>
   assert.equal(result.constraints.max_walk_per_leg_min, 14);
   assert.equal(result.constraints.require_rest, true);
   assert.equal(result.profile.confidence, 100);
+  assert.equal(result.profile.sensitivities.crowd, 1);
+  assert.equal(result.planner_rules.score.crowd_cost_per_ratio, 18);
   assert.ok(result.explanation.length > 0);
 });
 

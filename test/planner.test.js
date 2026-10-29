@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { DEFAULT_RULES } = require('../server/planner/config');
 const {
   createMockScenario,
   findPath,
@@ -11,6 +12,7 @@ const {
   replan,
   stepByRules
 } = require('../server/planner');
+const { routeOrderConflictCount, scoreAction } = require('../server/planner/planner');
 
 test('正常场景生成多步、可解释且可供 C 直接展示的 PlanResult', () => {
   const scenario = createMockScenario('normal');
@@ -25,6 +27,33 @@ test('正常场景生成多步、可解释且可供 C 直接展示的 PlanResult
   assert.equal(plan.based_on_state_version, scenario.state.state_version);
   assert.equal(plan.based_on_forecast_version, scenario.forecast.forecast_version);
   assert.equal(plan.diagnostics.used_arrival_time_forecast, true);
+});
+
+test('首段步行距离对起点附近景点有额外权重，后续路段不重复加罚', () => {
+  const scenario = createMockScenario('normal');
+  const action = { action_type: 'VISIT_POI', target_id: 'poi_history', target_node_id: 'node_history' };
+  const evaluation = isActionLegal({ ...scenario, action });
+  assert.equal(evaluation.legal, true);
+  const firstVisitor = { ...scenario.state.visitor, action_count: 0 };
+  const laterVisitor = { ...scenario.state.visitor, action_count: 1 };
+  const firstScore = scoreAction({ ...scenario, visitor: firstVisitor, evaluation, action, rules: DEFAULT_RULES });
+  const laterScore = scoreAction({ ...scenario, visitor: laterVisitor, evaluation, action, rules: DEFAULT_RULES });
+  const expectedPenalty = evaluation.route.travel_time_min * DEFAULT_RULES.score.first_leg_walk_cost_per_min;
+  assert.ok(Math.abs((laterScore - firstScore) - expectedPenalty) < 0.02);
+});
+
+test('DNA 指定顺序必须逐个命中模板景点；目标不可用时不返回错误的完整路线', () => {
+  const scenario = createMockScenario('normal');
+  const targetOrder = ['poi_history', 'poi_garden'];
+  const plan = planItinerary({ ...scenario, target_order: targetOrder, rules: { min_actions: 2, max_actions: 2 }, ensure_alternatives: false });
+  assert.equal(plan.feasible, true);
+  assert.deepEqual(plan.itinerary.filter(item => ['VISIT_POI', 'ATTEND_EVENT'].includes(item.action_type)).map(item => item.target_id), targetOrder);
+
+  const unavailable = createMockScenario('normal');
+  unavailable.graph.pois.find(poi => poi.poi_id === 'poi_garden').close_time = '2026-10-20 10:00:00';
+  const partial = planItinerary({ ...unavailable, target_order: targetOrder, rules: { min_actions: 2, max_actions: 2 }, ensure_alternatives: false });
+  assert.equal(partial.feasible, false);
+  assert.equal(partial.diagnostics.useful_action_count, 1);
 });
 
 test('选填离园出口约束返程校验和最终离园目标，未指定时保持原有规划', () => {
@@ -60,10 +89,46 @@ test('规则推进使用预计到达时刻的排队，而不是当前排队', ()
 });
 
 test('排队突增会改变首个游览目标', () => {
-  const normal = planItinerary(createMockScenario('normal'));
-  const surge = planItinerary(createMockScenario('queue_surge'));
+  const normalScenario = createMockScenario('normal');
+  const surgeScenario = createMockScenario('queue_surge');
+  // Start after the simulated spike begins so it affects this visit's ETA.
+  normalScenario.state.timestamp = '2026-10-20 10:12:00';
+  surgeScenario.state.timestamp = '2026-10-20 10:12:00';
+  const normal = planItinerary(normalScenario);
+  const surge = planItinerary(surgeScenario);
   assert.equal(normal.next_action.target_id, 'poi_history');
   assert.notEqual(surge.next_action.target_id, normal.next_action.target_id);
+});
+
+test('同等景点在人流敏感权重较高时会更强烈地避开高拥挤与上升趋势', () => {
+  const scenario = createMockScenario('normal');
+  const action = { action_type: 'VISIT_POI', target_id: 'poi_history' };
+  const evaluation = { route: { travel_time_min: 1 }, predicted_queue_min: 0,
+    predicted_crowd_ratio: .95, upward_trend_probability: .8, wait_time_min: 0 };
+  const lowSensitivity = { ...scenario.state.visitor, preference_weights: { comfort: .1 },
+    preference_profile: { sensitivities: { crowd: 0 } } };
+  const highSensitivity = { ...scenario.state.visitor, preference_weights: { comfort: .1 },
+    preference_profile: { sensitivities: { crowd: 1 } } };
+  const lowScore = scoreAction({ graph: scenario.graph, visitor: lowSensitivity, evaluation, action, rules: DEFAULT_RULES });
+  const highScore = scoreAction({ graph: scenario.graph, visitor: highSensitivity, evaluation, action, rules: DEFAULT_RULES });
+  assert.ok(highScore < lowScore - 5);
+});
+
+test('路线顺序评分识别“先穿过后续景点、再回头编号”的规划冲突', () => {
+  const outOfOrder = [
+    { action_type: 'VISIT_POI', target_id: 'shenboat', target_node_id: 'shenboat', route: { node_sequence: ['gate', 'shenboat'] } },
+    { action_type: 'VISIT_POI', target_id: 'theater', target_node_id: 'theater', route: { node_sequence: ['shenboat', 'gate', 'market', 'water_street', 'theater'] } },
+    { action_type: 'VISIT_POI', target_id: 'market', target_node_id: 'market', route: { node_sequence: ['theater', 'market'] } },
+    { action_type: 'VISIT_POI', target_id: 'water_street', target_node_id: 'water_street', route: { node_sequence: ['market', 'water_street'] } }
+  ];
+  const traversalOrder = [
+    outOfOrder[0],
+    { ...outOfOrder[2], route: { node_sequence: ['shenboat', 'gate', 'market'] } },
+    { ...outOfOrder[3], route: { node_sequence: ['market', 'water_street'] } },
+    { ...outOfOrder[1], route: { node_sequence: ['water_street', 'theater'] } }
+  ];
+  assert.equal(routeOrderConflictCount(outOfOrder), 2);
+  assert.equal(routeOrderConflictCount(traversalOrder), 0);
 });
 
 test('道路关闭后 A* 移除关闭边并绕行', () => {
@@ -102,6 +167,20 @@ test('没有可行景点时仍返回等待、休息或离园，不返回空结�
   const plan = planItinerary({ ...scenario, rules: { min_actions: 0, max_actions: 1 } });
   assert.equal(plan.feasible, true);
   assert.ok(['WAIT', 'EXIT'].includes(plan.next_action.action_type));
+});
+
+test('剩余时间内没有开放目标时返回单条离园建议，不重复生成当前节点等待', () => {
+  const scenario = createMockScenario('normal');
+  for (const poi of scenario.graph.pois) scenario.state.poi_states[poi.poi_id].is_open = false;
+  for (const event of scenario.graph.events) scenario.state.event_states[event.event_id].cancelled = true;
+  scenario.state.visitor.current_node_id = 'node_gate';
+  scenario.state.visitor.remaining_time_min = 47;
+  const plan = planItinerary(scenario);
+  assert.equal(plan.next_action.action_type, 'EXIT');
+  assert.equal(plan.itinerary.filter(item => item.action_type === 'WAIT').length, 0);
+  assert.equal(plan.itinerary.filter(item => item.action_type === 'EXIT').length, 1);
+  assert.equal(plan.diagnostics.useful_action_count, 0);
+  assert.match(plan.reason, /暂无可安排景点/);
 });
 
 test('SKIP_TARGET 从游客当前位置滚动重规划并排除被跳过目标', () => {

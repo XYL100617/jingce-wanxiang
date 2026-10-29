@@ -269,15 +269,15 @@
   "road_states": {
     "edge_001": {
       "available": true,
-      "travel_time_min": 6.4
+      "travel_time_min": 13.47
     },
     "edge_002": {
       "available": true,
-      "travel_time_min": 2.93
+      "travel_time_min": 4.2
     },
     "edge_003": {
       "available": true,
-      "travel_time_min": 12.13
+      "travel_time_min": 12.2
     },
     "edge_004": {
       "available": true,
@@ -285,7 +285,7 @@
     },
     "edge_005": {
       "available": true,
-      "travel_time_min": 2.93
+      "travel_time_min": 3.27
     },
     "edge_006": {
       "available": true,
@@ -293,7 +293,7 @@
     },
     "edge_007": {
       "available": true,
-      "travel_time_min": 4
+      "travel_time_min": 4.4
     },
     "edge_008": {
       "available": true,
@@ -309,7 +309,7 @@
     },
     "edge_011": {
       "available": true,
-      "travel_time_min": 2
+      "travel_time_min": 2.07
     },
     "edge_012": {
       "available": true,
@@ -349,35 +349,35 @@
     },
     "edge_021": {
       "available": true,
-      "travel_time_min": 1.33
+      "travel_time_min": 1.8
     },
     "edge_022": {
       "available": true,
-      "travel_time_min": 2.53
+      "travel_time_min": 3.2
     },
     "edge_023": {
       "available": true,
-      "travel_time_min": 3.47
+      "travel_time_min": 4
     },
     "edge_024": {
       "available": true,
-      "travel_time_min": 2.07
+      "travel_time_min": 1.2
     },
     "edge_025": {
       "available": true,
-      "travel_time_min": 1
+      "travel_time_min": 3.87
     },
     "edge_026": {
       "available": true,
-      "travel_time_min": 2.2
+      "travel_time_min": 3
     },
     "edge_027": {
       "available": true,
-      "travel_time_min": 1.13
+      "travel_time_min": 1.47
     },
     "edge_028": {
       "available": true,
-      "travel_time_min": 1.33
+      "travel_time_min": 2.8
     },
     "edge_029": {
       "available": true,
@@ -385,7 +385,7 @@
     },
     "edge_030": {
       "available": true,
-      "travel_time_min": 1.73
+      "travel_time_min": 1.47
     },
     "edge_031": {
       "available": true,
@@ -401,11 +401,11 @@
     },
     "edge_034": {
       "available": true,
-      "travel_time_min": 1.93
+      "travel_time_min": 1.73
     },
     "edge_035": {
       "available": true,
-      "travel_time_min": 1
+      "travel_time_min": 1.67
     },
     "edge_036": {
       "available": true,
@@ -449,19 +449,19 @@
     },
     "edge_046": {
       "available": true,
-      "travel_time_min": 2.2
+      "travel_time_min": 2.27
     },
     "edge_047": {
       "available": true,
-      "travel_time_min": 1
+      "travel_time_min": 1.47
     },
     "edge_048": {
       "available": true,
-      "travel_time_min": 2.07
+      "travel_time_min": 2.87
     },
     "edge_049": {
       "available": true,
-      "travel_time_min": 2.07
+      "travel_time_min": 1.8
     },
     "edge_050": {
       "available": true,
@@ -481,7 +481,7 @@
     },
     "edge_054": {
       "available": true,
-      "travel_time_min": 1.2
+      "travel_time_min": 1
     },
     "edge_055": {
       "available": true,
@@ -489,7 +489,7 @@
     },
     "edge_056": {
       "available": true,
-      "travel_time_min": 1.4
+      "travel_time_min": 2.07
     },
     "edge_057": {
       "available": true,
@@ -497,19 +497,19 @@
     },
     "edge_058": {
       "available": true,
-      "travel_time_min": 1
+      "travel_time_min": 1.07
     },
     "edge_059": {
       "available": true,
-      "travel_time_min": 1
+      "travel_time_min": 2.33
     },
     "edge_060": {
       "available": true,
-      "travel_time_min": 1
+      "travel_time_min": 1.53
     },
     "edge_061": {
       "available": true,
-      "travel_time_min": 1
+      "travel_time_min": 3.07
     },
     "edge_062": {
       "available": true,

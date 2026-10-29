@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "category": "hours",
+  "records": [
+    {
+      "id": "hours-official-pending", "category": "hours", "node_ids": [],
+      "title": "开放时间待景区确认",
+      "content": "暂无已审核的官方开放时间表，不据此生成营业时间。",
+      "keywords": ["开放时间", "营业时间", "开门", "关门"],
+      "source": { "id": "official-hours-pending", "title": "待景区审核的开放时间表", "kind": "official", "locator": "pending:official-opening-hours", "verified": false },
+      "review_status": "pending", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "hours-verification-policy", "category": "hours", "node_ids": [],
+      "title": "开放信息的核验规则",
+      "content": "当前是否开放只依据状态或运营接口。暂无已审核的官方开放时间表时，我无法确认具体开门或关门时间；请查看景区正式公告，或向现场工作人员核实。",
+      "keywords": ["开放", "开放时间", "营业时间", "开门", "关门", "闭园", "几点"],
+      "source": { "id": "app-hours-policy", "title": "应用开放信息核验规则", "kind": "application", "locator": "server/data/companion/hours.json#hours-verification-policy", "verified": true },
+      "review_status": "approved", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    }
+  ]
+}

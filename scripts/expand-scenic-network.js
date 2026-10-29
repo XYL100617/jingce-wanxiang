@@ -1,9 +1,9 @@
 'use strict';
 
 // Idempotent data migration for the first integrated A/B/C scenic network.
-// Verified scenic names/relative positions come from the supplied official-style
-// hand map; exact metric geometry remains demonstrative until surveyed GIS data
-// is available. Decorative buildings stay in C and are not added here.
+// Scenic names and approximate relative positions are transcribed from the
+// supplied illustrated guide. Neither POI entrances nor walkable road geometry
+// have been field verified. Decorative buildings stay in C and are not added here.
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -40,7 +40,7 @@ const additions = [
   { node_id:'xianxia_square', id:'xianxia_square', poi_id:'xianxia_square', name:'仙侠广场', type:'culture', area_id:'xianxia', access_roles:['AREA_ENTRANCE'], algorithm_x:66, algorithm_y:25, capacity:300, shade:.36, tags:['广场','仙侠','拍照'], location_source:'hand_map_reference' },
   { node_id:'xianxia_stage', id:'xianxia_stage', poi_id:'xianxia_stage', name:'仙侠奇境舞台', type:'show', area_id:'xianxia', algorithm_x:69, algorithm_y:33, capacity:280, shade:.61, tags:['演艺','仙侠','夜游'], location_source:'hand_map_reference' },
   { node_id:'film_studio', id:'film_studio', poi_id:'film_studio', name:'武侠影视城', type:'culture', area_id:'xianxia', algorithm_x:77, algorithm_y:34, capacity:260, shade:.67, tags:['影视','街区','拍照'], location_source:'hand_map_reference' },
-  { node_id:'art_square', id:'art_square', poi_id:'art_square', name:'江湖艺术广场', type:'culture', area_id:'jianghu_art', access_roles:['AREA_ENTRANCE'], algorithm_x:85, algorithm_y:41, capacity:340, shade:.3, tags:['艺术','市集','演艺'], location_source:'hand_map_reference' },
+  { node_id:'art_square', id:'art_square', poi_id:'art_square', name:'水晶广场', type:'culture', area_id:'jianghu_art', access_roles:['AREA_ENTRANCE'], algorithm_x:85, algorithm_y:41, capacity:340, shade:.3, tags:['广场','演艺','艺术'], location_source:'hand_map_reference' },
   { node_id:'children_park', id:'children_park', poi_id:'children_park', name:'儿童游乐场', type:'scenery', area_id:'jianghu_art', algorithm_x:91, algorithm_y:38, capacity:240, shade:.5, tags:['亲子','游乐','休闲'], location_source:'hand_map_reference' },
   { node_id:'circus', id:'circus', poi_id:'circus', name:'国际大马戏', type:'show', area_id:'wuxia_film', algorithm_x:1.68, algorithm_y:18.4, capacity:520, shade:.24, tags:['演艺','马戏','亲子'], location_source:'hand_map_reference' },
   { node_id:'tiger_hall', id:'tiger_hall', poi_id:'tiger_hall', name:'猛虎馆', type:'scenery', area_id:'wuxia_film', algorithm_x:4.06, algorithm_y:23.2, capacity:220, shade:.4, tags:['展馆','动物','亲子'], location_source:'hand_map_reference' },
@@ -49,7 +49,7 @@ const additions = [
   { node_id:'retro_block', id:'retro_block', poi_id:'retro_block', name:'70–80街区', type:'culture', area_id:'jianghu_art', algorithm_x:75, algorithm_y:23.2, capacity:300, shade:.46, tags:['街区','怀旧','拍照'], location_source:'hand_map_reference' },
   { node_id:'puyi_wharf', id:'puyi_wharf', poi_id:'puyi_wharf', name:'普济码头', type:'culture', area_id:'jianghu_art', algorithm_x:80.08, algorithm_y:20.6, capacity:240, shade:.31, tags:['码头','街区','拍照'], location_source:'hand_map_reference' },
   { node_id:'dyehouse', id:'dyehouse', poi_id:'dyehouse', name:'染坊', type:'culture', area_id:'water_margin', algorithm_x:35.23, algorithm_y:36.8, capacity:180, shade:.5, tags:['文化','手作','拍照'], location_source:'hand_map_reference' },
-  { node_id:'wulin_square', id:'wulin_square', poi_id:'wulin_square', name:'武林广场', type:'culture', area_id:'water_margin', algorithm_x:47.58, algorithm_y:26.4, capacity:320, shade:.35, tags:['广场','演艺','集散'], location_source:'hand_map_reference' },
+  { node_id:'wulin_square', id:'wulin_square', poi_id:'wulin_square', name:'武侠广场', type:'culture', area_id:'water_margin', algorithm_x:47.58, algorithm_y:26.4, capacity:320, shade:.35, tags:['广场','演艺','集散'], location_source:'hand_map_reference' },
   { node_id:'bailemen', id:'bailemen', poi_id:'bailemen', name:'百乐门', type:'culture', area_id:'wuxia_film', capacity:180, shade:.6, tags:['街区','建筑','拍照'], location_source:'hand_map_reference' },
   { node_id:'shili_yangchang', id:'shili_yangchang', poi_id:'shili_yangchang', name:'十里洋场', type:'culture', area_id:'shili_foreign', capacity:300, shade:.48, tags:['街区','建筑','拍照'], location_source:'hand_map_reference' },
   { node_id:'kuaipolin', id:'kuaipolin', poi_id:'kuaipolin', name:'快活林', type:'culture', area_id:'water_margin', capacity:180, shade:.72, tags:['水浒','林地','休憩'], location_source:'hand_map_reference' },
@@ -77,20 +77,26 @@ const handMapPositions = {
   theater:[1265,178], shizipo:[1580,198], summit:[2380,306], rest:[1340,292],
   juxianzhuang:[1815,226], westgate:[240,65], eastgate:[2490,164],
   fortress:[205,183], hero_square:[240,128], feiyunpu:[689,197], shenboat:[760,102],
-  wangpo_island:[947,210], water_street:[1100,174], wanfo_tower:[1395,59],
+  wangpo_island:[947,210], water_street:[1100,174], wanfo_tower:[1350,47],
   xianxia_square:[1690,126], xianxia_stage:[1772,165], film_studio:[1965,169],
   art_square:[2180,206], children_park:[2320,190],
   circus:[43,92], tiger_hall:[104,116], qianqiu_lake:[365,250],
   wanshou_lake:[1435,154], retro_block:[1920,116], puyi_wharf:[2050,103],
-  dyehouse:[902,184], wulin_square:[1218,132],
-  bailemen:[282,83], shili_yangchang:[486,90], kuaipolin:[887,151],
+  dyehouse:[902,184], wulin_square:[1273,102],
+  bailemen:[235,135], shili_yangchang:[486,90], kuaipolin:[887,151],
   chaguan:[980,157], zhu_family_fort:[1204,102], magic_square:[1515,102],
-  shuihu_li:[796,69], flower_camp:[2136,270], creative_market:[2290,225], forest_boardwalk:[2350,265]
+  shuihu_li:[860,115], flower_camp:[2136,270], creative_market:[2290,225], forest_boardwalk:[2350,265]
 };
 for (const node of graph.nodes) {
   node.area_id ||= areas[node.node_id];
   node.location_source ||= 'hand_map_reference';
   if (node.node_id === 'gate') node.name = '中门';
+  if (node.node_id === 'forest') node.name = '森林营地';
+  if (node.node_id === 'art_square') node.name = '水晶广场';
+  if (node.node_id === 'puyi_wharf') {
+    node.name = '民间艺术博物馆';
+    node.tags = ['博物馆','文化','艺术'];
+  }
 }
 const nodeIds = new Set(graph.nodes.map(node => node.node_id));
 for (const node of additions) if (!nodeIds.has(node.node_id)) graph.nodes.push(node);

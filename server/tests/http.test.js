@@ -66,17 +66,78 @@ let adminCookie = '';
     return { status: response.status, queue: route.queue, utility: route.utility, minutes: route.minutes };
   };
 
+  test('登录注册是平台外的独立入口，未登录首页先跳转', async () => {
+    await withServer(async base => {
+      const entry = await fetch(`${base}/`, { redirect: 'manual' });
+      assert.equal(entry.status, 302);
+      assert.equal(entry.headers.get('location'), '/login.html');
+      const directIndex = await fetch(`${base}/index.html`, { redirect: 'manual' });
+      assert.equal(directIndex.status, 302);
+      assert.equal(directIndex.headers.get('location'), '/login.html');
+      const loginPage = await fetch(`${base}/login.html`);
+      assert.equal(loginPage.status, 200);
+      assert.match(await loginPage.text(), /id="loginForm"/);
+      const guestPreview = await fetch(`${base}/?guest=1`, { redirect: 'manual' });
+      assert.equal(guestPreview.status, 200);
+      const registration = await fetch(`${base}/api/account/register`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'entry_test_user', password: 'entry-test-password-2026', displayName: '入口测试游客' })
+      });
+      assert.equal(registration.status, 201);
+      const registered = await registration.json();
+      assert.equal(registered.user.role, 'visitor');
+      const cookie = registration.headers.get('set-cookie').split(';')[0];
+      const signedInHome = await fetch(`${base}/`, { headers: { Cookie: cookie }, redirect: 'manual' });
+      assert.equal(signedInHome.status, 200);
+      const signedInLogin = await fetch(`${base}/login.html`, { headers: { Cookie: cookie }, redirect: 'manual' });
+      assert.equal(signedInLogin.status, 302);
+      assert.equal(signedInLogin.headers.get('location'), '/');
+    });
+  });
+
   test('隔离服务的真实 HTTP 联调与交付样例', async t => {
     const baseline = await withServer(async base => {
       const graph = await get(base, '/api/v1/scenic-graph');
       const state = await get(base, '/api/v1/state');
       const forecast = await get(base, '/api/v1/environment-forecast');
       const repeated = await get(base, '/api/v1/environment-forecast');
+      const worldModelStatus = await get(base, '/api/v1/world-model/experimental');
+      const worldModelPrediction = await post(base, '/api/v1/world-model/experimental', { observation: {
+        synthetic: true, source_tier: 'T4', timestamp: state.body.timestamp,
+        pois: { lake: { queue_count: 1 }, market: { queue_count: 2 } }
+      } });
+      const worldModelRealRejected = await post(base, '/api/v1/world-model/experimental', { observation: {
+        synthetic: false, source_tier: 'REAL', pois: { lake: { queue_count: 1 } }
+      } });
+      const graphTemporalStatus = await get(base, '/api/v1/world-model/graph-temporal');
+      const graphTemporalObservation = { synthetic: true, source_tier: 'T4', timestamp: state.body.timestamp,
+        pois: Object.fromEntries(graphFile.nodes.filter(node => node.poi_id).map(node => [node.poi_id, { queue_count: 2 }])),
+        roads: Object.fromEntries(graphFile.edges.map(edge => [edge.edge_id, { travel_time_min: edge.base_travel_time_min, is_open: true }])),
+        events: {}, weather: { category: 'CLEAR' } };
+      const graphTemporalPrediction = await post(base, '/api/v1/world-model/graph-temporal', { observation: graphTemporalObservation });
+      const crowdTrendStatus = await get(base, '/api/v1/world-model/crowd-trend');
+      const crowdTrendObservation = { synthetic: true, source_tier: 'T4', simulator_version: 'sim-dr-p1.1', timestamp: state.body.timestamp,
+        weather: { category: 'CLEAR' },
+        pois: Object.fromEntries(graphFile.nodes.filter(node => node.poi_id).map(node => [node.poi_id,
+          { is_open: true, queue_count: 2, crowd_ratio: 0.42 }])),
+        roads: Object.fromEntries(graphFile.edges.map(edge => [edge.edge_id,
+          { travel_time_min: edge.base_travel_time_min, is_open: true }])), events: {} };
+      const crowdTrendPrediction = await post(base, '/api/v1/world-model/crowd-trend', {
+        horizon_min: 30, observation: crowdTrendObservation,
+        routes: [{ route_id: 'sample-map1-route', node_ids: [graphFile.edges[0].from_node_id, graphFile.edges[0].to_node_id] }]
+      });
+      const crowdTrendRealRejected = await post(base, '/api/v1/world-model/crowd-trend', {
+        observation: { ...crowdTrendObservation, synthetic: false, source_tier: 'REAL' }
+      });
       const invalidHorizon = await get(base, '/api/v1/environment-forecast?horizon=-1');
       const invalidStep = await get(base, '/api/v1/environment-forecast?step=abc');
       const invalidEvent = await post(base, '/api/v1/scenario-event', invalidEventExample);
       const snapshot = await get(base, '/api/snapshot');
+      const routeDna = await get(base, '/api/route-dna');
+      const familyRouteDna = await get(base, `/api/route-dna?tags=${encodeURIComponent('亲子')}`);
       const navigation = await get(base, '/api/navigation?from=gate&to=southgate');
+      const navigationByTime = await get(base, '/api/navigation?from=gate&to=southgate&objective=time');
+      const navigationByDistance = await get(base, '/api/navigation?from=gate&to=southgate&objective=distance');
       const timestamp = state.body.timestamp;
       const market = Object.fromEntries(await Promise.all([0, 5, 20, 50].map(async offset => [offset, queueFields(await queue(base, 'market', timestamp, offset))])));
       const museum = queueFields(await queue(base, 'museum', timestamp, 5));
@@ -88,7 +149,27 @@ let adminCookie = '';
       const cPoiClick = await post(base, '/api/c/user-event', { event: { schema_version: state.body.schema_version, scenario_id: state.body.scenario_id, event_type: 'POI_CLICK', target_id: 'market', timestamp } });
       const cRoadClick = await post(base, '/api/c/user-event', { event: { schema_version: state.body.schema_version, scenario_id: state.body.scenario_id, event_type: 'ROAD_CLICK', edge_id: 'edge_001', timestamp } });
       const cInvalidClick = await post(base, '/api/c/user-event', { event: { schema_version: state.body.schema_version, scenario_id: state.body.scenario_id, event_type: 'POI_CLICK', target_id: 'private_poi', timestamp } });
-      return { graph, state, forecast, repeated, invalidHorizon, invalidStep, invalidEvent, snapshot, navigation, market, museum, edge001, replan, preferences, stateAfterPreference, snapshotAfterPreference, cPoiClick, cRoadClick, cInvalidClick };
+      return { graph, state, forecast, repeated, worldModelStatus, worldModelPrediction, worldModelRealRejected, graphTemporalStatus, graphTemporalPrediction, crowdTrendStatus, crowdTrendPrediction, crowdTrendRealRejected, invalidHorizon, invalidStep, invalidEvent, snapshot, routeDna, familyRouteDna, navigation, navigationByTime, navigationByDistance, market, museum, edge001, replan, preferences, stateAfterPreference, snapshotAfterPreference, cPoiClick, cRoadClick, cInvalidClick };
+    });
+
+    await t.test('DNA 路线接口返回扩充后的模板，并按特点真实筛选', () => {
+      assert.equal(baseline.routeDna.status, 200);
+      assert.ok(baseline.routeDna.body.seeds.length >= 8);
+      assert.equal(baseline.familyRouteDna.status, 200);
+      assert.ok(baseline.familyRouteDna.body.seeds.length > 0);
+      assert.ok(baseline.familyRouteDna.body.seeds.every(route => route.tags.includes('亲子')));
+      assert.ok(baseline.familyRouteDna.body.seeds.length < baseline.routeDna.body.seeds.length);
+    });
+
+    await t.test('自由点到点导航按距离选最短可行路，时间目标可显式切换', () => {
+      assert.equal(baseline.navigation.status, 200);
+      assert.equal(baseline.navigation.body.objective, 'time');
+      assert.equal(baseline.navigationByTime.status, 200);
+      assert.equal(baseline.navigationByTime.body.objective, 'time');
+      assert.equal(baseline.navigationByDistance.status, 200);
+      assert.equal(baseline.navigationByDistance.body.objective, 'distance');
+      assert.ok(baseline.navigationByDistance.body.totalDistance <= baseline.navigationByTime.body.totalDistance);
+      assert.equal(baseline.navigationByDistance.body.edgeSequence.length, baseline.navigationByDistance.body.path.length - 1);
     });
 
     await t.test('C地图点击使用统一ID回传且拒绝未知对象', () => {
@@ -98,6 +179,38 @@ let adminCookie = '';
       assert.equal(baseline.cRoadClick.status, 202);
       assert.equal(baseline.cRoadClick.body.event.edge_id, 'edge_001');
       assert.equal(baseline.cInvalidClick.status, 404);
+    });
+
+    await t.test('世界模型实验接口只接受T4合成输入且不进入规划链路', () => {
+      assert.equal(baseline.worldModelStatus.status, 200);
+      assert.equal(baseline.worldModelStatus.body.mode, 'experimental_shadow');
+      assert.equal(baseline.worldModelStatus.body.affects_planning, false);
+      assert.equal(baseline.worldModelPrediction.status, 200);
+      assert.equal(baseline.worldModelPrediction.body.synthetic, true);
+      assert.equal(baseline.worldModelPrediction.body.horizons.target_5.poi_predictions.lake.available, true);
+      assert.equal(baseline.worldModelPrediction.body.horizons.target_5.poi_predictions.market.available, true);
+      assert.equal(baseline.worldModelRealRejected.status, 400);
+    });
+
+    await t.test('图时序模型HTTP影子接口返回多步POI和道路预测', () => {
+      assert.equal(baseline.graphTemporalStatus.status, 200);
+      assert.equal(baseline.graphTemporalStatus.body.model_version, 'synthetic-world-model-v0.3');
+      assert.equal(baseline.graphTemporalStatus.body.affects_planning, false);
+      assert.equal(baseline.graphTemporalPrediction.status, 200);
+      assert.equal(baseline.graphTemporalPrediction.body.horizons['30'].poi_predictions.fortress.available, true);
+      assert.ok(baseline.graphTemporalPrediction.body.horizons['30'].poi_predictions.fortress.nonzero_probability >= 0);
+      assert.ok(baseline.graphTemporalPrediction.body.horizons['30'].poi_predictions.fortress.nonzero_probability <= 1);
+      assert.equal(baseline.graphTemporalPrediction.body.horizons['30'].road_predictions.edge_001.is_open, true);
+    });
+
+    await t.test('拥挤趋势HTTP接口仅接受T4模拟状态并返回地图1路线候选分数', () => {
+      assert.equal(baseline.crowdTrendStatus.status, 200);
+      assert.equal(baseline.crowdTrendStatus.body.affects_planning, false);
+      assert.equal(baseline.crowdTrendPrediction.status, 200);
+      assert.equal(baseline.crowdTrendPrediction.body.source_tier, 'T4');
+      assert.equal(baseline.crowdTrendPrediction.body.route_scores[0].route_id, 'sample-map1-route');
+      assert.equal(baseline.crowdTrendPrediction.body.route_scores_are_comparative_only, true);
+      assert.equal(baseline.crowdTrendRealRejected.status, 400);
     });
 
     await t.test('B完整八维偏好写入后端状态且当前方案可从快照恢复', () => {

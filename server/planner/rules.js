@@ -2,7 +2,7 @@
 
 const { mergeRules } = require('./config');
 const { addMinutes, diffMinutes, toMillis } = require('./time');
-const { queryQueue } = require('./forecast');
+const { queryQueue, interpolate } = require('./forecast');
 const { findPath } = require('./astar');
 
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -12,39 +12,81 @@ function actionId(action) { return `${action.action_type}:${action.target_id || 
 function getCandidateActions(graph, state, options = {}) {
   const visitor = options.visitor || state.visitor;
   const excluded = new Set(options.excluded_target_ids || []);
+  const required = new Set(options.required_target_ids || []);
   const actions = [];
   const nodeById = new Map((graph.nodes || []).map(node => [node.node_id, node]));
   const currentNode = nodeById.get(visitor.current_node_id) || {};
+  const edgeTimePerCoordinate = (graph.edges || []).reduce((sum, edge) => {
+    const from = nodeById.get(edge.from_node_id), to = nodeById.get(edge.to_node_id);
+    if (!from || !to) return sum;
+    const distance = Math.hypot(Number(from.algorithm_x || 0) - Number(to.algorithm_x || 0),
+      Number(from.algorithm_y || 0) - Number(to.algorithm_y || 0));
+    return distance > 0 ? sum + Number(edge.base_travel_time_min || 0) / distance : sum;
+  }, 0) / Math.max(1, (graph.edges || []).length);
   const preferred = new Set(visitor.preferred_categories || []);
+  const rules = mergeRules(options.rules || {});
   const poiCandidates = (graph.pois || [])
-    .filter(poi => !excluded.has(poi.poi_id) && !(visitor.visited_poi_ids || []).includes(poi.poi_id))
+    .filter(poi => (!required.size || required.has(poi.poi_id) || required.has(poi.node_id)) && !excluded.has(poi.poi_id) && !(visitor.visited_poi_ids || []).includes(poi.poi_id))
     .map(poi => {
       const node = nodeById.get(poi.node_id) || {};
-      const distance = Math.hypot(Number(node.algorithm_x || 0) - Number(currentNode.algorithm_x || 0), Number(node.algorithm_y || 0) - Number(currentNode.algorithm_y || 0));
-      const queue = Number(state.poi_states?.[poi.poi_id]?.current_queue_min || 0);
-      const priority = Number(poi.base_utility || 0) + (preferred.has(poi.category) ? 18 : 0) - distance * .12 - queue * .18;
+      const straightLineDistance = Math.hypot(Number(node.algorithm_x || 0) - Number(currentNode.algorithm_x || 0),
+        Number(node.algorithm_y || 0) - Number(currentNode.algorithm_y || 0));
+      // This is only a cheap pre-ranking ETA from Map1's schematic coordinate
+      // frame. The legal-action pass below still uses the actual routed ETA.
+      const estimatedTravelMin = straightLineDistance * edgeTimePerCoordinate * 1.25;
+      const arrivalTime = addMinutes(state.timestamp, estimatedTravelMin);
+      const queue = queryQueue(options.forecast, state, poi.poi_id, arrivalTime);
+      const series = options.forecast?.poi_predictions?.[poi.poi_id] || [];
+      const crowdRatio = Math.max(0, Math.min(1, interpolate(series, arrivalTime, 'crowd_ratio',
+        Number(state.poi_states?.[poi.poi_id]?.crowd_level || 0) / 4)));
+      const trendRisk = Math.max(0, Math.min(1, interpolate(series, arrivalTime, 'upward_trend_probability', 0)));
+      const sensitivity = Math.max(0, Math.min(1, Number(visitor.preference_profile?.sensitivities?.crowd
+        ?? Math.min(1, Number(visitor.preference_weights?.comfort || 0) * 2))));
+      const score = rules.score;
+      const crowdSeverity = crowdRatio ** 2 + Math.max(0, crowdRatio - .65) * 1.5;
+      const priority = Number(poi.base_utility || 0) * .62
+        + (preferred.has(poi.category) ? score.preference_reward * .5 : 0)
+        - estimatedTravelMin * score.walk_cost_per_min
+        - queue * score.queue_cost_per_min
+        - crowdSeverity * score.crowd_cost_per_ratio * (.35 + sensitivity)
+        - trendRisk * score.crowd_trend_cost * (.35 + sensitivity);
       return { poi, priority };
     })
-    .sort((a, b) => b.priority - a.priority);
+    .sort((a, b) => b.priority - a.priority || a.poi.poi_id.localeCompare(b.poi.poi_id));
   const candidateLimit = Number(options.candidate_limit || 0);
   for (const { poi } of candidateLimit > 0 ? poiCandidates.slice(0, candidateLimit) : poiCandidates) {
     actions.push({ action_type: 'VISIT_POI', target_id: poi.poi_id, target_node_id: poi.node_id });
   }
   for (const event of graph.events || []) {
-    if (!excluded.has(event.event_id) && !(visitor.attended_event_ids || []).includes(event.event_id)) {
+    if ((!required.size || required.has(event.event_id) || required.has(event.node_id)) && !excluded.has(event.event_id) && !(visitor.attended_event_ids || []).includes(event.event_id)) {
       actions.push({ action_type: 'ATTEND_EVENT', target_id: event.event_id, target_node_id: event.node_id });
     }
   }
   for (const facility of graph.facilities || []) {
     const needsRest = Number(visitor.fatigue || 0) >= Number(facility.min_fatigue || 0.4) || visitor.force_rest === true;
     const requiredByPreference = visitor.require_rest === true && !(visitor.visited_facility_ids || []).length;
-    if (facility.facility_type === 'rest' && (needsRest || requiredByPreference) && !excluded.has(facility.facility_id)) {
+    if (!required.size && facility.facility_type === 'rest' && (needsRest || requiredByPreference) && !excluded.has(facility.facility_id)) {
       actions.push({ action_type: 'REST', target_id: facility.facility_id, target_node_id: facility.node_id });
     }
   }
-  actions.push({ action_type: 'WAIT', target_id: 'wait', target_node_id: visitor.current_node_id });
-  for (const exit of graph.exits || []) {
-    actions.push({ action_type: 'EXIT', target_id: exit.exit_id, target_node_id: exit.node_id });
+  if (!required.size) {
+    const now = toMillis(state.timestamp);
+    const remaining = Number(visitor.remaining_time_min || 0);
+    const upcomingOpenings = (graph.pois || [])
+      .filter(poi => state.poi_states?.[poi.poi_id]?.is_open !== false && poi.open_time)
+      .map(poi => (toMillis(poi.open_time) - now) / 60000)
+      .filter(minutes => Number.isFinite(minutes) && minutes > 1)
+      .sort((a, b) => a - b);
+    const waitUntilOpenMin = Math.ceil(upcomingOpenings[0] || 0);
+    // Wait once until Map1's next known opening only when the visitor will
+    // still have a useful tour window afterwards. Never fill the plan with
+    // repeated arbitrary 10-minute waits.
+    if (waitUntilOpenMin > 0
+        && waitUntilOpenMin + rules.return_buffer_min + 30 <= remaining) {
+      actions.push({ action_type: 'WAIT', target_id: 'wait', target_node_id: visitor.current_node_id,
+        duration_min: waitUntilOpenMin });
+    }
+    for (const exit of graph.exits || []) actions.push({ action_type: 'EXIT', target_id: exit.exit_id, target_node_id: exit.node_id });
   }
   return actions;
 }
@@ -88,6 +130,9 @@ function isActionLegal({ graph, state, forecast, action, visitor = state.visitor
 
   const arrivalTime = addMinutes(state.timestamp, route.travel_time_min);
   let queueMin = 0;
+  let crowdRatio = 0;
+  let upwardTrendProbability = 0;
+  let crowdPredictionSource = null;
   let serviceStartTime = arrivalTime;
   let durationMin = 0;
   let waitMin = 0;
@@ -105,6 +150,8 @@ function isActionLegal({ graph, state, forecast, action, visitor = state.visitor
     if (definition.latest_entry_time && toMillis(arrivalTime) > toMillis(definition.latest_entry_time)) return reject(action, '预计到达时间超过最晚入场时间', route);
     if (definition.start_time && toMillis(arrivalTime) < toMillis(definition.start_time)) {
       waitMin = Math.max(0, diffMinutes(definition.start_time, arrivalTime));
+      if (waitMin > rules.max_event_wait_min) return reject(action,
+        `演出尚需等待 ${Math.round(waitMin)} 分钟，先安排其他景点，之后再重新规划`, route);
       serviceStartTime = definition.start_time;
     }
     durationMin = Number(definition.duration_min || 0);
@@ -112,6 +159,17 @@ function isActionLegal({ graph, state, forecast, action, visitor = state.visitor
     durationMin = Number(definition.rest_duration_min || 15);
   } else if (action.action_type === 'WAIT') {
     durationMin = Number(action.duration_min || rules.wait_duration_min);
+  }
+
+  if (['VISIT_POI', 'ATTEND_EVENT'].includes(action.action_type)) {
+    const crowdPoi = action.action_type === 'VISIT_POI'
+      ? graph.pois?.find(item => item.poi_id === action.target_id)
+      : graph.pois?.find(item => item.node_id === definition.node_id);
+    const crowdSeries = forecast.poi_predictions?.[crowdPoi?.poi_id] || [];
+    crowdRatio = Math.max(0, Math.min(1, interpolate(crowdSeries, arrivalTime, 'crowd_ratio', 0)));
+    upwardTrendProbability = Math.max(0, Math.min(1, interpolate(crowdSeries, arrivalTime, 'upward_trend_probability', 0)));
+    crowdPredictionSource = crowdSeries.some(point => point.prediction_source === 'trained_synthetic_transfer')
+      ? 'trained_synthetic_transfer' : crowdSeries[0]?.prediction_source || 'rule_simulation';
   }
 
   const completionTime = addMinutes(serviceStartTime, durationMin);
@@ -139,16 +197,20 @@ function isActionLegal({ graph, state, forecast, action, visitor = state.visitor
     service_start_time: serviceStartTime,
     completion_time: completionTime,
     predicted_queue_min: queueMin,
+    predicted_crowd_ratio: crowdRatio,
+    upward_trend_probability: upwardTrendProbability,
+    crowd_prediction_source: crowdPredictionSource,
     wait_time_min: waitMin,
     duration_min: durationMin,
     total_action_time_min: Math.round(totalActionMin * 100) / 100
   };
 }
 
-function getLegalActions({ graph, state, forecast, visitor = state.visitor, rules = {}, excluded_target_ids = [], candidate_limit = 0 }) {
+function getLegalActions({ graph, state, forecast, visitor = state.visitor, rules = {}, excluded_target_ids = [], candidate_limit = 0, required_target_ids = [] }) {
   const legal = [];
   const rejected = [];
-  for (const action of getCandidateActions(graph, state, { visitor, excluded_target_ids, candidate_limit })) {
+  for (const action of getCandidateActions(graph, state, { visitor, excluded_target_ids,
+    candidate_limit, required_target_ids, forecast, rules })) {
     const evaluation = isActionLegal({ graph, state, forecast, action, visitor, rules });
     (evaluation.legal ? legal : rejected).push(evaluation);
   }
@@ -212,6 +274,9 @@ function stepByRules({ graph, state, forecast, action, visitor = state.visitor, 
       visit_duration_min: checked.duration_min,
       arrival_time: checked.arrival_time,
       predicted_queue_min: checked.predicted_queue_min,
+      predicted_crowd_ratio: checked.predicted_crowd_ratio,
+      upward_trend_probability: checked.upward_trend_probability,
+      crowd_prediction_source: checked.crowd_prediction_source,
       service_start_time: checked.service_start_time,
       completion_time: checked.completion_time,
       travel_time_min: checked.route.travel_time_min,

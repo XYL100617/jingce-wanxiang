@@ -6,7 +6,11 @@ npm-debug.log*
 *.log
 server/data/accounts.local.json
 server/data/audit.local.jsonl
+server/data/companion-usage.local.json
+server/data/community.local.json
+server/data/operations.local.json
 server/data/.account-test-*/
 server/data/.http-test-*/
 .DS_Store
 Thumbs.db
+server/data/demo-showcase-accounts.local.txt

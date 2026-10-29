@@ -1,0 +1,1396 @@
+{
+  "schema_version": "1.0",
+  "dataset_status": "project_context_plus_unverified_map_records",
+  "park_context": {
+    "canonical_name": "万岁山·大宋武侠城",
+    "aliases": [
+      "大宋万岁山武侠城",
+      "万岁山武侠城"
+    ],
+    "location": "河南开封",
+    "map_relationship": "地图1依据真实景区导览资料项目化改绘；示意节点与路网不是测绘结果"
+  },
+  "source_graph": "server/data/scenic_graph.json",
+  "generated_at": "2026-10-29T07:21:23.106Z",
+  "record_count": 46,
+  "records": [
+    {
+      "id": "park-context-map-boundary",
+      "category": "guide",
+      "node_ids": [],
+      "title": "万岁山景区背景与地图1改绘边界",
+      "content": "项目景区背景是河南开封的现实景区“万岁山·大宋武侠城”，整体以大宋文化和武侠江湖为主题语境。地图1是在真实景区导览资料基础上进行的项目化改绘，不是原始测绘地图。景区背景、地图1的示意布局和规划器使用的节点/道路数据属于不同层次：地图1中调整过的节点名、示意坐标、道路折线、支路、分区入口和规划连通，未经景区或实地核验不能当作现场位置、可达性或运营事实。回答景区文化背景应依据可追溯资料；回答路线和现场问题要明确地图与现场之间的核实边界。",
+      "keywords": [
+        "万岁山",
+        "万岁山武侠城",
+        "景区背景",
+        "真实景区",
+        "地图1",
+        "地图一",
+        "导览图改绘",
+        "项目地图",
+        "地图边界"
+      ],
+      "source": {
+        "id": "project-scope-map-source-audit",
+        "title": "用户确认的景区背景与项目地图来源核对记录",
+        "kind": "application",
+        "locator": "docs/map-source-audit.md#项目背景与地图边界",
+        "verified": true
+      },
+      "review_status": "approved",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-gate",
+      "category": "culture",
+      "node_ids": [
+        "gate"
+      ],
+      "title": "中门：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“中门”，节点标签为“入口、检票、服务”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "中门",
+        "入口",
+        "检票",
+        "服务",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-gate",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/gate",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-southgate",
+      "category": "culture",
+      "node_ids": [
+        "southgate"
+      ],
+      "title": "南门入口：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“南门入口”，节点标签为“入口、停车、服务”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "南门入口",
+        "入口",
+        "停车",
+        "服务",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-southgate",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/southgate",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-lake",
+      "category": "culture",
+      "node_ids": [
+        "lake"
+      ],
+      "title": "九龙瀑：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“九龙瀑”，节点标签为“自然、瀑布、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "九龙瀑",
+        "自然",
+        "瀑布",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-lake",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/lake",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-market",
+      "category": "culture",
+      "node_ids": [
+        "market"
+      ],
+      "title": "非遗市集：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“非遗市集”，节点标签为“美食、市集、自由探索”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "非遗市集",
+        "美食",
+        "市集",
+        "自由探索",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-market",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/market",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-museum",
+      "category": "culture",
+      "node_ids": [
+        "museum"
+      ],
+      "title": "大宋武馆：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“大宋武馆”，节点标签为“展陈、武术、讲解”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "大宋武馆",
+        "展陈",
+        "武术",
+        "讲解",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-museum",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/museum",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-longtan",
+      "category": "culture",
+      "node_ids": [
+        "longtan"
+      ],
+      "title": "龙坛：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“龙坛”，节点标签为“宋文化、祈福、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "龙坛",
+        "宋文化",
+        "祈福",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-longtan",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/longtan",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-forest",
+      "category": "culture",
+      "node_ids": [
+        "forest"
+      ],
+      "title": "森林营地：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“森林营地”，节点标签为“自然、安静、探索”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "森林营地",
+        "自然",
+        "安静",
+        "探索",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-forest",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/forest",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-theater",
+      "category": "culture",
+      "node_ids": [
+        "theater"
+      ],
+      "title": "武林会场：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“武林会场”，节点标签为“演艺、预约、高价值”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "武林会场",
+        "演艺",
+        "预约",
+        "高价值",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-theater",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/theater",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-shizipo",
+      "category": "culture",
+      "node_ids": [
+        "shizipo"
+      ],
+      "title": "十字坡：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“十字坡”，节点标签为“演艺、互动、人流事件”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "十字坡",
+        "演艺",
+        "互动",
+        "人流事件",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-shizipo",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/shizipo",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-summit",
+      "category": "culture",
+      "node_ids": [
+        "summit"
+      ],
+      "title": "明清城墙观景点：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“明清城墙观景点”，节点标签为“城墙、视野、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "明清城墙观景点",
+        "城墙",
+        "视野",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-summit",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/summit",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-rest",
+      "category": "facilities",
+      "node_ids": [
+        "rest"
+      ],
+      "title": "松风驿站：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“松风驿站”，节点标签为“休息、补给、厕所”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "松风驿站",
+        "休息",
+        "补给",
+        "厕所",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-rest",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/rest",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-temple",
+      "category": "culture",
+      "node_ids": [
+        "temple"
+      ],
+      "title": "万岁寺：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“万岁寺”，节点标签为“古寺、文化、安静”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "万岁寺",
+        "古寺",
+        "文化",
+        "安静",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-temple",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/temple",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-juxianzhuang",
+      "category": "culture",
+      "node_ids": [
+        "juxianzhuang"
+      ],
+      "title": "聚贤庄：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“聚贤庄”，节点标签为“街巷、互动、美食”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "聚贤庄",
+        "街巷",
+        "互动",
+        "美食",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-juxianzhuang",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/juxianzhuang",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-westgate",
+      "category": "culture",
+      "node_ids": [
+        "westgate"
+      ],
+      "title": "西大门：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“西大门”，节点标签为“入口、检票、服务”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "西大门",
+        "入口",
+        "检票",
+        "服务",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-westgate",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/westgate",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-eastgate",
+      "category": "culture",
+      "node_ids": [
+        "eastgate"
+      ],
+      "title": "东大门：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“东大门”，节点标签为“入口、游客中心、服务”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "东大门",
+        "入口",
+        "游客中心",
+        "服务",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-eastgate",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/eastgate",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-fortress",
+      "category": "culture",
+      "node_ids": [
+        "fortress"
+      ],
+      "title": "城寨沙场：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“城寨沙场”，节点标签为“演艺、实景剧、水浒”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "城寨沙场",
+        "演艺",
+        "实景剧",
+        "水浒",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-fortress",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/fortress",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-hero_square",
+      "category": "culture",
+      "node_ids": [
+        "hero_square"
+      ],
+      "title": "好汉广场：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“好汉广场”，节点标签为“广场、互动、武侠”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "好汉广场",
+        "广场",
+        "互动",
+        "武侠",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-hero_square",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/hero_square",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-feiyunpu",
+      "category": "culture",
+      "node_ids": [
+        "feiyunpu"
+      ],
+      "title": "飞云浦：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“飞云浦”，节点标签为“演艺、武侠、互动”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "飞云浦",
+        "演艺",
+        "武侠",
+        "互动",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-feiyunpu",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/feiyunpu",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-shenboat",
+      "category": "culture",
+      "node_ids": [
+        "shenboat"
+      ],
+      "title": "神舟传奇：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“神舟传奇”，节点标签为“演艺、室内、科技”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "神舟传奇",
+        "演艺",
+        "室内",
+        "科技",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-shenboat",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/shenboat",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-wangpo_island",
+      "category": "culture",
+      "node_ids": [
+        "wangpo_island"
+      ],
+      "title": "王婆岛：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“王婆岛”，节点标签为“演艺、互动、水浒”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "王婆岛",
+        "演艺",
+        "互动",
+        "水浒",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-wangpo_island",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/wangpo_island",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-water_street",
+      "category": "culture",
+      "node_ids": [
+        "water_street"
+      ],
+      "title": "水浒街：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“水浒街”，节点标签为“街区、美食、水浒”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "水浒街",
+        "街区",
+        "美食",
+        "水浒",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-water_street",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/water_street",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-wanfo_tower",
+      "category": "culture",
+      "node_ids": [
+        "wanfo_tower"
+      ],
+      "title": "万佛塔：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“万佛塔”，节点标签为“古建、文化、祈福”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "万佛塔",
+        "古建",
+        "文化",
+        "祈福",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-wanfo_tower",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/wanfo_tower",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-xianxia_square",
+      "category": "culture",
+      "node_ids": [
+        "xianxia_square"
+      ],
+      "title": "仙侠广场：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“仙侠广场”，节点标签为“广场、仙侠、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "仙侠广场",
+        "广场",
+        "仙侠",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-xianxia_square",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/xianxia_square",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-xianxia_stage",
+      "category": "culture",
+      "node_ids": [
+        "xianxia_stage"
+      ],
+      "title": "仙侠奇境舞台：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“仙侠奇境舞台”，节点标签为“演艺、仙侠、夜游”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "仙侠奇境舞台",
+        "演艺",
+        "仙侠",
+        "夜游",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-xianxia_stage",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/xianxia_stage",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-film_studio",
+      "category": "culture",
+      "node_ids": [
+        "film_studio"
+      ],
+      "title": "武侠影视城：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“武侠影视城”，节点标签为“影视、街区、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "武侠影视城",
+        "影视",
+        "街区",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-film_studio",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/film_studio",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-art_square",
+      "category": "culture",
+      "node_ids": [
+        "art_square"
+      ],
+      "title": "水晶广场：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“水晶广场”，节点标签为“艺术、市集、演艺”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "水晶广场",
+        "艺术",
+        "市集",
+        "演艺",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-art_square",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/art_square",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-children_park",
+      "category": "culture",
+      "node_ids": [
+        "children_park"
+      ],
+      "title": "儿童游乐场：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“儿童游乐场”，节点标签为“亲子、游乐、休闲”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "儿童游乐场",
+        "亲子",
+        "游乐",
+        "休闲",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-children_park",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/children_park",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-circus",
+      "category": "culture",
+      "node_ids": [
+        "circus"
+      ],
+      "title": "国际大马戏：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“国际大马戏”，节点标签为“演艺、马戏、亲子”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "国际大马戏",
+        "演艺",
+        "马戏",
+        "亲子",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-circus",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/circus",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-tiger_hall",
+      "category": "culture",
+      "node_ids": [
+        "tiger_hall"
+      ],
+      "title": "猛虎馆：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“猛虎馆”，节点标签为“展馆、动物、亲子”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "猛虎馆",
+        "展馆",
+        "动物",
+        "亲子",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-tiger_hall",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/tiger_hall",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-qianqiu_lake",
+      "category": "culture",
+      "node_ids": [
+        "qianqiu_lake"
+      ],
+      "title": "千秋湖：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“千秋湖”，节点标签为“水景、休憩、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "千秋湖",
+        "水景",
+        "休憩",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-qianqiu_lake",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/qianqiu_lake",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-wanshou_lake",
+      "category": "culture",
+      "node_ids": [
+        "wanshou_lake"
+      ],
+      "title": "万寿湖：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“万寿湖”，节点标签为“水景、休憩、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "万寿湖",
+        "水景",
+        "休憩",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-wanshou_lake",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/wanshou_lake",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-retro_block",
+      "category": "culture",
+      "node_ids": [
+        "retro_block"
+      ],
+      "title": "70–80街区：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“70–80街区”，节点标签为“街区、怀旧、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "70–80街区",
+        "街区",
+        "怀旧",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-retro_block",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/retro_block",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-puyi_wharf",
+      "category": "culture",
+      "node_ids": [
+        "puyi_wharf"
+      ],
+      "title": "民间艺术博物馆：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“民间艺术博物馆”，节点标签为“博物馆、文化、艺术”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "民间艺术博物馆",
+        "博物馆",
+        "文化",
+        "艺术",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-puyi_wharf",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/puyi_wharf",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-dyehouse",
+      "category": "culture",
+      "node_ids": [
+        "dyehouse"
+      ],
+      "title": "染坊：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“染坊”，节点标签为“文化、手作、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "染坊",
+        "文化",
+        "手作",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-dyehouse",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/dyehouse",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-wulin_square",
+      "category": "culture",
+      "node_ids": [
+        "wulin_square"
+      ],
+      "title": "武侠广场：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“武侠广场”，节点标签为“广场、演艺、集散”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "武侠广场",
+        "广场",
+        "演艺",
+        "集散",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-wulin_square",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/wulin_square",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-bailemen",
+      "category": "culture",
+      "node_ids": [
+        "bailemen"
+      ],
+      "title": "百乐门：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“百乐门”，节点标签为“街区、建筑、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "百乐门",
+        "街区",
+        "建筑",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-bailemen",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/bailemen",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-shili_yangchang",
+      "category": "culture",
+      "node_ids": [
+        "shili_yangchang"
+      ],
+      "title": "十里洋场：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“十里洋场”，节点标签为“街区、建筑、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "十里洋场",
+        "街区",
+        "建筑",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-shili_yangchang",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/shili_yangchang",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-kuaipolin",
+      "category": "culture",
+      "node_ids": [
+        "kuaipolin"
+      ],
+      "title": "快活林：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“快活林”，节点标签为“水浒、林地、休憩”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "快活林",
+        "水浒",
+        "林地",
+        "休憩",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-kuaipolin",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/kuaipolin",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-chaguan",
+      "category": "facilities",
+      "node_ids": [
+        "chaguan"
+      ],
+      "title": "茶馆：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“茶馆”，节点标签为“茶饮、休憩、街区”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "茶馆",
+        "茶饮",
+        "休憩",
+        "街区",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-chaguan",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/chaguan",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-zhu_family_fort",
+      "category": "culture",
+      "node_ids": [
+        "zhu_family_fort"
+      ],
+      "title": "三打祝家庄：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“三打祝家庄”，节点标签为“演艺、实景剧、水浒”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "三打祝家庄",
+        "演艺",
+        "实景剧",
+        "水浒",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-zhu_family_fort",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/zhu_family_fort",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-magic_square",
+      "category": "culture",
+      "node_ids": [
+        "magic_square"
+      ],
+      "title": "魔力广场：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“魔力广场”，节点标签为“广场、互动、仙侠”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "魔力广场",
+        "广场",
+        "互动",
+        "仙侠",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-magic_square",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/magic_square",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-shuihu_li",
+      "category": "culture",
+      "node_ids": [
+        "shuihu_li"
+      ],
+      "title": "水浒里：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“水浒里”，节点标签为“街区、水浒、文化”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "水浒里",
+        "街区",
+        "水浒",
+        "文化",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-shuihu_li",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/shuihu_li",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-flower_camp",
+      "category": "culture",
+      "node_ids": [
+        "flower_camp"
+      ],
+      "title": "空中花海营地：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“空中花海营地”，节点标签为“花海、休憩、拍照”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "空中花海营地",
+        "花海",
+        "休憩",
+        "拍照",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-flower_camp",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/flower_camp",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-creative_market",
+      "category": "culture",
+      "node_ids": [
+        "creative_market"
+      ],
+      "title": "文创集市：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“文创集市”，节点标签为“文创、市集、购物”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "文创集市",
+        "文创",
+        "市集",
+        "购物",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-creative_market",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/creative_market",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    },
+    {
+      "id": "scenic-demo-forest_boardwalk",
+      "category": "culture",
+      "node_ids": [
+        "forest_boardwalk"
+      ],
+      "title": "林下栈道：项目示意图资料",
+      "content": "演示资料：景区背景为现实中的“万岁山·大宋武侠城”（河南开封），整体以大宋文化和武侠江湖为主题语境。本条地图资料来自地图1的项目化改绘：项目图使用节点名“林下栈道”，节点标签为“林地、步道、休憩”。这些图面字段不证明现场对应名称、建筑位置、服务情况或道路可达性；地图1并非测绘底图。若问及营业、演出、通行、安全或设施可用性，现有资料不足以确认，请依据景区公告或工作人员答复。",
+      "keywords": [
+        "林下栈道",
+        "林地",
+        "步道",
+        "休憩",
+        "景区介绍",
+        "导览",
+        "景点",
+        "推荐",
+        "游玩"
+      ],
+      "source": {
+        "id": "scenic-graph-forest_boardwalk",
+        "title": "景策万象项目示意路网（未实地核验）",
+        "kind": "demo",
+        "locator": "server/data/scenic_graph.json#nodes/forest_boardwalk",
+        "verified": false
+      },
+      "review_status": "demo",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    }
+  ]
+}

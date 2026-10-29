@@ -1,0 +1,501 @@
+{
+  "dataset": "Jester565/DisneylandData",
+  "source_sha256": "f1884f8f9036da7a874312189898b4093446293cf755c8e5b9d29ef1509bf702",
+  "source_rows": 668847,
+  "ride_count": 66,
+  "source_license": "No explicit upstream license found; local research comparison only",
+  "date_range": {
+    "first": "2017-05-22",
+    "train_end": "2018-04-23",
+    "validation_end": "2018-07-04",
+    "last": "2018-09-15"
+  },
+  "split_policy": "chronological date blocks; source and target remain in same date; no random rows",
+  "target": "waitMins at 30/60/120 minutes, nearest same-day reading within 5 minutes",
+  "model": "pooled normalized histogram gradient boosting, absolute-error loss; trained on train dates only",
+  "selection": "blend with persistence selected on validation wait-minute MAE, test used once",
+  "horizons": {
+    "30": {
+      "sample_counts": {
+        "train": 433829,
+        "val": 91377,
+        "test": 90234
+      },
+      "fit_sample_count": 120000,
+      "selected_blend_weight_on_validation": 0.0,
+      "validation_candidates": [
+        {
+          "weight": 0.0,
+          "n": 91377,
+          "normalized_mae": 0.169545129746705,
+          "wait_minutes_mae": 4.242325749368003,
+          "wait_minutes_rmse": 9.353461081628772,
+          "current_wait_ge_30": {
+            "n": 30929,
+            "wait_minutes_mae": 7.613404895082285
+          },
+          "future_change_ge_10": {
+            "n": 17875,
+            "wait_minutes_mae": 17.99927272727273
+          }
+        },
+        {
+          "weight": 0.1,
+          "n": 91377,
+          "normalized_mae": 0.17075375641178703,
+          "wait_minutes_mae": 4.2548134610691575,
+          "wait_minutes_rmse": 9.298650758453256,
+          "current_wait_ge_30": {
+            "n": 30929,
+            "wait_minutes_mae": 7.638852363872205
+          },
+          "future_change_ge_10": {
+            "n": 17875,
+            "wait_minutes_mae": 17.899668216183056
+          }
+        },
+        {
+          "weight": 0.25,
+          "n": 91377,
+          "normalized_mae": 0.17256827804794025,
+          "wait_minutes_mae": 4.273578526412185,
+          "wait_minutes_rmse": 9.228630823502842,
+          "current_wait_ge_30": {
+            "n": 30929,
+            "wait_minutes_mae": 7.6771225333241855
+          },
+          "future_change_ge_10": {
+            "n": 17875,
+            "wait_minutes_mae": 17.75043269025765
+          }
+        },
+        {
+          "weight": 0.5,
+          "n": 91377,
+          "normalized_mae": 0.1757217717064328,
+          "wait_minutes_mae": 4.307454712446902,
+          "wait_minutes_rmse": 9.145239058266942,
+          "current_wait_ge_30": {
+            "n": 30929,
+            "wait_minutes_mae": 7.748590801826624
+          },
+          "future_change_ge_10": {
+            "n": 17875,
+            "wait_minutes_mae": 17.514338348010025
+          }
+        },
+        {
+          "weight": 0.75,
+          "n": 91377,
+          "normalized_mae": 0.17903780245176587,
+          "wait_minutes_mae": 4.345027298568902,
+          "wait_minutes_rmse": 9.10442452187822,
+          "current_wait_ge_30": {
+            "n": 30929,
+            "wait_minutes_mae": 7.830979758058234
+          },
+          "future_change_ge_10": {
+            "n": 17875,
+            "wait_minutes_mae": 17.29482481142124
+          }
+        },
+        {
+          "weight": 1.0,
+          "n": 91377,
+          "normalized_mae": 0.18250292724481545,
+          "wait_minutes_mae": 4.385825515899901,
+          "wait_minutes_rmse": 9.10675969825083,
+          "current_wait_ge_30": {
+            "n": 30929,
+            "wait_minutes_mae": 7.922861329714401
+          },
+          "future_change_ge_10": {
+            "n": 17875,
+            "wait_minutes_mae": 17.087323529063575
+          }
+        }
+      ],
+      "test": {
+        "persistence": {
+          "n": 90234,
+          "normalized_mae": 0.16733220102646681,
+          "wait_minutes_mae": 4.293536804308797,
+          "wait_minutes_rmse": 9.80673393635627,
+          "current_wait_ge_30": {
+            "n": 27537,
+            "wait_minutes_mae": 8.313578094926825
+          },
+          "future_change_ge_10": {
+            "n": 17385,
+            "wait_minutes_mae": 18.584181765890136
+          }
+        },
+        "train_slot_median": {
+          "n": 90234,
+          "normalized_mae": 0.3774974239559632,
+          "wait_minutes_mae": 8.231463240633357,
+          "wait_minutes_rmse": 13.729535386416263,
+          "current_wait_ge_30": {
+            "n": 27537,
+            "wait_minutes_mae": 15.46570069361223
+          },
+          "future_change_ge_10": {
+            "n": 17385,
+            "wait_minutes_mae": 14.477710670117919
+          }
+        },
+        "learned": {
+          "n": 90234,
+          "normalized_mae": 0.17731041097705894,
+          "wait_minutes_mae": 4.46388900683733,
+          "wait_minutes_rmse": 9.467285286068812,
+          "current_wait_ge_30": {
+            "n": 27537,
+            "wait_minutes_mae": 8.721546814923176
+          },
+          "future_change_ge_10": {
+            "n": 17385,
+            "wait_minutes_mae": 17.49469434532625
+          }
+        },
+        "selected_blend": {
+          "n": 90234,
+          "normalized_mae": 0.16733220102646681,
+          "wait_minutes_mae": 4.293536804308797,
+          "wait_minutes_rmse": 9.80673393635627,
+          "current_wait_ge_30": {
+            "n": 27537,
+            "wait_minutes_mae": 8.313578094926825
+          },
+          "future_change_ge_10": {
+            "n": 17385,
+            "wait_minutes_mae": 18.584181765890136
+          }
+        }
+      }
+    },
+    "60": {
+      "sample_counts": {
+        "train": 412291,
+        "val": 86779,
+        "test": 85584
+      },
+      "fit_sample_count": 120000,
+      "selected_blend_weight_on_validation": 1.0,
+      "validation_candidates": [
+        {
+          "weight": 0.0,
+          "n": 86779,
+          "normalized_mae": 0.2651392526315941,
+          "wait_minutes_mae": 6.323188789914611,
+          "wait_minutes_rmse": 11.747174343154034,
+          "current_wait_ge_30": {
+            "n": 29825,
+            "wait_minutes_mae": 10.572170997485332
+          },
+          "future_change_ge_10": {
+            "n": 24429,
+            "wait_minutes_mae": 18.76724384952311
+          }
+        },
+        {
+          "weight": 0.1,
+          "n": 86779,
+          "normalized_mae": 0.26484660342611543,
+          "wait_minutes_mae": 6.282637931658371,
+          "wait_minutes_rmse": 11.542758076974884,
+          "current_wait_ge_30": {
+            "n": 29825,
+            "wait_minutes_mae": 10.504511321240733
+          },
+          "future_change_ge_10": {
+            "n": 24429,
+            "wait_minutes_mae": 18.450822023872345
+          }
+        },
+        {
+          "weight": 0.25,
+          "n": 86779,
+          "normalized_mae": 0.264414685259566,
+          "wait_minutes_mae": 6.221917808413636,
+          "wait_minutes_rmse": 11.263711558662528,
+          "current_wait_ge_30": {
+            "n": 29825,
+            "wait_minutes_mae": 10.403330702695198
+          },
+          "future_change_ge_10": {
+            "n": 24429,
+            "wait_minutes_mae": 17.976189285396202
+          }
+        },
+        {
+          "weight": 0.5,
+          "n": 86779,
+          "normalized_mae": 0.2640448757920598,
+          "wait_minutes_mae": 6.129258935237959,
+          "wait_minutes_rmse": 10.878278497694675,
+          "current_wait_ge_30": {
+            "n": 29825,
+            "wait_minutes_mae": 10.25734830286437
+          },
+          "future_change_ge_10": {
+            "n": 24429,
+            "wait_minutes_mae": 17.204109891859023
+          }
+        },
+        {
+          "weight": 0.75,
+          "n": 86779,
+          "normalized_mae": 0.26444574703924373,
+          "wait_minutes_mae": 6.057418205866959,
+          "wait_minutes_rmse": 10.601572526678856,
+          "current_wait_ge_30": {
+            "n": 29825,
+            "wait_minutes_mae": 10.155281484437158
+          },
+          "future_change_ge_10": {
+            "n": 24429,
+            "wait_minutes_mae": 16.463241018742444
+          }
+        },
+        {
+          "weight": 1.0,
+          "n": 86779,
+          "normalized_mae": 0.26580892172583703,
+          "wait_minutes_mae": 6.0127955852985835,
+          "wait_minutes_rmse": 10.442240610703465,
+          "current_wait_ge_30": {
+            "n": 29825,
+            "wait_minutes_mae": 10.10882596790226
+          },
+          "future_change_ge_10": {
+            "n": 24429,
+            "wait_minutes_mae": 15.767271998084881
+          }
+        }
+      ],
+      "test": {
+        "persistence": {
+          "n": 85584,
+          "normalized_mae": 0.2622236318410137,
+          "wait_minutes_mae": 6.412542063937185,
+          "wait_minutes_rmse": 12.310482847625082,
+          "current_wait_ge_30": {
+            "n": 26332,
+            "wait_minutes_mae": 11.641614765304572
+          },
+          "future_change_ge_10": {
+            "n": 23834,
+            "wait_minutes_mae": 19.280523621716874
+          }
+        },
+        "train_slot_median": {
+          "n": 85584,
+          "normalized_mae": 0.38632888875426996,
+          "wait_minutes_mae": 8.391524054901044,
+          "wait_minutes_rmse": 13.866423862644083,
+          "current_wait_ge_30": {
+            "n": 26332,
+            "wait_minutes_mae": 15.216656539571623
+          },
+          "future_change_ge_10": {
+            "n": 23834,
+            "wait_minutes_mae": 14.019782663422003
+          }
+        },
+        "learned": {
+          "n": 85584,
+          "normalized_mae": 0.26035612342767295,
+          "wait_minutes_mae": 6.138977133727953,
+          "wait_minutes_rmse": 10.927330542226484,
+          "current_wait_ge_30": {
+            "n": 26332,
+            "wait_minutes_mae": 11.237596223437993
+          },
+          "future_change_ge_10": {
+            "n": 23834,
+            "wait_minutes_mae": 16.05877544596779
+          }
+        },
+        "selected_blend": {
+          "n": 85584,
+          "normalized_mae": 0.26035612342767295,
+          "wait_minutes_mae": 6.138977133727953,
+          "wait_minutes_rmse": 10.927330542226484,
+          "current_wait_ge_30": {
+            "n": 26332,
+            "wait_minutes_mae": 11.237596223437993
+          },
+          "future_change_ge_10": {
+            "n": 23834,
+            "wait_minutes_mae": 16.05877544596779
+          }
+        }
+      }
+    },
+    "120": {
+      "sample_counts": {
+        "train": 376787,
+        "val": 79251,
+        "test": 77965
+      },
+      "fit_sample_count": 120000,
+      "selected_blend_weight_on_validation": 1.0,
+      "validation_candidates": [
+        {
+          "weight": 0.0,
+          "n": 79251,
+          "normalized_mae": 0.3721230869885686,
+          "wait_minutes_mae": 8.395086497331263,
+          "wait_minutes_rmse": 14.032789038975412,
+          "current_wait_ge_30": {
+            "n": 27919,
+            "wait_minutes_mae": 12.618503528063327
+          },
+          "future_change_ge_10": {
+            "n": 28338,
+            "wait_minutes_mae": 19.767273625520502
+          }
+        },
+        {
+          "weight": 0.1,
+          "n": 79251,
+          "normalized_mae": 0.3660006521082166,
+          "wait_minutes_mae": 8.20355874591957,
+          "wait_minutes_rmse": 13.574788202052462,
+          "current_wait_ge_30": {
+            "n": 27919,
+            "wait_minutes_mae": 12.351689610368188
+          },
+          "future_change_ge_10": {
+            "n": 28338,
+            "wait_minutes_mae": 19.133920293002824
+          }
+        },
+        {
+          "weight": 0.25,
+          "n": 79251,
+          "normalized_mae": 0.3569267480240093,
+          "wait_minutes_mae": 7.919420254765637,
+          "wait_minutes_rmse": 12.938763955666936,
+          "current_wait_ge_30": {
+            "n": 27919,
+            "wait_minutes_mae": 11.958106642228481
+          },
+          "future_change_ge_10": {
+            "n": 28338,
+            "wait_minutes_mae": 18.187320660479507
+          }
+        },
+        {
+          "weight": 0.5,
+          "n": 79251,
+          "normalized_mae": 0.34296353795741774,
+          "wait_minutes_mae": 7.480565199934633,
+          "wait_minutes_rmse": 12.038050139613551,
+          "current_wait_ge_30": {
+            "n": 27919,
+            "wait_minutes_mae": 11.369080419830915
+          },
+          "future_change_ge_10": {
+            "n": 28338,
+            "wait_minutes_mae": 16.637792950100344
+          }
+        },
+        {
+          "weight": 0.75,
+          "n": 79251,
+          "normalized_mae": 0.3321975303862601,
+          "wait_minutes_mae": 7.127753938251535,
+          "wait_minutes_rmse": 11.376655202762379,
+          "current_wait_ge_30": {
+            "n": 27919,
+            "wait_minutes_mae": 10.930196242228883
+          },
+          "future_change_ge_10": {
+            "n": 28338,
+            "wait_minutes_mae": 15.197275468129586
+          }
+        },
+        {
+          "weight": 1.0,
+          "n": 79251,
+          "normalized_mae": 0.3261750966963055,
+          "wait_minutes_mae": 6.9040728905942625,
+          "wait_minutes_rmse": 10.997841152541584,
+          "current_wait_ge_30": {
+            "n": 27919,
+            "wait_minutes_mae": 10.692690347044966
+          },
+          "future_change_ge_10": {
+            "n": 28338,
+            "wait_minutes_mae": 14.004682445729566
+          }
+        }
+      ],
+      "test": {
+        "persistence": {
+          "n": 77965,
+          "normalized_mae": 0.36193757027573015,
+          "wait_minutes_mae": 8.406130956198295,
+          "wait_minutes_rmse": 14.471759463568949,
+          "current_wait_ge_30": {
+            "n": 24256,
+            "wait_minutes_mae": 13.675709102902374
+          },
+          "future_change_ge_10": {
+            "n": 27265,
+            "wait_minutes_mae": 20.177663671373555
+          }
+        },
+        "train_slot_median": {
+          "n": 77965,
+          "normalized_mae": 0.40016799767990735,
+          "wait_minutes_mae": 8.6228504705235,
+          "wait_minutes_rmse": 13.992163277707563,
+          "current_wait_ge_30": {
+            "n": 24256,
+            "wait_minutes_mae": 14.945745382585752
+          },
+          "future_change_ge_10": {
+            "n": 27265,
+            "wait_minutes_mae": 13.318448560425454
+          }
+        },
+        "learned": {
+          "n": 77965,
+          "normalized_mae": 0.32126632542637357,
+          "wait_minutes_mae": 7.088493658752787,
+          "wait_minutes_rmse": 11.632699460967189,
+          "current_wait_ge_30": {
+            "n": 24256,
+            "wait_minutes_mae": 11.909616655048804
+          },
+          "future_change_ge_10": {
+            "n": 27265,
+            "wait_minutes_mae": 14.491029583699762
+          }
+        },
+        "selected_blend": {
+          "n": 77965,
+          "normalized_mae": 0.32126632542637357,
+          "wait_minutes_mae": 7.088493658752787,
+          "wait_minutes_rmse": 11.632699460967189,
+          "current_wait_ge_30": {
+            "n": 24256,
+            "wait_minutes_mae": 11.909616655048804
+          },
+          "future_change_ge_10": {
+            "n": 27265,
+            "wait_minutes_mae": 14.491029583699762
+          }
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Disneyland wait minutes are not Wansui wait minutes or crowd counts.",
+    "No event or graph data in this source; does not validate event propagation or route quality.",
+    "Conditioning on future change is an evaluation slice only, not an available online input."
+  ]
+}

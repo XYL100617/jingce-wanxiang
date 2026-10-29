@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "category": "emergency",
+  "records": [
+    {
+      "id": "emergency-fixed-handoff", "category": "emergency", "node_ids": [],
+      "title": "紧急求助固定引导",
+      "content": "紧急求助请使用页面的紧急求助入口，按固定流程联系景区工作人员或当地紧急服务。仅在你明确授权后共享位置；未得到系统接收确认前，我不会声称已有人受理、已派出救援或已找到安全通道。",
+      "keywords": ["求助", "紧急", "受伤", "危险", "救命", "急救", "迷路", "安全", "SOS"],
+      "source": { "id": "app-emergency-policy", "title": "应用紧急求助固定流程", "kind": "application", "locator": "server/data/companion/emergency.json#emergency-fixed-handoff", "verified": true },
+      "review_status": "approved", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "emergency-child-separated", "category": "emergency", "node_ids": [],
+      "title": "儿童走失固定引导",
+      "content": "与家人走散时，请通过紧急求助入口联系景区工作人员。不要跟随陌生人离园，不公开姓名、电话或精确位置；位置只在明确授权后提交给求助流程。我不能代替工作人员确认监护人身份或处置结果。",
+      "keywords": ["儿童", "孩子", "走失", "走散", "找不到家长", "陌生人", "监护人"],
+      "source": { "id": "app-child-safety-policy", "title": "应用儿童走失固定引导", "kind": "application", "locator": "server/data/companion/emergency.json#emergency-child-separated", "verified": true },
+      "review_status": "approved", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    }
+  ]
+}

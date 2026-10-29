@@ -1,0 +1,189 @@
+{
+  "schema_version": "1.0",
+  "park": "万岁山·大宋武侠城",
+  "source_policy": "只采用公开景区介绍中明确提及的稳定主题信息，不包含开放时间、当前演出、设施状态或现场路线判断。项目地图节点与实景的位置对应关系尚未全面核实。",
+  "source": {
+    "title": "开封万岁山武侠城景点简介（第三方旅游平台参考）",
+    "url": "https://www.ctsb.com.cn/SceneryShow?ID=17",
+    "type": "secondary_reference"
+  },
+  "project_map_source": {
+    "title": "景策万象地图1项目图名称与标签",
+    "locator": "server/data/scenic_graph.json#nodes",
+    "type": "project_demo_unverified"
+  },
+  "briefings": {
+    "lake": {
+      "mode": "public_reference",
+      "text": "公开景区介绍提到“九龙瀑”及其溪流、瀑布景观。这里的介绍仅对应景区主题资料；项目地图上的节点位置仍是示意。",
+      "source_excerpt": "介绍提及国内较大的人造溪流瀑布群之一“九龙瀑”。"
+    },
+    "longtan": {
+      "mode": "public_reference",
+      "text": "公开景区介绍将“龙坛”描述为体现佛、儒、道精神的景观。",
+      "source_excerpt": "介绍称龙坛体现佛儒道精神。"
+    },
+    "temple": {
+      "mode": "public_reference",
+      "text": "公开景区介绍提到“万岁寺”，并以宋代古刹作为其主题背景；建筑年代和文物属性请以景区正式介绍为准。",
+      "source_excerpt": "介绍称万岁寺再现宋代古刹辉煌。"
+    },
+    "summit": {
+      "mode": "public_reference",
+      "text": "公开景区介绍提及景区内的明清古城墙遗址。项目地图将此节点标为“明清城墙观景点”，但该节点与遗址的现场位置对应关系尚未核实。",
+      "source_excerpt": "介绍将明清古城墙遗址列为景区景观。"
+    },
+    "museum": {
+      "mode": "public_reference",
+      "text": "公开景区介绍提到大宋武馆中的“侠客图”，是景区武侠主题氛围的展示元素。",
+      "source_excerpt": "介绍提及大宋武馆的侠客图。"
+    },
+    "shizipo": {
+      "mode": "public_reference",
+      "text": "公开景区介绍提到十字坡的“剑坛”，并列举以《十字坡》为题的武侠剧目；当日是否演出需以景区公告为准。",
+      "source_excerpt": "介绍提及十字坡的剑坛及《十字坡》剧目。"
+    },
+    "juxianzhuang": {
+      "mode": "public_reference",
+      "text": "公开景区介绍将聚贤庄列为体现武侠文化氛围的建筑元素之一。",
+      "source_excerpt": "介绍将聚贤庄列入景区武侠文化建筑元素。"
+    },
+    "theater": {
+      "mode": "public_reference",
+      "text": "公开景区介绍提及武林会场与“八大门派”的主题元素；具体演出安排不由这段静态介绍确定。",
+      "source_excerpt": "介绍提及武林会场的八大门派。"
+    },
+    "market": {
+      "mode": "creative_story",
+      "text": "把脚步放慢些，像走进一段热闹的江湖市井：看一看、闻一闻，再挑个喜欢的方向继续逛。"
+    },
+    "forest": {
+      "mode": "creative_story",
+      "text": "暂别热闹，给自己一段林间漫游的想象：听风穿过枝叶，把下一站留给偶遇。"
+    },
+    "rest": {
+      "mode": "creative_story",
+      "text": "走累了，就把这里当作行程里的留白。停一停、缓口气，再决定接下来往哪边走。"
+    },
+    "fortress": {
+      "mode": "creative_story",
+      "text": "沙场故事最适合从一声喝彩开始。站在这里，想象英雄登场、旌旗翻卷的江湖一幕。"
+    },
+    "hero_square": {
+      "mode": "creative_story",
+      "text": "好汉相逢的故事，总从广场上的一声招呼开始。适合稍作停留，也适合作为结伴集合的想象坐标。"
+    },
+    "feiyunpu": {
+      "mode": "creative_story",
+      "text": "飞云浦自带一段紧张的江湖戏感：不妨把脚步放轻，想象故事正要在转角处展开。"
+    },
+    "shenboat": {
+      "mode": "creative_story",
+      "text": "循着“神舟”二字，给这站添一点奇想：像乘一叶轻舟穿过传奇，暂时把日常烦忧留在岸边。"
+    },
+    "wangpo_island": {
+      "mode": "creative_story",
+      "text": "岛名让人想到水岸边的传奇相逢。慢慢走过这一站，给旅程留一段轻松的故事空白。"
+    },
+    "water_street": {
+      "mode": "creative_story",
+      "text": "水浒街适合边走边看，把街巷当作江湖故事的章节；至于沿途有什么，留给当天的现场发现。"
+    },
+    "wanfo_tower": {
+      "mode": "creative_story",
+      "text": "塔影入画，故事便有了远近层次。抬头看一眼，再沿着自己的节奏继续寻访。"
+    },
+    "xianxia_square": {
+      "mode": "creative_story",
+      "text": "来到仙侠广场，给想象一点腾云驾雾的空间。拍下此刻，也把下一站写进自己的游历篇章。"
+    },
+    "xianxia_stage": {
+      "mode": "creative_story",
+      "text": "舞台是故事亮相的地方。即使只是路过，也可以想象灯影落下时，仙侠人物正要登场。"
+    },
+    "film_studio": {
+      "mode": "creative_story",
+      "text": "走进影视主题的想象场景，像是暂时借来一个江湖身份；真正能看到什么，以现场开放为准。"
+    },
+    "art_square": {
+      "mode": "creative_story",
+      "text": "在艺术与市集的主题想象里换个步调：看看周围的色彩和人群，让探索本身成为这一站的内容。"
+    },
+    "children_park": {
+      "mode": "creative_story",
+      "text": "亲子同行时，把这一站留给轻松和笑声；具体项目与开放情况请到现场确认。"
+    },
+    "circus": {
+      "mode": "creative_story",
+      "text": "马戏总让人想到灯光亮起前的期待。若当天有演出，不妨提前核对场次，再安排停留。"
+    },
+    "tiger_hall": {
+      "mode": "creative_story",
+      "text": "循着“猛虎”之名，想象一段山林奇遇。展陈与开放情况以现场信息为准，别错过沿途的主题氛围。"
+    },
+    "qianqiu_lake": {
+      "mode": "creative_story",
+      "text": "湖名带着悠长的回声，适合把行程稍稍放缓，在水景主题的想象里歇一歇。"
+    },
+    "wanshou_lake": {
+      "mode": "creative_story",
+      "text": "给这一站留几分钟安静：看看水色、整理步伐，再从容地走向下一处。"
+    },
+    "retro_block": {
+      "mode": "creative_story",
+      "text": "旧时光像一封没有寄出的信。沿着街区主题慢慢逛，试着找找最合心意的那一帧。"
+    },
+    "puyi_wharf": {
+      "mode": "creative_story",
+      "text": "码头总是故事启程的地方。把这一站想成江湖旅程的渡口，停一停，再继续前行。"
+    },
+    "dyehouse": {
+      "mode": "creative_story",
+      "text": "染色的想象从一抹颜色开始。把这里当作传统手作主题的一站，细节体验请以现场实际安排为准。"
+    },
+    "wulin_square": {
+      "mode": "creative_story",
+      "text": "武林故事不只在擂台，也在每一次相逢。这里适合稍作停留，看看当天的场景与活动安排。"
+    },
+    "bailemen": {
+      "mode": "creative_story",
+      "text": "街区名字自带旧日繁华的戏剧感。慢下来观察建筑与街景，把自己的发现留作旅途注脚。"
+    },
+    "shili_yangchang": {
+      "mode": "creative_story",
+      "text": "十里洋场像一幕正在铺开的城市戏。顺着街景慢慢走，挑一处喜欢的角落停留片刻。"
+    },
+    "kuaipolin": {
+      "mode": "creative_story",
+      "text": "快活林适合把心情调轻一点：不赶路，按自己的节奏穿过这一段主题旅程。"
+    },
+    "chaguan": {
+      "mode": "creative_story",
+      "text": "茶馆让人自然想到一段歇脚闲谈。把它当作休息主题的想象节点，实际服务信息以现场为准。"
+    },
+    "zhu_family_fort": {
+      "mode": "creative_story",
+      "text": "祝家庄的名字牵出一段水浒故事。把这一站当作剧情里的转折处，演出与活动安排另看当日公告。"
+    },
+    "magic_square": {
+      "mode": "creative_story",
+      "text": "魔力广场留给奇思妙想：把普通的一段步行，想成即将开启的小小冒险。"
+    },
+    "shuihu_li": {
+      "mode": "creative_story",
+      "text": "水浒里的故事有豪气，也有烟火气。沿街慢游，看看这段主题街区如何融入自己的路线。"
+    },
+    "flower_camp": {
+      "mode": "creative_story",
+      "text": "花海是季节写给旅人的一封信。把这站留作轻松停靠，实际花期与景观请以现场为准。"
+    },
+    "creative_market": {
+      "mode": "creative_story",
+      "text": "文创集市像一页可以带走的旅途记忆。逛不逛、买不买，都可以按自己的节奏决定。"
+    },
+    "forest_boardwalk": {
+      "mode": "creative_story",
+      "text": "把脚步交给林下小径的想象，走一段安静的路，为接下来的热闹留足精神。"
+    }
+  }
+}

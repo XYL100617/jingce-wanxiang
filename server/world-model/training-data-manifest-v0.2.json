@@ -1,0 +1,44 @@
+{
+  "dataset_version": "schedule-enriched-v0.2-fixed",
+  "dataset_schema_version": "dataset-p1.1",
+  "source_tier": "T4",
+  "synthetic": true,
+  "graph_version": "1.0",
+  "simulator_version": "sim-dr-p1.1+program-schedule-randomization",
+  "schedule_reference": "server/simulator/program-schedule-reference.json",
+  "base_dataset": "dataset_v0.1",
+  "base_environment_samples": 1080,
+  "added_scenario_templates": 5,
+  "added_seeds": [
+    501,
+    502,
+    503
+  ],
+  "added_steps_per_trajectory": 36,
+  "added_environment_samples": 540,
+  "total_environment_samples": 1620,
+  "group_counts": {
+    "train": 42,
+    "val": 9,
+    "test": 9
+  },
+  "files": {
+    "environment/train.jsonl": {
+      "samples": 1164,
+      "bytes": 98296772,
+      "sha256": "1b9fe26398110bb6b0f07e74a1604d47cf780bd93d1497edbb25e0b4536ab08a"
+    },
+    "environment/val.jsonl": {
+      "samples": 216,
+      "bytes": 17561152,
+      "sha256": "8d2a6dbcca7842b945a75240396c1c2c5ea25fe21b2f6cec3528a67395ffdacc"
+    },
+    "environment/test.jsonl": {
+      "samples": 240,
+      "bytes": 19892150,
+      "sha256": "7444e09205a7c15f5ef506216c7c5ca3171dbd4ebb9f04913555acadbb2dfb64"
+    }
+  },
+  "program_event_policy": "T4 event identities/venues are selected from an undated reference catalog; each scenario randomizes inclusion, start offset, duration and capacity. Reference timetable values are not used as current operations.",
+  "limitation": "Simulation-only; not calibrated against real crowd, queue, road occupancy or event attendance observations."
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "category": "guide",
+  "records": [
+    {
+      "id": "guide-route-authority", "category": "guide", "node_ids": [],
+      "title": "路线建议与更改规则",
+      "content": "我可以解释当前路线与偏好的关系，或提出休息、看演出和更换景点的建议。实际更改路线必须调用 C 的规划接口，并收到明确的可执行结果；建议本身不会改变路线。",
+      "keywords": ["路线", "推荐", "为什么", "更改", "换路线", "规划", "偏好", "下一站"],
+      "source": { "id": "app-route-policy", "title": "应用路线更改规则", "kind": "application", "locator": "server/data/companion/guide.json#guide-route-authority", "verified": true },
+      "review_status": "approved", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "guide-location-permission", "category": "guide", "node_ids": [],
+      "title": "拒绝位置权限时的陪伴方式",
+      "content": "不授权位置也可以查询景点介绍和服务规则。你可以手动选择景点；我会说明缺少当前位置，无法确认你所在路口或给出定位转向提示。",
+      "keywords": ["位置", "定位", "权限", "隐私", "拒绝", "手动", "转向"],
+      "source": { "id": "app-location-policy", "title": "应用位置授权规则", "kind": "application", "locator": "server/data/companion/guide.json#guide-location-permission", "verified": true },
+      "review_status": "approved", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "guide-offline-policy", "category": "guide", "node_ids": [],
+      "title": "离线陪伴与实时信息限制",
+      "content": "断网时仍可阅读本地已审核介绍，继续查看已有路线。天气、排队、封路、开放与演出变更等实时信息无法确认时，我会明确提示无法确认，并建议查看现场公告或联系工作人员。",
+      "keywords": ["离线", "断网", "没网络", "天气", "排队", "封路", "公告", "实时", "过时"],
+      "source": { "id": "app-offline-policy", "title": "应用断网降级规则", "kind": "application", "locator": "server/data/companion/guide.json#guide-offline-policy", "verified": true },
+      "review_status": "approved", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    },
+    {
+      "id": "guide-rest-policy", "category": "guide", "node_ids": [],
+      "title": "休息建议的说明",
+      "content": "如果你表示疲惫，可以先提出休息建议。具体休息设施、到达路线和当前可用情况需要核对地图与运营信息；不会仅凭介绍就承诺设施开放。",
+      "keywords": ["休息", "累了", "疲惫", "疲劳", "走不动", "补给"],
+      "source": { "id": "app-rest-policy", "title": "应用休息建议规则", "kind": "application", "locator": "server/data/companion/guide.json#guide-rest-policy", "verified": true },
+      "review_status": "approved", "effective_from": "2026-01-01T00:00:00+08:00", "effective_until": null
+    }
+  ]
+}

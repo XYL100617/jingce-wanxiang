@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "category": "official",
+  "records": [
+    {
+      "id": "official-source-pending",
+      "category": "official",
+      "node_ids": [],
+      "title": "景区官方事实待核验",
+      "content": "尚未收录经景区确认的官方事实。现有地图为项目演示资料，不能作为真实运营或安全依据。",
+      "keywords": ["官方", "事实", "来源", "景区"],
+      "source": { "id": "official-pending", "title": "待景区提供并审核的官方资料", "kind": "official", "locator": "pending:operator-confirmation", "verified": false },
+      "review_status": "pending",
+      "effective_from": "2026-01-01T00:00:00+08:00",
+      "effective_until": null
+    }
+  ]
+}
